@@ -1,14 +1,21 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+mod route;
+
+struct OvhClient {
+    endpoint: String,
+    application_key: String,
+    application_secret: String,
+    consumer_key: String,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+impl OvhClient {
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    fn new(endpoint: String, application_key: String, application_secret: String, consumer_key: String) -> Self {
+        Self {
+            endpoint,
+            application_key,
+            application_secret,
+            consumer_key,
+        }
     }
+
 }
