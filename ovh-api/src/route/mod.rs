@@ -1,3 +1,3 @@
 mod cloud;
 
-use crate::OvhClient;
+pub use crate::OvhClient;
