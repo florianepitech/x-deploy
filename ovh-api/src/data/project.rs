@@ -1,15 +1,15 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Project {
+pub struct Project {
     project_id: String,
     project_name: String,
     description: String,
     plan_code: String,
     unleash: bool,
-    expiration: Option<String>,  // Assuming expiration can be null, hence Option
+    expiration: Option<String>,
     creation_date: String,
-    order_id: Option<String>,    // Assuming order_id can be null, hence Option
+    order_id: Option<String>,
     access: String,
     status: String,
     manual_quota: bool,
@@ -17,7 +17,7 @@ struct Project {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Iam {
+pub struct Iam {
     id: String,
     urn: String,
 }

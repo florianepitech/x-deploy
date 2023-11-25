@@ -1,11 +1,11 @@
-use reqwest::{Error, Response};
+use reqwest::{Error, Response, Url};
 
 mod route;
 mod data;
 
 pub(crate) const OVH_BASE_URL: &str = "https://api.ovh.com/1.0";
 
-struct OvhClient {
+pub struct OvhClient {
     application_key: String,
     application_secret: String,
     consumer_key: String,
@@ -13,7 +13,7 @@ struct OvhClient {
 }
 
 impl OvhClient {
-    fn new(
+    pub fn new(
         application_key: String,
         application_secret: String,
         consumer_key: String,
@@ -30,8 +30,13 @@ impl OvhClient {
         &self,
         url: &str,
     ) -> Result<Response, Error> {
-        let url = reqwest::Url::parse(&url).unwrap();
-        let request = reqwest::Request::new(reqwest::Method::GET, url);
+        let url: Url = Url::parse(&url).unwrap();
+        let base_request = reqwest::Request::new(reqwest::Method::GET, url);
+        let request = reqwest::RequestBuilder::from_parts(self.reqwest_client.clone(), base_request)
+            .header("X-Ovh-Application", self.application_key.as_str())
+            .header("X-Ovh-Consumer", self.consumer_key.as_str())
+            .build()
+            .unwrap();
         self.reqwest_client.execute(request).await
     }
 }
