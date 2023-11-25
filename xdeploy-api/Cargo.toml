@@ -6,4 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ovh-api = { path = "../ovh-api" }
+rocket = "0.5.0"
+ovh-api = {path = "../ovh-api"}
