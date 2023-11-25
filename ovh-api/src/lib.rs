@@ -1,7 +1,7 @@
 use reqwest::{Error, Response, Url};
 
-mod route;
-mod data;
+pub mod route;
+pub mod data;
 
 pub(crate) const OVH_BASE_URL: &str = "https://api.ovh.com/1.0";
 
