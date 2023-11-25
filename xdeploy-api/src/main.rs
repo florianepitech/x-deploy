@@ -24,9 +24,9 @@ struct Cluster {
 struct Project {
     name: String,
     description: String,
-    version: String,
     status: String,
 }
+
 
 #[openapi(tag = "Clusters")]
 #[get("/clusters")]
@@ -45,13 +45,17 @@ fn create_cluster(cluster: Json<Cluster>) -> &'static str {
 
 #[openapi(tag = "Projects")]
 #[get("/projects")]
-fn get_projects() ->  &'static str {
+fn get_projects() -> Vec<Project> {
     let client = OvhClient::new(
         "".to_string(),
         "".to_string(),
         "".to_string()
     );
-    "Hello, world!"
+    return vec![Project {
+        name: "test".to_string(),
+        description: "test".to_string(),
+        status: "test".to_string(),
+    }]
 }
 
 
