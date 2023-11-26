@@ -8,8 +8,9 @@ use k8s_openapi::api::apps::v1::Deployment;
 use k8s_openapi::api::core::v1::Pod;
 use rocket::futures::{FutureExt, stream, StreamExt};
 use ovh_api::data::kbs_cluster::KbsCluster;
-use kube::client;
+use kube::{Api, client};
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::LabelSelector;
+use kube::api::PostParams;
 
 
 // use rocket_okapi::{openapi, openapi_get_routes};
@@ -35,10 +36,8 @@ struct DeployInfo {
     cluster_id: String,
     deployment_name: String,
     app_name: String,
-    namespace: String,
     image: String,
     tag: String,
-    replicas: u32,
 }
 
 
@@ -89,7 +88,12 @@ async fn deploy_in_cluster(deployment: Json<DeployInfo>) -> &'static str {
         }),
         ..Default::default()
     };
-    "Hello, world!"
+    let deployments: Api<Deployment> = Api::namespaced(kube_client, "default");
+    match deployments.create(&PostParams::default(), &deployment).await {
+        Ok(_) => println!("Deployment created successfully"),
+        Err(e) => eprintln!("Failed to create deployment: {}", e),
+    }
+    "Success ???"
 }
 
 #[get("/clusters/<project_id>")]
@@ -160,5 +164,5 @@ async fn get_projects() -> Json<Vec<Project>> {
 fn rocket() -> _ {
     dotenv::dotenv().ok();
     rocket::build()
-        .mount("/",  routes![get_clusters, create_cluster, get_projects])
+        .mount("/",  routes![get_clusters, create_cluster, get_projects, deploy_in_cluster])
 }
