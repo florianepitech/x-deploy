@@ -25,10 +25,11 @@ extern crate ovh_api;
 
 #[macro_use] extern crate rocket;
 
+#[derive(Clone, Deserialize)]
 struct Cluster {
 
 }
-#[derive(Clone)]
+#[derive(Clone, Deserialize)]
 struct DeployInfo {
     project_id: String,
     cluster_id: String,
@@ -75,8 +76,8 @@ async fn deploy_in_cluster(deployment: Json<DeployInfo>) -> &'static str {
                 spec: Some(k8s_openapi::api::core::v1::PodSpec {
                     containers: vec![
                         k8s_openapi::api::core::v1::Container {
-                            name: deployment_clone.app_name.as_str().parse().unwrap() + "-container",
-                            image: Some(deployment_clone.image.as_str().parse().unwrap() + ":" + deployment_clone.tag.as_str()),
+                            name: deployment_clone.app_name.to_string() + "-container",
+                            image: Some(deployment_clone.image.to_string() + ":" + deployment_clone.tag.as_str()),
                             ..Default::default()
                         },
                     ],
