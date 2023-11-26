@@ -28,7 +28,7 @@ extern crate ovh_api;
 struct Cluster {
 
 }
-
+#[derive(Clone)]
 struct DeployInfo {
     project_id: String,
     cluster_id: String,
