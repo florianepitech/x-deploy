@@ -83,9 +83,11 @@ mod tests {
         );
         let result = get_project_list(&client).await;
         println!("{:?}", result);
-        assert!(!result.unwrap().is_empty());
 
-        let result = get_project_info(&client, result.unwrap().first().unwrap()).await;
+        let ids = result.unwrap();
+        assert!(!ids.is_empty());
+
+        let result = get_project_info(&client, ids.first().unwrap()).await;
         println!("{:?}", result);
         assert!(result.is_ok());
     }
