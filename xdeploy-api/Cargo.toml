@@ -12,3 +12,4 @@ rocket_okapi = {version = "0.8.0-rc.3", features = ["rapidoc", "swagger"]}
 dotenv = "0.15.0"
 kube = { version = "0.87.1", features = ["runtime", "derive"] }
 k8s-openapi = { version = "0.20.0", features = ["latest"] }
+serde_yaml = "0.9.27"
