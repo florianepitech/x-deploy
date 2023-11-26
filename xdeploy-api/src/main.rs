@@ -90,10 +90,13 @@ async fn deploy_in_cluster(deployment: Json<DeployInfo>) -> &'static str {
     };
     let deployments: Api<Deployment> = Api::namespaced(kube_client, "default");
     match deployments.create(&PostParams::default(), &deployment).await {
-        Ok(_) => println!("Deployment created successfully"),
-        Err(e) => eprintln!("Failed to create deployment: {}", e),
+        Ok(_) => {
+            return "Deployment created"
+        }
+        Err(e) => {
+            return "Error creating deployment"
+        }
     }
-    "Success ???"
 }
 
 #[get("/clusters/<project_id>")]
