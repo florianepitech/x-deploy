@@ -1,5 +1,4 @@
 use reqwest::Error;
-use serde::de::Unexpected::Option;
 use crate::{OVH_BASE_URL, OvhClient};
 use crate::data::kbs_cluster::KbsCluster;
 use crate::data::kbs_kubeconfig::KubeConfig;
