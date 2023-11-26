@@ -1,4 +1,4 @@
-mod project;
-mod kbs_cluster;
+pub mod project;
+pub mod kbs_cluster;
 
 pub use project::Project;

@@ -1,5 +1,6 @@
 use reqwest::{Error, Response, Url};
 use sha1::{Sha1, Digest};
+use sha1::digest::Output;
 
 pub mod route;
 pub mod data;
@@ -32,17 +33,20 @@ impl OvhClient {
         url: &str,
     ) -> Result<Response, Error> {
         let url: Url = Url::parse(&url).unwrap();
+        let timestamp: i64 = chrono::Utc::now().timestamp();
         let signature = self.create_signature(
             "GET",
-            url.path(),
+            url.to_string().as_str(),
             "",
-            &chrono::Utc::now().to_rfc3339(),
+            &timestamp.to_string(),
         );
+        println!("Signature: {}", signature);
         let base_request = reqwest::Request::new(reqwest::Method::GET, url);
         let request = reqwest::RequestBuilder::from_parts(self.reqwest_client.clone(), base_request)
             .header("X-Ovh-Application", self.application_key.as_str())
             .header("X-Ovh-Consumer", self.consumer_key.as_str())
             .header("X-Ovh-Signature", signature.as_str())
+            .header("X-Ovh-Timestamp", timestamp.to_string().as_str())
             .build()
             .unwrap();
         self.reqwest_client.execute(request).await
@@ -53,7 +57,7 @@ impl OvhClient {
         method: &str,
         query: &str,
         body: &str,
-        tstamp: &str
+        timestamp: &String
     ) -> String {
         let data = format!(
             "{}+{}+{}+{}+{}+{}",
@@ -62,7 +66,7 @@ impl OvhClient {
             method,
             query,
             body,
-            tstamp
+            timestamp.as_str()
         );
         let mut hasher = Sha1::new();
         hasher.update(data.as_bytes());

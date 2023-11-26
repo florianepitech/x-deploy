@@ -9,25 +9,27 @@ pub async fn get_project_list(
     let result = client.send_get_request(url.as_str()).await.unwrap();
     // parse with serde json the array of id and return array of string
     let result = result.text().await.unwrap();
+    println!("Get project list result: {:?}", result);
     let strings: Vec<String> = serde_json::from_str(&result).unwrap();
     Ok(strings)
 }
 
 pub async fn get_project_info(
     client: &OvhClient,
-    project_id: &str
+    project_id: &str,
 ) -> Result<Project, Error> {
     let url: String = format!("{}/cloud/project/{}", OVH_BASE_URL, project_id);
     let response = client.send_get_request(url.as_str()).await.unwrap();
     let result = response.text().await.unwrap();
+    println!("Get project info result: {:?}", result);
     let project: Project = serde_json::from_str(&result).unwrap();
     Ok(project)
 }
 
 pub async fn get_list_cluster_kbs(
     client: &OvhClient,
-    project_name: &str
-) -> Result<Vec<String>, Error>{
+    project_name: &str,
+) -> Result<Vec<String>, Error> {
     let url: String = format!("{}/cloud/project/{}/kube", OVH_BASE_URL, project_name);
     let response = client.send_get_request(url.as_str()).await.unwrap();
     let result = response.text().await.unwrap();
@@ -35,16 +37,12 @@ pub async fn get_list_cluster_kbs(
     Ok(strings)
 }
 
-pub async fn create_new_cluster(client: &OvhClient) {
-
-}
+pub async fn create_new_cluster(client: &OvhClient) {}
 
 pub async fn delete_cluster(
     client: &OvhClient,
-    cluster_id: &str
-) {
-
-}
+    cluster_id: &str,
+) {}
 
 #[cfg(test)]
 mod tests {
@@ -65,6 +63,10 @@ mod tests {
             consumer_key,
         );
         let result = get_project_list(&client).await;
+        if (result.is_err()) {
+            println!("Error: {:?}", result.err().unwrap());
+            return;
+        }
         println!("{:?}", result);
     }
 

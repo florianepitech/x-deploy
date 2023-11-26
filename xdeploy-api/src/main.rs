@@ -31,7 +31,6 @@ struct Project {
 #[openapi(tag = "Clusters")]
 #[get("/clusters")]
 fn get_clusters() -> &'static str {
-
     "Hello, world!"
 }
 
