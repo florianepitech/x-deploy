@@ -52,6 +52,32 @@ impl OvhClient {
         self.reqwest_client.execute(request).await
     }
 
+    pub (crate) async fn send_post_request(
+        &self,
+        url: &str,
+        body: Option<&str>
+    ) -> Result<Response, Error> {
+        let url: Url = Url::parse(&url).unwrap();
+        let timestamp: i64 = chrono::Utc::now().timestamp();
+        let signature = self.create_signature(
+            "POST",
+            url.to_string().as_str(),
+            body.unwrap_or(""),
+            &timestamp.to_string(),
+        );
+        println!("Signature: {}", signature);
+        let base_request = reqwest::Request::new(reqwest::Method::POST, url);
+        let request = reqwest::RequestBuilder::from_parts(self.reqwest_client.clone(), base_request)
+            .header("X-Ovh-Application", self.application_key.as_str())
+            .header("X-Ovh-Consumer", self.consumer_key.as_str())
+            .header("X-Ovh-Signature", signature.as_str())
+            .header("X-Ovh-Timestamp", timestamp.to_string().as_str())
+            .body(body.unwrap_or("").to_string())
+            .build()
+            .unwrap();
+        self.reqwest_client.execute(request).await
+    }
+
     fn create_signature(
         &self,
         method: &str,
