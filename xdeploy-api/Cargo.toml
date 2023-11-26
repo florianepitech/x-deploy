@@ -9,3 +9,4 @@ edition = "2021"
 rocket = "0.5.0-rc.3"
 ovh-api = {path = "../ovh-api"}
 rocket_okapi = {version = "0.8.0-rc.3", features = ["rapidoc", "swagger"]}
+dotenv = "0.15.0"
