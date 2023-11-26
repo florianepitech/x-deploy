@@ -4,8 +4,12 @@ use rocket::serde::{Deserialize, Serialize};
 use rocket::serde::json::Json;
 use std::string::String;
 use std::sync::Arc;
+use k8s_openapi::api::apps::v1::Deployment;
+use k8s_openapi::api::core::v1::Pod;
 use rocket::futures::{FutureExt, stream, StreamExt};
 use ovh_api::data::kbs_cluster::KbsCluster;
+use kube::client;
+use k8s_openapi::apimachinery::pkg::apis::meta::v1::LabelSelector;
 
 
 // use rocket_okapi::{openapi, openapi_get_routes};
@@ -19,22 +23,73 @@ use ovh_api::data::Project;
 
 extern crate ovh_api;
 
-
-
-
 #[macro_use] extern crate rocket;
 
-#[derive(Deserialize,Serialize)]
-#[serde(crate = "rocket::serde")]
 struct Cluster {
-    name: String,
-    description: String,
-    version: String,
-    status: String,
+
+}
+
+struct DeployInfo {
+    project_id: String,
+    cluster_id: String,
+    deployment_name: String,
+    app_name: String,
+    namespace: String,
+    image: String,
+    tag: String,
+    replicas: u32,
 }
 
 
 
+#[post("/clusters/deploy", format = "application/json", data="<deployment>")]
+async fn deploy_in_cluster(deployment: Json<DeployInfo>) -> &'static str {
+    let client= Arc::new(OvhClient::new(
+        std::env::var("OVH_APPLICATION_KEY").expect("OVH_APPLICATION_KEY not found"),
+        std::env::var("OVH_APPLICATION_SECRET").expect("OVH_APPLICATION_SECRET not found"), std::env::var("OVH_CONSUMER_KEY").expect("OVH_CONSUMER_KEY not found"),
+    ));
+    let kubeconfig = ovh_api::route::cloud::get_kubconfig(&client, &deployment.project_id, &deployment.cluster_id).await.expect("Error getting kubeconfig");
+    let kube_client = kbs::connect_with_kubeconfig(kubeconfig.content.as_str()).await;
+    let deployment_clone = deployment.clone();
+    let deployment = Deployment {
+        // Populate the metadata for the Deployment
+        metadata: kube::api::ObjectMeta {
+            name: Some(deployment_clone.deployment_name.as_str().parse().unwrap()),
+            ..Default::default()
+        },
+        spec: Some(k8s_openapi::api::apps::v1::DeploymentSpec {
+            replicas: Some(1), // Set the number of replicas
+            selector: LabelSelector {
+                match_labels: Some(std::collections::BTreeMap::from([
+                    ("app".parse().unwrap(), deployment_clone.app_name.as_str().parse().unwrap()),
+                ])),
+                ..Default::default()
+            },
+            template: k8s_openapi::api::core::v1::PodTemplateSpec {
+                metadata: Some(kube::api::ObjectMeta {
+                    labels: Some(std::collections::BTreeMap::from([
+                        ("app".parse().unwrap(), deployment_clone.app_name.as_str().parse().unwrap()),
+                    ])),
+                    ..Default::default()
+                }),
+                spec: Some(k8s_openapi::api::core::v1::PodSpec {
+                    containers: vec![
+                        k8s_openapi::api::core::v1::Container {
+                            name: deployment_clone.app_name.as_str().parse().unwrap() + "-container",
+                            image: Some(deployment_clone.image.as_str().parse().unwrap() + ":" + deployment_clone.tag.as_str()),
+                            ..Default::default()
+                        },
+                    ],
+                    ..Default::default()
+                }),
+            },
+            // Specify other Deployment properties here
+            ..Default::default()
+        }),
+        ..Default::default()
+    };
+    "Hello, world!"
+}
 
 #[get("/clusters/<project_id>")]
 async fn get_clusters(project_id: &str) -> Json<Vec<KbsCluster>> {
