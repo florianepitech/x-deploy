@@ -50,10 +50,10 @@ impl OvhClient {
 
     fn create_signature(
         &self,
-        &method: &str,
-        &query: &str,
-        &body: &str,
-        &tstamp: &str
+        method: &str,
+        query: &str,
+        body: &str,
+        tstamp: &str
     ) -> String {
         let data = format!(
             "{}+{}+{}+{}+{}+{}",
