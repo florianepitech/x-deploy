@@ -1,10 +1,12 @@
 use kube::{Client, Config};
 
-pub(crate) async fn connect_with_kubeconfig(file: &str) -> Client {
+pub(crate) async fn connect_with_kubeconfig(yaml: &str) -> Client {
     // Charger la configuration depuis le fichier kubeconfig (par défaut)
-    let kubeconfig = Config::infer().await.unwrap();
-    // Créer un Client pour interagir avec le cluster Kubernetes
-    Client::try_from(kubeconfig).unwrap()
+    let kubeconfig_yaml: kube::config::Kubeconfig = serde_yaml::from_str(yaml).unwrap();
+    // Create a Kubernetes configuration
+    let kubeconfig = Config::from_custom_kubeconfig(kubeconfig_yaml, &Default::default()).await.unwrap();
+    // Create a Kubernetes client
+    return Client::try_from(kubeconfig).unwrap();
 }
 
 #[cfg(test)]
