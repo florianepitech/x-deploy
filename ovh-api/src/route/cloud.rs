@@ -1,5 +1,6 @@
 use reqwest::Error;
 use crate::{OVH_BASE_URL, OvhClient};
+use crate::data::kbs_cluster::KbsCluster;
 use crate::data::Project;
 
 pub async fn get_project_list(
@@ -33,21 +34,28 @@ pub async fn get_list_cluster_kbs(
     let url: String = format!("{}/cloud/project/{}/kube", OVH_BASE_URL, project_name);
     let response = client.send_get_request(url.as_str()).await.unwrap();
     let result = response.text().await.unwrap();
+    println!("Get list cluster kbs result: {:?}", result);
     let strings: Vec<String> = serde_json::from_str(&result).unwrap();
     Ok(strings)
 }
 
-pub async fn create_new_cluster(client: &OvhClient) {}
-
-pub async fn delete_cluster(
+pub async fn get_cluster_kbs_info(
     client: &OvhClient,
-    cluster_id: &str,
-) {}
+    project_name: &str,
+    cluster_name: &str,
+) -> Result<KbsCluster, Error> {
+    let url: String = format!("{}/cloud/project/{}/kube/{}", OVH_BASE_URL, project_name, cluster_name);
+    let response = client.send_get_request(url.as_str()).await.unwrap();
+    let result = response.text().await.unwrap();
+    println!("Get cluster kbs info result: {:?}", result);
+    let cluster: KbsCluster = serde_json::from_str(&result).unwrap();
+    Ok(cluster)
+}
 
 #[cfg(test)]
 mod tests {
     use crate::OvhClient;
-    use crate::route::cloud::{get_project_info, get_project_list};
+    use crate::route::cloud::{get_cluster_kbs_info, get_list_cluster_kbs, get_project_info, get_project_list};
 
     #[tokio::test]
     async fn test_get_project_list() {
@@ -90,6 +98,61 @@ mod tests {
         assert!(!ids.is_empty());
 
         let result = get_project_info(&client, ids.first().unwrap()).await;
+        println!("{:?}", result);
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_get_list_cluster_kbs() {
+        // Load env with dotenv
+        dotenv::dotenv().ok();
+        let application_key = std::env::var("OVH_APPLICATION_KEY").unwrap();
+        let application_secret = std::env::var("OVH_APPLICATION_SECRET").unwrap();
+        let consumer_key = std::env::var("OVH_CONSUMER_KEY").unwrap();
+
+        let client = OvhClient::new(
+            application_key,
+            application_secret,
+            consumer_key,
+        );
+        let result = get_project_list(&client).await;
+        println!("{:?}", result);
+
+        let ids = result.unwrap();
+        assert!(!ids.is_empty());
+
+        let result = get_list_cluster_kbs(&client, ids.first().unwrap()).await;
+        println!("{:?}", result);
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_get_cluster_kbs_info() {
+        // Load env with dotenv
+        dotenv::dotenv().ok();
+        let application_key = std::env::var("OVH_APPLICATION_KEY").unwrap();
+        let application_secret = std::env::var("OVH_APPLICATION_SECRET").unwrap();
+        let consumer_key = std::env::var("OVH_CONSUMER_KEY").unwrap();
+
+        let client = OvhClient::new(
+            application_key,
+            application_secret,
+            consumer_key,
+        );
+        let result = get_project_list(&client).await;
+        println!("{:?}", result);
+
+        let ids = result.unwrap();
+        assert!(!ids.is_empty());
+
+        let result = get_list_cluster_kbs(&client, ids.first().unwrap()).await;
+        println!("{:?}", result);
+        assert!(result.is_ok());
+
+        let cluster_names = result.unwrap();
+        assert!(!cluster_names.is_empty());
+
+        let result = get_cluster_kbs_info(&client, ids.first().unwrap(), cluster_names.first().unwrap()).await;
         println!("{:?}", result);
         assert!(result.is_ok());
     }
