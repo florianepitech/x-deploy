@@ -39,7 +39,7 @@ struct DeployInfo {
 }
 
 lazy_static! {
-    static ref dotenv_config: DotEnvConfig = DotEnvConfig::from_dotenv();
+    pub static ref DOTENV_CONFIG: DotEnvConfig = DotEnvConfig::from_dotenv();
 }
 
 #[post("/clusters/deploy", format = "application/json", data = "<deployment>")]
@@ -158,10 +158,10 @@ async fn get_projects() -> Json<Vec<Project>> {
 #[launch]
 async fn rocket() -> _ {
     dotenv::dotenv().ok();
-    let mongodb_client = mongodb::Client::with_uri_str(dotenv_config.mongodb_url.as_str()).await;
+    let mongodb_client = mongodb::Client::with_uri_str(DOTENV_CONFIG.mongodb_url.as_str()).await;
     let mongodb_database = mongodb_client.unwrap()
-        .database(dotenv_config.mongodb_database.as_str());
-    let redis_client = redis::Client::open(dotenv_config.redis_url.as_str()).unwrap();
+        .database(DOTENV_CONFIG.mongodb_database.as_str());
+    let redis_client = redis::Client::open(DOTENV_CONFIG.redis_url.as_str()).unwrap();
     rocket::build()
         .manage(mongodb_database)
         .manage(redis_client)

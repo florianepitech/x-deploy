@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::cipher::password::verify_password;
 use crate::cipher::token::gen_new_token;
 use crate::db::user::{USER_COLLECTION_NAME, User};
+use crate::DOTENV_CONFIG;
 use crate::route::Message;
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -46,10 +47,11 @@ pub(crate) async fn login(
         return Err(Status::Unauthorized);
     }
     let duration = chrono::Duration::hours(24);
+    let jwt_secret = DOTENV_CONFIG.jwt_secret.clone();
     let new_token = gen_new_token(
         user.id.clone(),
         &duration,
-        &std::env::var("JWT_SECRET").expect("JWT_SECRET not found"),
+        &jwt_secret,
     ).expect("Error generating token");
     return Ok(Json(LoginResponse {
         token: new_token,
