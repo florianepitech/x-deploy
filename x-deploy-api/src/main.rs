@@ -16,7 +16,6 @@ use kube::{Api, Config};
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::LabelSelector;
 use kube::api::PostParams;
 use lazy_static::lazy_static;
-use log::info;
 use ovh_api::OvhClient;
 use ovh_api::data::Project;
 use crate::config::DotEnvConfig;

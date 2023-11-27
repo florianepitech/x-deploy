@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+pub(crate) mod deploy;
 pub mod auth;
 
 #[derive(Serialize, Deserialize, Debug)]
