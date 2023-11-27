@@ -1,6 +1,7 @@
 use bson::doc;
 use k8s_openapi::chrono;
 use mongodb::{Collection, Database};
+use rocket::response::status::Custom;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::State;
@@ -17,7 +18,7 @@ pub mod dto;
 pub(crate) async fn login(
     db: &State<Database>,
     body: Json<LoginBody>,
-) -> Result<Json<LoginResponse>, Status> {
+) -> Result<Json<LoginResponse>, Custom<Json<Message>>> {
     let login_body = body.into_inner();
     let mongodb_client = db.inner();
     let collection: Collection<User> = mongodb_client.collection(USER_COLLECTION_NAME);
@@ -29,13 +30,23 @@ pub(crate) async fn login(
         None,
     ).await.unwrap();
     if user.is_none() {
-        return Err(Status::NotFound);
+        return Err(Custom(
+            Status::Unauthorized,
+            Json(Message {
+                message: "Email or password is incorrect".to_string(),
+            }),
+        ));
     }
     let user = user.unwrap();
     // Verify if password is correct
-    let valid_password = verify_password(user.password.password.as_str(), &login_body.password);
+    let valid_password = verify_password(&login_body.password, user.password.password.as_str());
     if !valid_password {
-        return Err(Status::Unauthorized);
+        return Err(Custom(
+            Status::Unauthorized,
+            Json(Message {
+                message: "Email or password is incorrect".to_string(),
+            }),
+        ));
     }
     let duration = chrono::Duration::hours(24);
     let jwt_secret = DOTENV_CONFIG.jwt_secret.clone();
@@ -53,26 +64,31 @@ pub(crate) async fn login(
 pub(crate) async fn register(
     db: &State<Database>,
     body: Json<RegisterBody>,
-) -> Result<Json<Message>, Status> {
+) -> Result<Json<Message>, Custom<Json<Message>>> {
     let body = body.into_inner();
     let mongodb_client = db.inner();
     let collection: Collection<User> = mongodb_client.collection(USER_COLLECTION_NAME);
     // Verify if email exists for an user
     let user = collection.find_one(
         doc! {
-            "email.email": body.email
+            "email.email": body.email.clone()
         },
         None,
     ).await.unwrap();
     if user.is_some() {
-        return Err(Status::Conflict);
+        return Err(Custom(
+            Status::Conflict,
+            Json(Message {
+                message: "Email already exists".to_string(),
+            }),
+        ));
     }
     let password_hash = crate::cipher::password::hash_password(body.password.as_str());
     let new_user: User = User::new(
         body.firstname.clone(),
         body.lastname.clone(),
         password_hash,
-        body.phone.clone(),
+        body.email.clone(),
         body.password.clone(),
     );
     collection.insert_one(new_user, None).await.unwrap();
