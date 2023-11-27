@@ -2,6 +2,7 @@ mod kbs;
 mod db;
 mod config;
 mod route;
+mod cipher;
 
 use rocket::serde::Deserialize;
 use rocket::serde::json::Json;
@@ -21,6 +22,7 @@ extern crate ovh_api;
 
 #[macro_use]
 extern crate rocket;
+extern crate core;
 
 #[derive(Clone, Deserialize)]
 struct Cluster {}
@@ -154,9 +156,11 @@ async fn rocket() -> _ {
     dotenv::dotenv().ok();
     let dotenv_config = DotEnvConfig::from_dotenv();
     let mongodb_client = mongodb::Client::with_uri_str(dotenv_config.mongodb_url.as_str()).await;
+    let mongodb_database = mongodb_client.unwrap()
+        .database(dotenv_config.mongodb_database.as_str());
     let redis_client = redis::Client::open(dotenv_config.redis_url.as_str()).unwrap();
     rocket::build()
-        .manage(mongodb_client)
+        .manage(mongodb_database)
         .manage(redis_client)
         .mount("/", routes![get_clusters, get_projects, deploy_in_cluster])
 }
