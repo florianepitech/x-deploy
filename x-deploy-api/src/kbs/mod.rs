@@ -1,3 +1,5 @@
+pub(crate) mod deploy;
+
 use kube::{Client, Config};
 
 pub(crate) async fn connect_with_kubeconfig(yaml: &str) -> Client {
