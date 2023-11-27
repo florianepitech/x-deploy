@@ -1,5 +1,9 @@
+use k8s_openapi::chrono;
 use serde::{Deserialize, Serialize};
 use mongodb::bson::oid::ObjectId;
+
+pub(crate) const USER_COLLECTION_NAME: &str = "users";
+
 #[derive(Deserialize, Serialize, Debug)]
 pub struct User {
     #[serde(rename = "_id")]
@@ -11,9 +15,12 @@ pub struct User {
     #[serde(rename = "lastname")]
     pub lastname: String,
 
+    #[serde(rename = "password")]
+    pub password: Password,
+
     #[serde(rename = "email")]
     pub email: Email,
-    
+
     #[serde(rename = "phone")]
     pub phone: Phone,
 }
@@ -21,23 +28,35 @@ pub struct User {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Email {
     #[serde(rename = "email")]
-    email: String,
-    
+    pub email: String,
+
     #[serde(rename = "verified")]
-    verified: bool,
-    
+    pub verified: bool,
+
     #[serde(rename = "code")]
-    code: Option<String>,
+    pub code: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Phone {
     #[serde(rename = "phone")]
-    phone: String,
-    
+    pub phone: String,
+
     #[serde(rename = "verified")]
-    verified: bool,
-    
+    pub verified: bool,
+
     #[serde(rename = "code")]
-    code: Option<String>,
+    pub code: Option<String>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct Password {
+    #[serde(rename = "password")]
+    pub password: String,
+
+    #[serde(rename = "lastChanged")]
+    pub last_changed: Option<chrono::DateTime<chrono::Utc>>,
+
+    #[serde(rename = "tokenReset")]
+    pub token_reset: Option<String>,
 }
