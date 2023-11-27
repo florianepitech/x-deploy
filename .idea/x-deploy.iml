@@ -4,9 +4,9 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/ovh-api/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/x-deploy-api/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/x-deploy-cli/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/x-deploy-client/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/xdeploy-api/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

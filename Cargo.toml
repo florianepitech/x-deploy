@@ -4,14 +4,14 @@ resolver = "2"
 
 members = [
     "ovh-api",
-    "x-deploy-cli",
-    "x-deploy-client",
     "x-deploy-api",
+    "x-deploy-client",
+    "x-deploy-cli",
 ]
 
 [workspace.dependencies]
-futures = "0.3.28"
-log = "0.4.20"
-serde = { version = "1.0.188", features = ["derive"] }
-tokio = { version = "1.32.0", features = ["full"] }
-serde_json = "1.0.107"
+futures = { version = "0.3.28" }
+log = { version = "0.4.20" }
+serde = { version = "1.0.188" }
+tokio = { version = "1.32.0" }
+serde_json = { version = "1.0.107" }
