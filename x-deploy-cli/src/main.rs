@@ -1,23 +1,14 @@
 mod auth;
+mod cmd;
 
 use clap::Parser;
-use crate::auth::Auth;
-
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-struct Args {
-    /// Name of the person to greet
-    #[arg(short, long)]
-    name: String,
-
-    /// Number of times to greet
-    #[arg(short, long, default_value_t = 1)]
-    count: u8,
-}
+use crate::cmd::CmdArgs;
+use crate::cmd::Commands::Auth;
 
 fn main() {
-    let args = Args::parse();
-    for _ in 0..args.count {
-        println!("Hello, {}! - {}", args.name, args.count);
+    let cmd_args = CmdArgs::parse();
+    // get AuthArgs if command is auth
+    if let Auth(auth_args) = cmd_args.command {
+        println!("Login with credentials for email {}...", auth_args.email);
     }
 }
