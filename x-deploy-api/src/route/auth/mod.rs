@@ -1,4 +1,6 @@
-use bson::doc;
+use std::str::FromStr;
+use bson::{doc};
+use bson::oid::ObjectId;
 use k8s_openapi::chrono;
 use mongodb::{Collection, Database};
 use rocket::response::status::Custom;
@@ -104,9 +106,18 @@ pub(crate) async fn index(
 ) -> Result<Json<AccountInfo>, Custom<Json<Message>>> {
     let mongodb_client = db.inner();
     let collection: Collection<User> = mongodb_client.collection(USER_COLLECTION_NAME);
+    let object_id = ObjectId::from_str(token.id.as_str());
+    if object_id.is_err() {
+        return Err(Custom(
+            Status::BadRequest,
+            Json(Message {
+                message: "Malformed objectId in your token.".to_string(),
+            }),
+        ));
+    }
     let user = collection.find_one(
         doc! {
-            "_id": token.id
+            "_id": object_id.unwrap()
         },
         None,
     ).await.unwrap();
