@@ -7,5 +7,11 @@ mod ovh;
 #[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct Message {
     #[serde(rename = "message")]
-    message: String,
+    pub(crate) message: String,
+}
+
+impl Message {
+    pub(crate) fn new(message: String) -> Self {
+        Self { message }
+    }
 }

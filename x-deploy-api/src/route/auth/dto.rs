@@ -32,3 +32,18 @@ pub(crate) struct RegisterBody {
     #[serde(rename = "password")]
     pub(crate) password: String,
 }
+
+#[derive(Deserialize, Serialize, Debug)]
+pub(crate) struct AccountInfo {
+    #[serde(rename = "firstname")]
+    pub(crate) firstname: String,
+
+    #[serde(rename = "lastname")]
+    pub(crate) lastname: String,
+
+    #[serde(rename = "email")]
+    pub(crate) email: String,
+
+    #[serde(rename = "phone")]
+    pub(crate) phone: String,
+}

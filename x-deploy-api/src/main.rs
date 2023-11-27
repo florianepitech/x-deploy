@@ -159,6 +159,6 @@ async fn rocket() -> _ {
     rocket::build()
         .manage(mongodb_database)
         .manage(redis_client)
-        .mount("/", routes![route::auth::register, route::auth::login])
+        .mount("/", routes![route::auth::register, route::auth::login, route::auth::index])
         .mount("/", routes![get_clusters, get_projects, deploy_in_cluster])
 }

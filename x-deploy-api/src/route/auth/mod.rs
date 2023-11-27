@@ -6,10 +6,10 @@ use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::State;
 use crate::cipher::password::verify_password;
-use crate::cipher::token::gen_new_token;
+use crate::cipher::token::{gen_new_token, Token};
 use crate::db::user::{USER_COLLECTION_NAME, User};
 use crate::DOTENV_CONFIG;
-use crate::route::auth::dto::{LoginBody, LoginResponse, RegisterBody};
+use crate::route::auth::dto::{AccountInfo, LoginBody, LoginResponse, RegisterBody};
 use crate::route::Message;
 
 pub mod dto;
@@ -94,5 +94,35 @@ pub(crate) async fn register(
     collection.insert_one(new_user, None).await.unwrap();
     return Ok(Json(Message {
         message: "You are now registered".to_string(),
+    }));
+}
+
+#[get("/auth")]
+pub(crate) async fn index(
+    db: &State<Database>,
+    token: Token,
+) -> Result<Json<AccountInfo>, Custom<Json<Message>>> {
+    let mongodb_client = db.inner();
+    let collection: Collection<User> = mongodb_client.collection(USER_COLLECTION_NAME);
+    let user = collection.find_one(
+        doc! {
+            "_id": token.id
+        },
+        None,
+    ).await.unwrap();
+    if user.is_none() {
+        return Err(Custom(
+            Status::NotFound,
+            Json(Message {
+                message: "User not found with this token".to_string(),
+            }),
+        ));
+    }
+    let user = user.unwrap();
+    return Ok(Json(AccountInfo {
+        firstname: user.firstname.clone(),
+        lastname: user.lastname.clone(),
+        email: user.email.email.clone(),
+        phone: user.phone.phone.clone(),
     }));
 }
