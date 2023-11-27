@@ -33,8 +33,8 @@ pub async fn deploy(deployment_info: DeployInfo) -> &'static str {
         std::env::var("OVH_CONSUMER_KEY").expect("OVH_CONSUMER_KEY not found"),
     ));
     let kubeconfig = ovh_api::route::cloud::get_kubconfig(&client, &deployment_info.project_id, &deployment_info.cluster_id).await.expect("Error getting kubeconfig");
-    let kube_client = kbs::connect_with_kubeconfig(kubeconfig.content.as_str());
-    let deployment = create_deployment_type(deployment_info);
+    let kube_client = kbs::connect_with_kubeconfig(kubeconfig.content.as_str()).await;
+    let deployment = create_deployment_type(deployment_info.clone());
     let deployments: Api<Deployment> = Api::namespaced(kube_client, &deployment_info.namespace);
     return match deployments.create(&PostParams::default(), &deployment).await {
         Ok(_) => {
