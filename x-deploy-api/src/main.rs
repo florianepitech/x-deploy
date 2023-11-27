@@ -4,6 +4,7 @@ mod config;
 mod route;
 mod cipher;
 mod guard;
+mod ovh;
 
 use rocket::serde::Deserialize;
 use rocket::serde::json::Json;
@@ -19,6 +20,7 @@ use lazy_static::lazy_static;
 use ovh_api::OvhClient;
 use ovh_api::data::Project;
 use crate::config::DotEnvConfig;
+use crate::kbs::deploy::DeployInfo;
 
 extern crate ovh_api;
 
