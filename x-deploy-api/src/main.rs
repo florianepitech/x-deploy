@@ -3,6 +3,7 @@ mod db;
 mod config;
 mod route;
 mod cipher;
+mod guard;
 
 use rocket::serde::Deserialize;
 use rocket::serde::json::Json;
@@ -39,7 +40,7 @@ struct DeployInfo {
 }
 
 lazy_static! {
-    pub static ref DOTENV_CONFIG: DotEnvConfig = DotEnvConfig::from_dotenv();
+    pub(crate) static ref DOTENV_CONFIG: DotEnvConfig = DotEnvConfig::from_dotenv();
 }
 
 #[post("/clusters/deploy", format = "application/json", data = "<deployment>")]
