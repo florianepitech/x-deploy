@@ -29,16 +29,6 @@ extern crate core;
 #[derive(Clone, Deserialize)]
 struct Cluster {}
 
-#[derive(Clone, Deserialize)]
-struct DeployInfo {
-    project_id: String,
-    cluster_id: String,
-    deployment_name: String,
-    app_name: String,
-    image: String,
-    tag: String,
-}
-
 lazy_static! {
     pub(crate) static ref DOTENV_CONFIG: DotEnvConfig = DotEnvConfig::from_dotenv();
 }
