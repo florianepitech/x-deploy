@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-mod auth;
+pub mod auth;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct Message {

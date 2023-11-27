@@ -9,18 +9,10 @@ use crate::cipher::password::verify_password;
 use crate::cipher::token::gen_new_token;
 use crate::db::user::{USER_COLLECTION_NAME, User};
 use crate::DOTENV_CONFIG;
+use crate::route::auth::dto::{LoginBody, LoginResponse, RegisterBody};
 use crate::route::Message;
 
-#[derive(Deserialize, Serialize, Debug)]
-pub(crate) struct LoginBody {
-    pub(crate) email: String,
-    pub(crate) password: String,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub(crate) struct LoginResponse {
-    pub(crate) token: String,
-}
+pub mod dto;
 
 #[post("/auth/login", format = "application/json", data = "<body>")]
 pub(crate) async fn login(
@@ -56,24 +48,6 @@ pub(crate) async fn login(
     return Ok(Json(LoginResponse {
         token: new_token,
     }));
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub(crate) struct RegisterBody {
-    #[serde(rename = "firstname")]
-    pub(crate) firstname: String,
-
-    #[serde(rename = "lastname")]
-    pub(crate) lastname: String,
-
-    #[serde(rename = "email")]
-    pub(crate) email: String,
-
-    #[serde(rename = "phone")]
-    pub(crate) phone: String,
-
-    #[serde(rename = "password")]
-    pub(crate) password: String,
 }
 
 #[post("/auth/register", format = "application/json", data = "<body>")]
