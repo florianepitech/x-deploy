@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 env_logger = "0.10.0"
-rocket = "0.5.0-rc.3"
+rocket = { version = "0.5.0-rc.3" }
 ovh-api = { path = "../ovh-api" }
 rocket_okapi = { version = "0.8.0-rc.3", features = ["rapidoc", "swagger"] }
 serde_yaml = "0.9.27"
@@ -21,3 +21,4 @@ redis = "0.23.3"
 jsonwebtoken = "9.1.0"
 bcrypt = "0.15.0"
 lazy_static = "1.4.0"
+log = "0.4.20"

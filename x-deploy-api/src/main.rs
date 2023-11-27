@@ -16,6 +16,7 @@ use kube::{Api, Config};
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::LabelSelector;
 use kube::api::PostParams;
 use lazy_static::lazy_static;
+use log::info;
 use ovh_api::OvhClient;
 use ovh_api::data::Project;
 use crate::config::DotEnvConfig;
@@ -158,13 +159,15 @@ async fn get_projects() -> Json<Vec<Project>> {
 
 #[launch]
 async fn rocket() -> _ {
-    dotenv::dotenv().ok();
     let mongodb_client = mongodb::Client::with_uri_str(DOTENV_CONFIG.mongodb_url.as_str()).await;
     let mongodb_database = mongodb_client.unwrap()
         .database(DOTENV_CONFIG.mongodb_database.as_str());
+    info!("Connected to mongodb");
     let redis_client = redis::Client::open(DOTENV_CONFIG.redis_url.as_str()).unwrap();
+    info!("Connected to redis");
     rocket::build()
         .manage(mongodb_database)
         .manage(redis_client)
+        .mount("/", routes![route::auth::login, route::auth::register])
         .mount("/", routes![get_clusters, get_projects, deploy_in_cluster])
 }

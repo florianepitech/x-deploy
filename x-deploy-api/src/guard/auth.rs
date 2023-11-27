@@ -1,5 +1,4 @@
 use rocket::{Request, request, outcome::Outcome};
-use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
 use crate::cipher::token::{decode_token, Token};
 use crate::DOTENV_CONFIG;
 

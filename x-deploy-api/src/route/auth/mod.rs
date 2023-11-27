@@ -4,7 +4,6 @@ use mongodb::{Collection, Database};
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::State;
-use serde::{Deserialize, Serialize};
 use crate::cipher::password::verify_password;
 use crate::cipher::token::gen_new_token;
 use crate::db::user::{USER_COLLECTION_NAME, User};
