@@ -19,7 +19,6 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --verbose
         env:
           RUSTFLAGS: -D warnings
 
@@ -27,4 +26,3 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --verbose
