@@ -60,3 +60,34 @@ pub struct Password {
     #[serde(rename = "tokenReset")]
     pub token_reset: Option<String>,
 }
+
+impl User {
+    pub(crate) fn new(
+        firstname: String,
+        lastname: String,
+        password: String,
+        email: String,
+        phone: String,
+    ) -> Self {
+        User {
+            id: ObjectId::new(),
+            firstname,
+            lastname,
+            password: Password {
+                password,
+                last_changed: None,
+                token_reset: None,
+            },
+            email: Email {
+                email,
+                verified: false,
+                code: None,
+            },
+            phone: Phone {
+                phone,
+                verified: false,
+                code: None,
+            },
+        }
+    }
+}
