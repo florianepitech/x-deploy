@@ -15,12 +15,12 @@ use crate::kbs;
 
 #[derive(Clone, Deserialize)]
 pub struct DeployInfo {
-    project_id: String,
-    cluster_id: String,
+    pub(crate) project_id: String,
+    pub(crate) cluster_id: String,
     pub(crate) deployment_name: String,
-    app_name: String,
-    image: String,
-    tag: String,
+    pub(crate) app_name: String,
+    pub(crate) image: String,
+    pub(crate) tag: String,
     replicas: u32,
     namespace: String,
 }
