@@ -6,7 +6,7 @@ members = [
     "ovh-api",
     "x-deploy-cli",
     "x-deploy-client",
-    "xdeploy-api",
+    "x-deploy-api",
 ]
 
 [workspace.dependencies]
