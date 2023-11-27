@@ -4,6 +4,8 @@ resolver = "2"
 
 members = [
     "ovh-api",
+    "x-deploy-cli",
+    "x-deploy-client",
     "xdeploy-api",
 ]
 
