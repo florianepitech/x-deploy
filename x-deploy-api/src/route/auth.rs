@@ -57,3 +57,53 @@ pub(crate) async fn login(
         token: new_token,
     }));
 }
+
+#[derive(Deserialize, Serialize, Debug)]
+pub(crate) struct RegisterBody {
+    #[serde(rename = "firstname")]
+    pub(crate) firstname: String,
+
+    #[serde(rename = "lastname")]
+    pub(crate) lastname: String,
+
+    #[serde(rename = "email")]
+    pub(crate) email: String,
+
+    #[serde(rename = "phone")]
+    pub(crate) phone: String,
+
+    #[serde(rename = "password")]
+    pub(crate) password: String,
+}
+
+#[post("/auth/register", format = "application/json", data = "<body>")]
+pub(crate) async fn register(
+    db: &State<Database>,
+    body: Json<RegisterBody>,
+) -> Result<Json<Message>, Status> {
+    let body = body.into_inner();
+    let mongodb_client = db.inner();
+    let collection: Collection<User> = mongodb_client.collection(USER_COLLECTION_NAME);
+    // Verify if email exists for an user
+    let user = collection.find_one(
+        doc! {
+            "email.email": body.email
+        },
+        None,
+    ).await.unwrap();
+    if user.is_some() {
+        return Err(Status::Conflict);
+    }
+    let password_hash = crate::cipher::password::hash_password(body.password.as_str());
+    let new_user: User = User::new(
+        body.firstname.clone(),
+        body.lastname.clone(),
+        password_hash,
+        body.phone.clone(),
+        body.password.clone(),
+    );
+    collection.insert_one(new_user, None).await.unwrap();
+    return Ok(Json(Message {
+        message: "You are now registered".to_string(),
+    }));
+}
