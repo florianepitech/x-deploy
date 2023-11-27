@@ -1,6 +1,7 @@
 mod kbs;
 mod db;
 mod config;
+mod route;
 
 use rocket::serde::Deserialize;
 use rocket::serde::json::Json;
@@ -9,11 +10,12 @@ use std::sync::Arc;
 use k8s_openapi::api::apps::v1::Deployment;
 use rocket::futures::{stream, StreamExt};
 use ovh_api::data::kbs_cluster::KbsCluster;
-use kube::Api;
+use kube::{Api, Config};
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::LabelSelector;
 use kube::api::PostParams;
 use ovh_api::OvhClient;
 use ovh_api::data::Project;
+use crate::config::DotEnvConfig;
 
 extern crate ovh_api;
 
@@ -148,8 +150,13 @@ async fn get_projects() -> Json<Vec<Project>> {
 
 
 #[launch]
-fn rocket() -> _ {
+async fn rocket() -> _ {
     dotenv::dotenv().ok();
+    let dotenv_config = DotEnvConfig::from_dotenv();
+    let mongodb_client = mongodb::Client::with_uri_str(dotenv_config.mongodb_url.as_str()).await;
+    let redis_client = redis::Client::open(dotenv_config.redis_url.as_str()).unwrap();
     rocket::build()
+        .manage(mongodb_client)
+        .manage(redis_client)
         .mount("/", routes![get_clusters, get_projects, deploy_in_cluster])
 }

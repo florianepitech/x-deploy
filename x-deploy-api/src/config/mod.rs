@@ -1,9 +1,9 @@
-struct Config {
+pub(crate) struct DotEnvConfig {
     pub(crate) mongodb_url: String,
     pub(crate) redis_url: String,
 }
 
-impl Config {
+impl DotEnvConfig {
     pub(crate) fn from_dotenv() -> Self {
         dotenv::dotenv().ok();
         return Self {
