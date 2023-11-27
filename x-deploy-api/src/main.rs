@@ -14,6 +14,7 @@ use ovh_api::data::kbs_cluster::KbsCluster;
 use kube::{Api, Config};
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::LabelSelector;
 use kube::api::PostParams;
+use lazy_static::lazy_static;
 use ovh_api::OvhClient;
 use ovh_api::data::Project;
 use crate::config::DotEnvConfig;
@@ -37,6 +38,9 @@ struct DeployInfo {
     tag: String,
 }
 
+lazy_static! {
+    static ref dotenv_config: DotEnvConfig = DotEnvConfig::from_dotenv();
+}
 
 #[post("/clusters/deploy", format = "application/json", data = "<deployment>")]
 async fn deploy_in_cluster(deployment: Json<DeployInfo>) -> &'static str {
@@ -154,7 +158,6 @@ async fn get_projects() -> Json<Vec<Project>> {
 #[launch]
 async fn rocket() -> _ {
     dotenv::dotenv().ok();
-    let dotenv_config = DotEnvConfig::from_dotenv();
     let mongodb_client = mongodb::Client::with_uri_str(dotenv_config.mongodb_url.as_str()).await;
     let mongodb_database = mongodb_client.unwrap()
         .database(dotenv_config.mongodb_database.as_str());
