@@ -17,7 +17,7 @@ use crate::kbs;
 pub struct DeployInfo {
     project_id: String,
     cluster_id: String,
-    deployment_name: String,
+    pub(crate) deployment_name: String,
     app_name: String,
     image: String,
     tag: String,
