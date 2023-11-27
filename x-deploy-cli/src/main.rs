@@ -1,14 +1,12 @@
 mod auth;
 mod cmd;
+mod executor;
 
 use clap::Parser;
 use crate::cmd::CmdArgs;
-use crate::cmd::Commands::Auth;
+use crate::executor::execute;
 
 fn main() {
     let cmd_args = CmdArgs::parse();
-    // get AuthArgs if command is auth
-    if let Auth(auth_args) = cmd_args.command {
-        println!("Login with credentials for email {}...", auth_args.email);
-    }
+    execute(cmd_args);
 }
