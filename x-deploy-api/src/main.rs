@@ -1,13 +1,15 @@
 mod kbs;
+mod db;
+mod config;
 
-use rocket::serde::{Deserialize};
+use rocket::serde::Deserialize;
 use rocket::serde::json::Json;
 use std::string::String;
 use std::sync::Arc;
 use k8s_openapi::api::apps::v1::Deployment;
 use rocket::futures::{stream, StreamExt};
 use ovh_api::data::kbs_cluster::KbsCluster;
-use kube::{Api};
+use kube::Api;
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::LabelSelector;
 use kube::api::PostParams;
 use ovh_api::OvhClient;
