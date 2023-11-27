@@ -1,6 +1,5 @@
 use reqwest::{Error, Response, Url};
 use sha1::{Sha1, Digest};
-use sha1::digest::Output;
 
 pub mod route;
 pub mod data;

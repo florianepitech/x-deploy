@@ -1,35 +1,26 @@
 mod kbs;
 
-use rocket::serde::{Deserialize, Serialize};
+use rocket::serde::{Deserialize};
 use rocket::serde::json::Json;
 use std::string::String;
 use std::sync::Arc;
 use k8s_openapi::api::apps::v1::Deployment;
-use k8s_openapi::api::core::v1::Pod;
-use rocket::futures::{FutureExt, stream, StreamExt};
+use rocket::futures::{stream, StreamExt};
 use ovh_api::data::kbs_cluster::KbsCluster;
-use kube::{Api, client};
+use kube::{Api};
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::LabelSelector;
 use kube::api::PostParams;
-
-
-// use rocket_okapi::{openapi, openapi_get_routes};
-// use rocket_okapi::okapi::schemars;
-// use rocket_okapi::okapi::schemars::JsonSchema;
-// use rocket_okapi::swagger_ui::{make_swagger_ui, SwaggerUIConfig};
-// use rocket_okapi::rapidoc::{make_rapidoc, RapiDocConfig, GeneralConfig, HideShowConfig, LayoutConfig, UiConfig, Theme};
-// use rocket_okapi::settings::UrlObject;
 use ovh_api::OvhClient;
 use ovh_api::data::Project;
 
 extern crate ovh_api;
 
-#[macro_use] extern crate rocket;
+#[macro_use]
+extern crate rocket;
 
 #[derive(Clone, Deserialize)]
-struct Cluster {
+struct Cluster {}
 
-}
 #[derive(Clone, Deserialize)]
 struct DeployInfo {
     project_id: String,
@@ -41,10 +32,9 @@ struct DeployInfo {
 }
 
 
-
-#[post("/clusters/deploy", format = "application/json", data="<deployment>")]
+#[post("/clusters/deploy", format = "application/json", data = "<deployment>")]
 async fn deploy_in_cluster(deployment: Json<DeployInfo>) -> &'static str {
-    let client= Arc::new(OvhClient::new(
+    let client = Arc::new(OvhClient::new(
         std::env::var("OVH_APPLICATION_KEY").expect("OVH_APPLICATION_KEY not found"),
         std::env::var("OVH_APPLICATION_SECRET").expect("OVH_APPLICATION_SECRET not found"), std::env::var("OVH_CONSUMER_KEY").expect("OVH_CONSUMER_KEY not found"),
     ));
@@ -91,10 +81,10 @@ async fn deploy_in_cluster(deployment: Json<DeployInfo>) -> &'static str {
     let deployments: Api<Deployment> = Api::namespaced(kube_client, "default");
     match deployments.create(&PostParams::default(), &deployment).await {
         Ok(_) => {
-            return "Deployment created"
+            return "Deployment created";
         }
-        Err(e) => {
-            return "Error creating deployment"
+        Err(_) => {
+            return "Error creating deployment";
         }
     }
 }
@@ -127,22 +117,14 @@ async fn get_clusters(project_id: &str) -> Json<Vec<KbsCluster>> {
 }
 
 
-
-#[post("/clusters", format = "application/json", data="<cluster>")]
-fn create_cluster(cluster: Json<Cluster>) -> &'static str {
-    "Hello, world!"
-}
-
-
 #[get("/projects")]
 async fn get_projects() -> Json<Vec<Project>> {
-
     let client = Arc::new(OvhClient::new(
         std::env::var("OVH_APPLICATION_KEY").expect("OVH_APPLICATION_KEY not found"),
         std::env::var("OVH_APPLICATION_SECRET").expect("OVH_APPLICATION_SECRET not found"),
         std::env::var("OVH_CONSUMER_KEY").expect("OVH_CONSUMER_KEY not found"),
     ));
-   let projets_id : Vec<String> = ovh_api::route::cloud::get_project_list(&client).await.unwrap();
+    let projets_id: Vec<String> = ovh_api::route::cloud::get_project_list(&client).await.unwrap();
     let projets: Vec<Project> = stream::iter(projets_id)
         .then(|id| {
             let client_clone = client.clone(); // Clone the Arc here
@@ -167,5 +149,5 @@ async fn get_projects() -> Json<Vec<Project>> {
 fn rocket() -> _ {
     dotenv::dotenv().ok();
     rocket::build()
-        .mount("/",  routes![get_clusters, create_cluster, get_projects, deploy_in_cluster])
+        .mount("/", routes![get_clusters, get_projects, deploy_in_cluster])
 }
