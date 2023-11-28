@@ -28,6 +28,7 @@ impl OvhCredentials {
         application_secret: String,
         consumer_key: String,
         user_id: ObjectId,
+        status: OvhCredentialsStatus,
     ) -> Self {
         Self {
             id: ObjectId::new(),
