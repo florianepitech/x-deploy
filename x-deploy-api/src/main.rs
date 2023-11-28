@@ -30,9 +30,16 @@ async fn rocket() -> _ {
     let mongodb_client = mongodb::Client::with_uri_str(DOTENV_CONFIG.mongodb_url.as_str()).await;
     let mongodb_database = mongodb_client.unwrap()
         .database(DOTENV_CONFIG.mongodb_database.as_str());
-    info!("Connected to mongodb");
     let redis_client = redis::Client::open(DOTENV_CONFIG.redis_url.as_str()).unwrap();
-    info!("Connected to redis");
+
+    let catcher_list = catchers![
+            responder::not_found,
+            responder::unauthorized,
+            responder::forbidden,
+            responder::internal_server_error,
+            responder::unprocessable_entity
+        ];
+
     rocket::build()
         .manage(mongodb_database)
         .manage(redis_client)
@@ -55,13 +62,7 @@ async fn rocket() -> _ {
                 ..Default::default()
             }),
         )
-        .register("/", catchers![
-            responder::not_found,
-            responder::unauthorized,
-            responder::forbidden,
-            responder::internal_server_error,
-            responder::unprocessable_entity
-        ])
+        .register("/", catcher_list)
         .mount("/auth", openapi_get_routes![route::auth::register, route::auth::login, route::auth::info])
         .mount("/", routes![route::ovh::post_credentials])
 }

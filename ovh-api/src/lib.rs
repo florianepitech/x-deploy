@@ -3,6 +3,7 @@ use sha1::{Sha1, Digest};
 
 pub mod route;
 pub mod data;
+mod error;
 
 pub(crate) const OVH_BASE_URL: &str = "https://api.ovh.com/1.0";
 
@@ -39,7 +40,6 @@ impl OvhClient {
             "",
             &timestamp.to_string(),
         );
-        println!("Signature: {}", signature);
         let base_request = reqwest::Request::new(reqwest::Method::GET, url);
         let request = reqwest::RequestBuilder::from_parts(self.reqwest_client.clone(), base_request)
             .header("X-Ovh-Application", self.application_key.as_str())
@@ -64,7 +64,6 @@ impl OvhClient {
             body.unwrap_or(""),
             &timestamp.to_string(),
         );
-        println!("Signature: {}", signature);
         let base_request = reqwest::Request::new(reqwest::Method::POST, url);
         let request = reqwest::RequestBuilder::from_parts(self.reqwest_client.clone(), base_request)
             .header("X-Ovh-Application", self.application_key.as_str())
