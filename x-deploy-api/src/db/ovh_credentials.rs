@@ -1,7 +1,7 @@
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
-pub(crate) const USER_COLLECTION_NAME: &str = "ovh_credentials";
+pub(crate) const OVH_CRED_COLLECTION_NAME: &str = "ovh_credentials";
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct OvhCredentials {
