@@ -5,6 +5,7 @@ mod route;
 mod cipher;
 mod guard;
 mod ovh;
+mod responder;
 
 use rocket::serde::Deserialize;
 use rocket::serde::json::Json;
@@ -159,6 +160,7 @@ async fn rocket() -> _ {
     rocket::build()
         .manage(mongodb_database)
         .manage(redis_client)
+        .register("/", catchers![responder::not_found, responder::unauthorized, responder::forbidden, responder::internal_server_error])
         .mount("/", routes![route::auth::register, route::auth::login, route::auth::index])
         .mount("/", routes![get_clusters, get_projects, deploy_in_cluster])
         .mount("/", routes![route::ovh::post_credentials])

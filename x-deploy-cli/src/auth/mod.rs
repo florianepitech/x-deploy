@@ -27,4 +27,8 @@ impl AuthFile {
         let json = serde_json::to_string_pretty(&self).unwrap();
         std::fs::write(AUTH_FILE_PATH, json).expect("Unable to write file");
     }
+
+    pub(crate) fn delete_file() {
+        std::fs::remove_file(AUTH_FILE_PATH).expect("Unable to delete file");
+    }
 }
