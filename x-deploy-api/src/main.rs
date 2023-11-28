@@ -32,6 +32,8 @@ async fn rocket() -> _ {
         .database(DOTENV_CONFIG.mongodb_database.as_str());
     let redis_client = redis::Client::open(DOTENV_CONFIG.redis_url.as_str()).unwrap();
 
+    // Catchers
+
     let catcher_list = catchers![
             responder::not_found,
             responder::unauthorized,
@@ -40,29 +42,42 @@ async fn rocket() -> _ {
             responder::unprocessable_entity
         ];
 
+    // Rapidoc
+
+    let rapid_doc_config = make_rapidoc(&RapiDocConfig {
+        general: GeneralConfig {
+            spec_urls: vec![UrlObject::new("General", "../openapi.json")],
+            ..Default::default()
+        },
+        hide_show: HideShowConfig {
+            allow_spec_url_load: false,
+            allow_spec_file_load: false,
+            ..Default::default()
+        },
+        ui: UiConfig {
+            theme: Theme::Dark,
+            ..Default::default()
+        },
+        ..Default::default()
+    });
+
+    // Routes
+
+    let auth_routes = openapi_get_routes![
+        route::auth::register,
+        route::auth::login,
+        route::auth::info
+    ];
+
+    let ovh_routes = routes![
+        route::ovh::post_credentials
+    ];
+
     rocket::build()
         .manage(mongodb_database)
         .manage(redis_client)
-        .mount(
-            "/docs/",
-            make_rapidoc(&RapiDocConfig {
-                general: GeneralConfig {
-                    spec_urls: vec![UrlObject::new("General", "../openapi.json")],
-                    ..Default::default()
-                },
-                hide_show: HideShowConfig {
-                    allow_spec_url_load: false,
-                    allow_spec_file_load: false,
-                    ..Default::default()
-                },
-                ui: UiConfig {
-                    theme: Theme::Dark,
-                    ..Default::default()
-                },
-                ..Default::default()
-            }),
-        )
         .register("/", catcher_list)
-        .mount("/auth", openapi_get_routes![route::auth::register, route::auth::login, route::auth::info])
-        .mount("/", routes![route::ovh::post_credentials])
+        .mount("/docs/", rapid_doc_config)
+        .mount("/auth", auth_routes)
+        .mount("/", ovh_routes)
 }

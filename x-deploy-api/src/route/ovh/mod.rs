@@ -17,8 +17,8 @@ use crate::route::Message;
 
 #[post("/ovh/credentials", format = "application/json", data = "<body>")]
 pub async fn post_credentials(db: &State<Database>, token: Token, body: Json<dto::Auth>) -> Result<Json<Message>, Custom<Json<Message>>> {
-let auth_body = body.into_inner();
-    let client = ovh_api::OvhClient::new(
+    let auth_body = body.into_inner();
+    let client = OvhClient::new(
         auth_body.application_key,
         auth_body.application_secret,
         auth_body.consumer_key,
@@ -51,7 +51,6 @@ let auth_body = body.into_inner();
         user_id,
     );
     collection.insert_one(ovh_credentials, None).await.unwrap();
-
 
 
     Ok(Json(Message {
