@@ -12,7 +12,9 @@ pub(crate) enum Commands {
     /// Manage applications
     Application,
     /// Log in
-    Auth(AuthArgs),
+    Login(LoginArgs),
+    /// Log out
+    Logout,
     /// Generate the autocompletion script for the specified shell
     Completion {
         // You can add parameters specific to each command here
@@ -50,7 +52,7 @@ pub(crate) enum Commands {
 }
 
 #[derive(Parser, Debug)]
-pub(crate) struct AuthArgs {
+pub(crate) struct LoginArgs {
     #[clap(short, long)]
     pub(crate) email: String,
 
