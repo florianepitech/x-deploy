@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
-
+use rocket_okapi::okapi::schemars;
+use rocket_okapi::okapi::schemars::JsonSchema;
 pub(crate) mod deploy;
+
 pub mod auth;
 pub mod ovh;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
 pub(crate) struct Message {
     #[serde(rename = "message")]
     pub(crate) message: String,

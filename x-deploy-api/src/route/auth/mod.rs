@@ -7,6 +7,7 @@ use rocket::response::status::Custom;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::State;
+use rocket_okapi::openapi;
 use crate::cipher::password::verify_password;
 use crate::cipher::token::{gen_new_token, Token};
 use crate::db::user::{USER_COLLECTION_NAME, User};
@@ -16,6 +17,7 @@ use crate::route::Message;
 
 pub mod dto;
 
+#[openapi(tag = "Auth")]
 #[post("/auth/login", format = "application/json", data = "<body>")]
 pub(crate) async fn login(
     db: &State<Database>,
@@ -62,6 +64,7 @@ pub(crate) async fn login(
     }));
 }
 
+#[openapi(tag = "Auth")]
 #[post("/auth/register", format = "application/json", data = "<body>")]
 pub(crate) async fn register(
     db: &State<Database>,
@@ -99,6 +102,7 @@ pub(crate) async fn register(
     }));
 }
 
+#[openapi(tag = "Auth")]
 #[get("/auth")]
 pub(crate) async fn index(
     db: &State<Database>,

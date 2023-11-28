@@ -1,9 +1,12 @@
 use bson::oid::ObjectId;
 use jsonwebtoken::{DecodingKey, encode, decode, EncodingKey, Header, Validation, TokenData};
 use k8s_openapi::chrono;
+use rocket_okapi::okapi::schemars;
+use rocket_okapi::okapi::schemars::JsonSchema;
+use rocket_okapi::OpenApiFromRequest;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema, OpenApiFromRequest)]
 pub(crate) struct Token {
     pub(crate) id: String,
     pub(crate) exp: i64,

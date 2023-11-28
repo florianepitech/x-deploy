@@ -18,6 +18,9 @@ use kube::{Api};
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::LabelSelector;
 use kube::api::PostParams;
 use lazy_static::lazy_static;
+use rocket_okapi::openapi_get_routes;
+use rocket_okapi::rapidoc::{GeneralConfig, HideShowConfig, make_rapidoc, RapiDocConfig, Theme, UiConfig};
+use rocket_okapi::settings::UrlObject;
 use ovh_api::OvhClient;
 use ovh_api::data::Project;
 use crate::config::DotEnvConfig;
@@ -160,8 +163,33 @@ async fn rocket() -> _ {
     rocket::build()
         .manage(mongodb_database)
         .manage(redis_client)
-        .register("/", catchers![responder::not_found, responder::unauthorized, responder::forbidden, responder::internal_server_error])
-        .mount("/", routes![route::auth::register, route::auth::login, route::auth::index])
+        .mount(
+            "/docs/",
+            make_rapidoc(&RapiDocConfig {
+                general: GeneralConfig {
+                    spec_urls: vec![UrlObject::new("General", "../openapi.json")],
+                    ..Default::default()
+                },
+                hide_show: HideShowConfig {
+                    allow_spec_url_load: false,
+                    allow_spec_file_load: false,
+                    ..Default::default()
+                },
+                ui: UiConfig {
+                    theme: Theme::Dark,
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+        )
+        .register("/", catchers![
+            responder::not_found,
+            responder::unauthorized,
+            responder::forbidden,
+            responder::internal_server_error,
+            responder::unprocessable_entity
+        ])
+        .mount("/", openapi_get_routes![route::auth::register, route::auth::login, route::auth::index])
         .mount("/", routes![get_clusters, get_projects, deploy_in_cluster])
         .mount("/", routes![route::ovh::post_credentials])
 }

@@ -13,12 +13,6 @@ impl<'r> Responder<'r, 'static> for Message {
     }
 }
 
-#[catch(404)]
-pub fn not_found(req: &Request) -> Json<Message> {
-    let message = format!("Sorry, '{}' is not a valid path.", req.uri());
-    Json(Message::new(message))
-}
-
 #[catch(401)]
 pub fn unauthorized(req: &Request) -> Json<Message> {
     Json(Message::new("Unauthorized".to_string()))
@@ -29,6 +23,16 @@ pub fn forbidden(req: &Request) -> Json<Message> {
     Json(Message::new("Forbidden".to_string()))
 }
 
+#[catch(404)]
+pub fn not_found(req: &Request) -> Json<Message> {
+    let message = format!("Sorry, '{}' is not a valid path.", req.uri());
+    Json(Message::new(message))
+}
+
+#[catch(422)]
+pub fn unprocessable_entity(req: &Request) -> Json<Message> {
+    Json(Message::new("Unprocessable Entity".to_string()))
+}
 
 #[catch(500)]
 pub fn internal_server_error(req: &Request) -> Json<Message> {
