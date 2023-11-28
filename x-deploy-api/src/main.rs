@@ -163,4 +163,5 @@ async fn rocket() -> _ {
         .register("/", catchers![responder::not_found, responder::unauthorized, responder::forbidden, responder::internal_server_error])
         .mount("/", routes![route::auth::register, route::auth::login, route::auth::index])
         .mount("/", routes![get_clusters, get_projects, deploy_in_cluster])
+        .mount("/", routes![route::ovh::post_credentials])
 }

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 pub(crate) mod deploy;
 pub mod auth;
-mod ovh;
+pub mod ovh;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct Message {
