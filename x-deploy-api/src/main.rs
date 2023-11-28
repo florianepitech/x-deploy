@@ -161,4 +161,5 @@ async fn rocket() -> _ {
         .manage(redis_client)
         .mount("/", routes![route::auth::register, route::auth::login, route::auth::index])
         .mount("/", routes![get_clusters, get_projects, deploy_in_cluster])
+        .mount("/", routes![route::ovh::post_credentials])
 }
