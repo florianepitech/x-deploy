@@ -18,7 +18,7 @@ let auth_body = body.into_inner();
         return Err(Custom(
             Status::Forbidden,
             Json(Message {
-                message: "Email already exists".to_string(),
+                message: "Credentials are incorrect".to_string(),
             }),
         ));
     }
