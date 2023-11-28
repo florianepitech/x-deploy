@@ -27,14 +27,14 @@ pub async fn post_credentials(
         auth_body.application_secret,
         auth_body.consumer_key,
     );
-    if (!test_ovh_connection(&client).await) {
-        return Err(Custom(
-            Status::Forbidden,
-            Json(Message {
-                message: "Credentials are incorrect".to_string(),
-            }),
-        ));
-    }
+    // if (!test_ovh_connection(&client).await) {
+    //     return Err(Custom(
+    //         Status::Forbidden,
+    //         Json(Message {
+    //             message: "Credentials are incorrect".to_string(),
+    //         }),
+    //     ));
+    // }
 
     let mongodb_client = db.inner();
     let collection: Collection<OvhCredentials> =
