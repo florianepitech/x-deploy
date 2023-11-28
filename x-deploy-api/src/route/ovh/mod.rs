@@ -1,7 +1,7 @@
 mod dto;
 
 use crate::cipher::token::Token;
-use crate::db::ovh_credentials::{OvhCredentials, OVH_CRED_COLLECTION_NAME};
+use crate::db::ovh_credentials::{OvhCredentials, OVH_CRED_COLLECTION_NAME, OvhCredentialsStatus};
 use crate::db::user::{User, USER_COLLECTION_NAME};
 use crate::ovh::auth::test_ovh_connection;
 use crate::route::Message;
@@ -54,6 +54,7 @@ pub async fn post_credentials(
         client.application_secret,
         client.consumer_key,
         user_id,
+        OvhCredentialsStatus::Active,
     );
     collection.insert_one(ovh_credentials, None).await.unwrap();
 
