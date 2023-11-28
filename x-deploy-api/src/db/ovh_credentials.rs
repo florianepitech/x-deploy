@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 pub(crate) const OVH_CRED_COLLECTION_NAME: &str = "ovh_credentials";
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct OvhCredentials {
     #[serde(rename = "_id")]
     pub id: ObjectId,
