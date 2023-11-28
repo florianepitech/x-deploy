@@ -18,7 +18,7 @@ use crate::route::Message;
 pub mod dto;
 
 #[openapi(tag = "Auth")]
-#[post("/auth/login", format = "application/json", data = "<body>")]
+#[post("/login", format = "application/json", data = "<body>")]
 pub(crate) async fn login(
     db: &State<Database>,
     body: Json<LoginBody>,
@@ -65,7 +65,7 @@ pub(crate) async fn login(
 }
 
 #[openapi(tag = "Auth")]
-#[post("/auth/register", format = "application/json", data = "<body>")]
+#[post("/register", format = "application/json", data = "<body>")]
 pub(crate) async fn register(
     db: &State<Database>,
     body: Json<RegisterBody>,
@@ -103,8 +103,8 @@ pub(crate) async fn register(
 }
 
 #[openapi(tag = "Auth")]
-#[get("/auth")]
-pub(crate) async fn index(
+#[get("/info")]
+pub(crate) async fn info(
     db: &State<Database>,
     token: Token,
 ) -> Result<Json<AccountInfo>, Custom<Json<Message>>> {

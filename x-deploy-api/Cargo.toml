@@ -1,5 +1,5 @@
 [package]
-name = "xdeploy-api"
+name = "x-deploy-api"
 version = "0.1.0"
 edition = "2021"
 
