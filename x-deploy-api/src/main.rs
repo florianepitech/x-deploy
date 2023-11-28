@@ -68,7 +68,8 @@ async fn rocket() -> _ {
     let auth_routes =
         openapi_get_routes![route::auth::register, route::auth::login, route::auth::info];
 
-    let ovh_routes = routes![route::ovh::post_credentials];
+    let ovh_routes = routes![route::ovh::post_credentials, route::ovh::delete_credentials
+        , route::ovh::get_credentials];
 
     rocket::build()
         .manage(mongodb_database)

@@ -15,6 +15,8 @@ use rocket::serde::json::Json;
 use rocket::State;
 use std::str::FromStr;
 
+
+///Add ovh credentials to a the user
 #[post("/ovh/credentials", format = "application/json", data = "<body>")]
 pub async fn post_credentials(
     db: &State<Database>,
@@ -62,3 +64,102 @@ pub async fn post_credentials(
         message: "Credentials added".to_string(),
     }))
 }
+
+//delete ovh credentials with the id
+#[delete("/ovh/credentials/<id>")]
+pub async fn delete_credentials(
+    db: &State<Database>,
+    token: Token,
+    id: String,
+) -> Result<Json<Message>, Custom<Json<Message>>> {
+    let mongodb_client = db.inner();
+    let collection: Collection<OvhCredentials> = mongodb_client.collection(OVH_CRED_COLLECTION_NAME);
+
+    // Convert token ID to ObjectId and handle any error
+    let user_id = match ObjectId::from_str(&token.id) {
+        Ok(oid) => oid,
+        Err(_) => return Err(Custom(
+            Status::BadRequest,
+            Json(Message {
+                message: "Malformed objectId in your token.".to_string(),
+            }),
+        )),
+    };
+
+    // Convert credential ID to ObjectId and handle any error
+    let credential_id = match ObjectId::from_str(&id) {
+        Ok(oid) => oid,
+        Err(_) => return Err(Custom(
+            Status::BadRequest,
+            Json(Message {
+                message: "Invalid credentials ID.".to_string(),
+            }),
+        )),
+    };
+
+    // Perform the deletion
+    let delete_result = collection.delete_one(
+        doc! {
+            "_id": credential_id,
+            "user_id": user_id
+        },
+        None,
+    ).await;
+
+    // Check the outcome of delete operation
+    match delete_result {
+        Ok(delete_response) => {
+            if delete_response.deleted_count == 0 {
+                Err(Custom(
+                    Status::NotFound,
+                    Json(Message {
+                        message: "Credentials not found or not belonging to the user.".to_string(),
+                    }),
+                ))
+            } else {
+                Ok(Json(Message {
+                    message: "Credentials deleted.".to_string(),
+                }))
+            }
+        },
+        Err(_) => Err(Custom(
+            Status::InternalServerError,
+            Json(Message {
+                message: "Internal server error occurred.".to_string(),
+            }),
+        )),
+    }
+}
+
+//get ovh credentials with the id
+#[get("/ovh/credentials/<credential_id>")]
+pub async fn get_credentials(
+    db: &State<Database>,
+    token: Token,
+    credential_id: String,
+) -> Result<Json<OvhCredentials>, Custom<Json<Message>>> {
+    let mongodb_client = db.inner();
+    let collection: Collection<OvhCredentials> = mongodb_client.collection(OVH_CRED_COLLECTION_NAME);
+
+    collection.find_one(
+        doc! {
+            "_id": ObjectId::from_str(&credential_id).unwrap(),
+            "user_id": ObjectId::from_str(&token.id).unwrap()
+        },
+        None,
+    ).await
+        .map(|cred| {
+            match cred {
+                Some(cred) => Ok(Json(cred)),
+                None => Err(Custom(
+                    Status::NotFound,
+                    Json(Message {
+                        message: "Credentials not found or not belonging to the user.".to_string(),
+                    }),
+                ))
+            }
+        })
+        .unwrap()
+}
+
+
