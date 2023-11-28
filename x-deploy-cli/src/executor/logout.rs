@@ -1,5 +1,5 @@
-use std::process::exit;
 use crate::auth::AuthFile;
+use std::process::exit;
 
 pub fn logout() {
     if !AuthFile::is_authenticated() {

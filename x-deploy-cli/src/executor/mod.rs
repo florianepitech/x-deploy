@@ -12,6 +12,3 @@ pub(crate) fn execute(cmd_args: CmdArgs) {
         _ => println!("Not implemented yet"),
     }
 }
-
-
-

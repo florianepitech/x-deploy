@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
 use rocket_okapi::okapi::schemars;
 use rocket_okapi::okapi::schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 pub(crate) mod deploy;
 
 pub mod auth;

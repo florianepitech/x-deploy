@@ -1,4 +1,4 @@
-use bcrypt::{DEFAULT_COST, hash, verify};
+use bcrypt::{hash, verify, DEFAULT_COST};
 
 pub fn hash_password(password: &str) -> String {
     return hash(password, DEFAULT_COST).unwrap();

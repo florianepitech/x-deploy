@@ -2,9 +2,9 @@ mod auth;
 mod cmd;
 mod executor;
 
-use clap::Parser;
 use crate::cmd::CmdArgs;
 use crate::executor::execute;
+use clap::Parser;
 
 #[tokio::main]
 async fn main() {

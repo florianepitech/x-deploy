@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
-pub (super) struct Auth {
+pub(super) struct Auth {
     #[serde(rename = "applicationKey")]
     pub(super) application_key: String,
 
@@ -11,4 +11,3 @@ pub (super) struct Auth {
     #[serde(rename = "consumerKey")]
     pub(super) consumer_key: String,
 }
-

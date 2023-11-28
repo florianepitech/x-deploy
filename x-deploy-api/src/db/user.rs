@@ -1,6 +1,6 @@
 use k8s_openapi::chrono;
-use serde::{Deserialize, Serialize};
 use mongodb::bson::oid::ObjectId;
+use serde::{Deserialize, Serialize};
 
 pub(crate) const USER_COLLECTION_NAME: &str = "users";
 

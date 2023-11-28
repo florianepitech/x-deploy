@@ -1,9 +1,9 @@
-use crate::{API_URL, XDeployClient};
+use crate::{XDeployClient, API_URL};
 
 pub async fn login(
     client: &XDeployClient,
     email: &String,
-    password: &String
+    password: &String,
 ) -> Result<String, reqwest::Error> {
     let url = format!("{}/auth/login", API_URL);
     let body = serde_json::json!({

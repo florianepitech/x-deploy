@@ -1,8 +1,8 @@
-use k8s_openapi::chrono;
-use rocket::{Request, request, outcome::Outcome};
 use crate::cipher::token::{decode_token, Token};
-use crate::DOTENV_CONFIG;
 use crate::route::Message;
+use crate::DOTENV_CONFIG;
+use k8s_openapi::chrono;
+use rocket::{outcome::Outcome, request, Request};
 
 #[rocket::async_trait]
 impl<'r> request::FromRequest<'r> for Token {

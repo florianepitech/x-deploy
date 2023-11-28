@@ -1,8 +1,8 @@
-use rocket::{Request, response, Response};
+use crate::route::Message;
 use rocket::http::Status;
 use rocket::response::Responder;
 use rocket::serde::json::Json;
-use crate::route::Message;
+use rocket::{response, Request, Response};
 
 impl<'r> Responder<'r, 'static> for Message {
     fn respond_to(self, _: &'r Request) -> response::Result<'static> {

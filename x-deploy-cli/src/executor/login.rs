@@ -1,7 +1,7 @@
-use std::process::exit;
-use x_deploy_client::XDeployClient;
 use crate::auth::AuthFile;
 use crate::cmd::LoginArgs;
+use std::process::exit;
+use x_deploy_client::XDeployClient;
 
 pub fn login(args: LoginArgs) {
     if AuthFile::is_authenticated() {
@@ -22,5 +22,7 @@ pub fn login(args: LoginArgs) {
 
 async fn verify_credential(email: &String, password: &String) -> bool {
     let client = XDeployClient::new_without_auth();
-    x_deploy_client::auth::login(&client, email, password).await.is_ok()
+    x_deploy_client::auth::login(&client, email, password)
+        .await
+        .is_ok()
 }

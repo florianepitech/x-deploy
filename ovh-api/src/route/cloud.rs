@@ -1,12 +1,10 @@
-use reqwest::Error;
-use crate::{OVH_BASE_URL, OvhClient};
 use crate::data::kbs_cluster::KbsCluster;
 use crate::data::kbs_kubeconfig::KubeConfig;
 use crate::data::Project;
+use crate::{OvhClient, OVH_BASE_URL};
+use reqwest::Error;
 
-pub async fn get_project_list(
-    client: &OvhClient
-) -> Result<Vec<String>, Error> {
+pub async fn get_project_list(client: &OvhClient) -> Result<Vec<String>, Error> {
     let url: String = format!("{}/cloud/project", OVH_BASE_URL);
     let result = client.send_get_request(url.as_str()).await.unwrap();
     // parse with serde json the array of id and return array of string
@@ -16,10 +14,7 @@ pub async fn get_project_list(
     Ok(strings)
 }
 
-pub async fn get_project_info(
-    client: &OvhClient,
-    project_id: &str,
-) -> Result<Project, Error> {
+pub async fn get_project_info(client: &OvhClient, project_id: &str) -> Result<Project, Error> {
     let url: String = format!("{}/cloud/project/{}", OVH_BASE_URL, project_id);
     let response = client.send_get_request(url.as_str()).await.unwrap();
     let result = response.text().await.unwrap();
@@ -45,7 +40,10 @@ pub async fn get_cluster_kbs_info(
     project_id: &str,
     cluster_id: &str,
 ) -> Result<KbsCluster, Error> {
-    let url: String = format!("{}/cloud/project/{}/kube/{}", OVH_BASE_URL, project_id, cluster_id);
+    let url: String = format!(
+        "{}/cloud/project/{}/kube/{}",
+        OVH_BASE_URL, project_id, cluster_id
+    );
     let response = client.send_get_request(url.as_str()).await.unwrap();
     let result = response.text().await.unwrap();
     println!("Get cluster kbs info result: {:?}", result);
@@ -58,7 +56,10 @@ pub async fn get_kubconfig(
     project_id: &str,
     cluster_id: &str,
 ) -> Result<KubeConfig, Error> {
-    let url: String = format!("{}/cloud/project/{}/kube/{}/kubeconfig", OVH_BASE_URL, project_id, cluster_id);
+    let url: String = format!(
+        "{}/cloud/project/{}/kube/{}/kubeconfig",
+        OVH_BASE_URL, project_id, cluster_id
+    );
     let response = client.send_post_request(url.as_str(), None).await.unwrap();
     let result = response.text().await.unwrap();
     println!("Get kubconfig result: {:?}", result);
@@ -68,8 +69,11 @@ pub async fn get_kubconfig(
 
 #[cfg(test)]
 mod tests {
+    use crate::route::cloud::{
+        get_cluster_kbs_info, get_kubconfig, get_list_cluster_kbs, get_project_info,
+        get_project_list,
+    };
     use crate::OvhClient;
-    use crate::route::cloud::{get_cluster_kbs_info, get_kubconfig, get_list_cluster_kbs, get_project_info, get_project_list};
 
     #[tokio::test]
     async fn test_get_project_list() {
@@ -79,11 +83,7 @@ mod tests {
         let application_secret = std::env::var("OVH_APPLICATION_SECRET").unwrap();
         let consumer_key = std::env::var("OVH_CONSUMER_KEY").unwrap();
 
-        let client = OvhClient::new(
-            application_key,
-            application_secret,
-            consumer_key,
-        );
+        let client = OvhClient::new(application_key, application_secret, consumer_key);
         let result = get_project_list(&client).await;
         if (result.is_err()) {
             println!("Error: {:?}", result.err().unwrap());
@@ -100,11 +100,7 @@ mod tests {
         let application_secret = std::env::var("OVH_APPLICATION_SECRET").unwrap();
         let consumer_key = std::env::var("OVH_CONSUMER_KEY").unwrap();
 
-        let client = OvhClient::new(
-            application_key,
-            application_secret,
-            consumer_key,
-        );
+        let client = OvhClient::new(application_key, application_secret, consumer_key);
         let result = get_project_list(&client).await;
         println!("{:?}", result);
 
@@ -124,11 +120,7 @@ mod tests {
         let application_secret = std::env::var("OVH_APPLICATION_SECRET").unwrap();
         let consumer_key = std::env::var("OVH_CONSUMER_KEY").unwrap();
 
-        let client = OvhClient::new(
-            application_key,
-            application_secret,
-            consumer_key,
-        );
+        let client = OvhClient::new(application_key, application_secret, consumer_key);
         let result = get_project_list(&client).await;
         println!("{:?}", result);
 
@@ -148,11 +140,7 @@ mod tests {
         let application_secret = std::env::var("OVH_APPLICATION_SECRET").unwrap();
         let consumer_key = std::env::var("OVH_CONSUMER_KEY").unwrap();
 
-        let client = OvhClient::new(
-            application_key,
-            application_secret,
-            consumer_key,
-        );
+        let client = OvhClient::new(application_key, application_secret, consumer_key);
         let result = get_project_list(&client).await;
         println!("{:?}", result);
 
@@ -166,7 +154,12 @@ mod tests {
         let cluster_names = result.unwrap();
         assert!(!cluster_names.is_empty());
 
-        let result = get_cluster_kbs_info(&client, ids.first().unwrap(), cluster_names.first().unwrap()).await;
+        let result = get_cluster_kbs_info(
+            &client,
+            ids.first().unwrap(),
+            cluster_names.first().unwrap(),
+        )
+        .await;
         println!("{:?}", result);
         assert!(result.is_ok());
     }
@@ -179,11 +172,7 @@ mod tests {
         let application_secret = std::env::var("OVH_APPLICATION_SECRET").unwrap();
         let consumer_key = std::env::var("OVH_CONSUMER_KEY").unwrap();
 
-        let client = OvhClient::new(
-            application_key,
-            application_secret,
-            consumer_key,
-        );
+        let client = OvhClient::new(application_key, application_secret, consumer_key);
         let result = get_project_list(&client).await;
         println!("{:?}", result);
 
@@ -197,11 +186,21 @@ mod tests {
         let cluster_names = result.unwrap();
         assert!(!cluster_names.is_empty());
 
-        let result = get_cluster_kbs_info(&client, ids.first().unwrap(), cluster_names.first().unwrap()).await;
+        let result = get_cluster_kbs_info(
+            &client,
+            ids.first().unwrap(),
+            cluster_names.first().unwrap(),
+        )
+        .await;
         println!("{:?}", result);
         assert!(result.is_ok());
 
-        let result = get_kubconfig(&client, ids.first().unwrap(), cluster_names.first().unwrap()).await;
+        let result = get_kubconfig(
+            &client,
+            ids.first().unwrap(),
+            cluster_names.first().unwrap(),
+        )
+        .await;
         println!("{:?}", result);
         assert!(result.is_ok());
     }

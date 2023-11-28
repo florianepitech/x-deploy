@@ -13,9 +13,13 @@ pub struct OvhCredentials {
     pub user_id: ObjectId,
 }
 
-
 impl OvhCredentials {
-    pub fn new(application_key: String, application_secret: String, consumer_key: String, user_id: ObjectId) -> Self {
+    pub fn new(
+        application_key: String,
+        application_secret: String,
+        consumer_key: String,
+        user_id: ObjectId,
+    ) -> Self {
         Self {
             id: ObjectId::new(),
             application_key,

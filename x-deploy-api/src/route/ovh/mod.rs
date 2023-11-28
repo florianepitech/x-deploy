@@ -1,22 +1,26 @@
 mod dto;
 
-use std::str::FromStr;
+use crate::cipher::token::Token;
+use crate::db::ovh_credentials::{OvhCredentials, OVH_CRED_COLLECTION_NAME};
+use crate::db::user::{User, USER_COLLECTION_NAME};
+use crate::ovh::auth::test_ovh_connection;
+use crate::route::Message;
 use bson::doc;
 use bson::oid::ObjectId;
 use mongodb::{Collection, Database};
+use ovh_api::OvhClient;
 use rocket::http::Status;
 use rocket::response::status::Custom;
 use rocket::serde::json::Json;
 use rocket::State;
-use ovh_api::OvhClient;
-use crate::cipher::token::Token;
-use crate::db::ovh_credentials::{OVH_CRED_COLLECTION_NAME, OvhCredentials};
-use crate::db::user::{User, USER_COLLECTION_NAME};
-use crate::ovh::auth::test_ovh_connection;
-use crate::route::Message;
+use std::str::FromStr;
 
 #[post("/ovh/credentials", format = "application/json", data = "<body>")]
-pub async fn post_credentials(db: &State<Database>, token: Token, body: Json<dto::Auth>) -> Result<Json<Message>, Custom<Json<Message>>> {
+pub async fn post_credentials(
+    db: &State<Database>,
+    token: Token,
+    body: Json<dto::Auth>,
+) -> Result<Json<Message>, Custom<Json<Message>>> {
     let auth_body = body.into_inner();
     let client = OvhClient::new(
         auth_body.application_key,
@@ -33,7 +37,8 @@ pub async fn post_credentials(db: &State<Database>, token: Token, body: Json<dto
     }
 
     let mongodb_client = db.inner();
-    let collection: Collection<OvhCredentials> = mongodb_client.collection(OVH_CRED_COLLECTION_NAME);
+    let collection: Collection<OvhCredentials> =
+        mongodb_client.collection(OVH_CRED_COLLECTION_NAME);
     let object_id = ObjectId::from_str(token.id.as_str());
     if object_id.is_err() {
         return Err(Custom(
@@ -51,7 +56,6 @@ pub async fn post_credentials(db: &State<Database>, token: Token, body: Json<dto
         user_id,
     );
     collection.insert_one(ovh_credentials, None).await.unwrap();
-
 
     Ok(Json(Message {
         message: "Credentials added".to_string(),

@@ -1,5 +1,5 @@
 use bson::oid::ObjectId;
-use jsonwebtoken::{DecodingKey, encode, decode, EncodingKey, Header, Validation, TokenData};
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use k8s_openapi::chrono;
 use rocket_okapi::okapi::schemars;
 use rocket_okapi::okapi::schemars::JsonSchema;
@@ -24,12 +24,13 @@ impl Token {
 pub(crate) fn gen_new_token(
     id: ObjectId,
     duration: &chrono::Duration,
-    jwt_secret: &String
+    jwt_secret: &String,
 ) -> Result<String, jsonwebtoken::errors::Error> {
-    let expiration = chrono::Utc::now()
-        .checked_add_signed(duration.clone())
-        .expect("valid timestamp")
-        .timestamp();
+    let expiration =
+        chrono::Utc::now()
+            .checked_add_signed(duration.clone())
+            .expect("valid timestamp")
+            .timestamp();
 
     let claims = Token::new(id, expiration);
 
@@ -39,7 +40,7 @@ pub(crate) fn gen_new_token(
 
 pub(crate) fn decode_token(
     token: &String,
-    jwt_secret: &String
+    jwt_secret: &String,
 ) -> jsonwebtoken::errors::Result<TokenData<Token>> {
     let decoding_key = DecodingKey::from_secret(jwt_secret.as_ref());
     decode::<Token>(token, &decoding_key, &Validation::default())
@@ -47,7 +48,7 @@ pub(crate) fn decode_token(
 
 #[cfg(test)]
 mod tests {
-    use crate::cipher::token::{gen_new_token, decode_token};
+    use crate::cipher::token::{decode_token, gen_new_token};
     use crate::DOTENV_CONFIG;
     use bson::oid::ObjectId;
     use k8s_openapi::chrono;
@@ -56,11 +57,8 @@ mod tests {
     fn test_gen_new_token() {
         let duration = chrono::Duration::hours(24);
         let jwt_secret = DOTENV_CONFIG.jwt_secret.clone();
-        let new_token = gen_new_token(
-            ObjectId::new(),
-            &duration,
-            &jwt_secret,
-        ).expect("Error generating token");
+        let new_token =
+            gen_new_token(ObjectId::new(), &duration, &jwt_secret).expect("Error generating token");
         assert!(new_token.len() > 0);
     }
 
@@ -68,11 +66,8 @@ mod tests {
     fn test_decode_token() {
         let duration = chrono::Duration::hours(24);
         let jwt_secret = DOTENV_CONFIG.jwt_secret.clone();
-        let new_token = gen_new_token(
-            ObjectId::new(),
-            &duration,
-            &jwt_secret,
-        ).expect("Error generating token");
+        let new_token =
+            gen_new_token(ObjectId::new(), &duration, &jwt_secret).expect("Error generating token");
         let token = decode_token(&new_token, &jwt_secret);
         assert!(token.is_ok());
         let token = token.unwrap();

@@ -1,19 +1,19 @@
-use std::str::FromStr;
-use bson::{doc};
+use crate::cipher::password::verify_password;
+use crate::cipher::token::{gen_new_token, Token};
+use crate::db::user::{User, USER_COLLECTION_NAME};
+use crate::route::auth::dto::{AccountInfo, LoginBody, LoginResponse, RegisterBody};
+use crate::route::Message;
+use crate::DOTENV_CONFIG;
+use bson::doc;
 use bson::oid::ObjectId;
 use k8s_openapi::chrono;
 use mongodb::{Collection, Database};
-use rocket::response::status::Custom;
 use rocket::http::Status;
+use rocket::response::status::Custom;
 use rocket::serde::json::Json;
 use rocket::State;
 use rocket_okapi::openapi;
-use crate::cipher::password::verify_password;
-use crate::cipher::token::{gen_new_token, Token};
-use crate::db::user::{USER_COLLECTION_NAME, User};
-use crate::DOTENV_CONFIG;
-use crate::route::auth::dto::{AccountInfo, LoginBody, LoginResponse, RegisterBody};
-use crate::route::Message;
+use std::str::FromStr;
 
 pub mod dto;
 
@@ -27,12 +27,16 @@ pub(crate) async fn login(
     let mongodb_client = db.inner();
     let collection: Collection<User> = mongodb_client.collection(USER_COLLECTION_NAME);
     // Verify if email exists for an user
-    let user = collection.find_one(
-        doc! {
-            "email.email": login_body.email
-        },
-        None,
-    ).await.unwrap();
+    let user =
+        collection
+            .find_one(
+                doc! {
+                    "email.email": login_body.email
+                },
+                None,
+            )
+            .await
+            .unwrap();
     if user.is_none() {
         return Err(Custom(
             Status::Unauthorized,
@@ -54,14 +58,9 @@ pub(crate) async fn login(
     }
     let duration = chrono::Duration::hours(24);
     let jwt_secret = DOTENV_CONFIG.jwt_secret.clone();
-    let new_token = gen_new_token(
-        user.id.clone(),
-        &duration,
-        &jwt_secret,
-    ).expect("Error generating token");
-    return Ok(Json(LoginResponse {
-        token: new_token,
-    }));
+    let new_token =
+        gen_new_token(user.id.clone(), &duration, &jwt_secret).expect("Error generating token");
+    return Ok(Json(LoginResponse { token: new_token }));
 }
 
 #[openapi(tag = "Auth")]
@@ -74,12 +73,16 @@ pub(crate) async fn register(
     let mongodb_client = db.inner();
     let collection: Collection<User> = mongodb_client.collection(USER_COLLECTION_NAME);
     // Verify if email exists for an user
-    let user = collection.find_one(
-        doc! {
-            "email.email": body.email.clone()
-        },
-        None,
-    ).await.unwrap();
+    let user =
+        collection
+            .find_one(
+                doc! {
+                    "email.email": body.email.clone()
+                },
+                None,
+            )
+            .await
+            .unwrap();
     if user.is_some() {
         return Err(Custom(
             Status::Conflict,
@@ -119,12 +122,16 @@ pub(crate) async fn info(
             }),
         ));
     }
-    let user = collection.find_one(
-        doc! {
-            "_id": object_id.unwrap()
-        },
-        None,
-    ).await.unwrap();
+    let user =
+        collection
+            .find_one(
+                doc! {
+                    "_id": object_id.unwrap()
+                },
+                None,
+            )
+            .await
+            .unwrap();
     if user.is_none() {
         return Err(Custom(
             Status::NotFound,
