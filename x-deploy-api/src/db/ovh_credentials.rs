@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 pub(crate) const OVH_CRED_COLLECTION_NAME: &str = "ovh_credentials";
 
-
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub enum OvhCredentialsStatus {
     Pending,
     Active,
