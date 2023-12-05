@@ -5,6 +5,7 @@ pub(crate) mod deploy;
 
 pub mod auth;
 pub mod ovh;
+mod organization;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 pub(crate) struct Message {
