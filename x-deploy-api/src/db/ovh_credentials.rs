@@ -21,7 +21,6 @@ pub struct OvhCredentials {
     pub user_id: ObjectId,
 }
 
-
 impl OvhCredentials {
     pub fn new(
         application_key: String,

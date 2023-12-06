@@ -21,7 +21,6 @@ impl Token {
     }
 }
 
-
 pub(crate) fn gen_new_token(
     id: ObjectId,
     duration: &chrono::Duration,

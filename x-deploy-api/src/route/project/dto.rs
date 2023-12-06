@@ -8,16 +8,13 @@ pub struct GetByIdQuery {
 }
 
 #[derive(Deserialize, Serialize, Debug, JsonSchema)]
-pub(crate) struct CreateOrganizationBody {
+pub(crate) struct CreateProjectBody {
     #[serde(rename = "name")]
     pub(crate) name: String,
 
     #[serde(rename = "description")]
     pub(crate) description: String,
 
-    #[serde(rename = "website")]
-    pub(crate) website: String,
-
-    #[serde(rename = "contactEmail")]
-    pub(crate) contact_email: String,
+    #[serde(rename = "organization")]
+    pub(crate) organization: String,
 }

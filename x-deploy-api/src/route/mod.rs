@@ -4,8 +4,10 @@ use serde::{Deserialize, Serialize};
 pub(crate) mod deploy;
 
 pub mod auth;
+pub mod organization;
 pub mod ovh;
-mod organization;
+pub mod project;
+pub mod account;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 pub(crate) struct Message {

@@ -18,7 +18,7 @@ use std::str::FromStr;
 pub mod dto;
 
 #[openapi(tag = "Auth")]
-#[post("/login", format = "application/json", data = "<body>")]
+#[post("/auth/login", format = "application/json", data = "<body>")]
 pub(crate) async fn login(
     db: &State<Database>,
     body: Json<LoginBody>,
@@ -64,7 +64,7 @@ pub(crate) async fn login(
 }
 
 #[openapi(tag = "Auth")]
-#[post("/register", format = "application/json", data = "<body>")]
+#[post("/auth/register", format = "application/json", data = "<body>")]
 pub(crate) async fn register(
     db: &State<Database>,
     body: Json<RegisterBody>,
@@ -106,7 +106,7 @@ pub(crate) async fn register(
 }
 
 #[openapi(tag = "Auth")]
-#[get("/info")]
+#[get("/auth/info")]
 pub(crate) async fn info(
     db: &State<Database>,
     token: Token,

@@ -26,3 +26,23 @@ pub struct Organization {
     #[serde(rename = "members")]
     pub members: Vec<ObjectId>,
 }
+
+impl Organization {
+    pub fn new(
+        name: String,
+        description: String,
+        website: String,
+        contact_email: String,
+        owner: ObjectId,
+    ) -> Self {
+        Self {
+            id: ObjectId::new(),
+            name,
+            description,
+            website,
+            contact_email,
+            owner,
+            members: vec![],
+        }
+    }
+}

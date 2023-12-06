@@ -65,17 +65,36 @@ async fn rocket() -> _ {
 
     // Routes
 
-    let auth_routes =
-        openapi_get_routes![route::auth::register, route::auth::login, route::auth::info];
-
-    let ovh_routes = routes![route::ovh::post_credentials, route::ovh::delete_credentials
-        , route::ovh::get_credentials];
+    let routes = openapi_get_routes![
+        // Auth
+        route::auth::register,
+        route::auth::login,
+        route::auth::info,
+        // Account
+        route::account::get_info,
+        // Organization
+        route::organization::new,
+        route::organization::get_by_id,
+        // Project
+        route::project::new,
+        route::project::get_by_id,
+        // OVh
+        // route::ovh::post_credentials,
+        // route::ovh::delete_credentials,
+        // route::ovh::get_credentials
+    ];
+    /*
+    let ovh_routes = routes![
+        route::ovh::post_credentials,
+        route::ovh::delete_credentials,
+        route::ovh::get_credentials
+    ];
+     */
 
     rocket::build()
         .manage(mongodb_database)
         .manage(redis_client)
         .register("/", catcher_list)
-        .mount("/docs/", rapid_doc_config)
-        .mount("/auth", auth_routes)
-        .mount("/", ovh_routes)
+        .mount("/docs", rapid_doc_config)
+        .mount("/", routes)
 }
