@@ -12,10 +12,9 @@ use crate::custom_response;
 use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
 
 pub(crate) mod dto;
-pub(crate) mod ovh;
-pub(crate) mod aws;
-pub(crate) mod azure;
-pub(crate) mod gc;
+pub(crate) mod project;
+pub(crate) mod credentials;
+pub(crate) mod member;
 
 enum CloudProvider {
     Ovh,
@@ -53,6 +52,28 @@ pub(crate) async fn new(
     Ok(Json(Message {
         message: format!("Your organization has been created !")
     }))
+}
+
+#[openapi(tag = "Organization", deprecated)]
+#[patch("/organization/<id>", format = "application/json")]
+pub(crate) async fn update(
+    db: &State<Database>,
+    token: Token,
+    id: String,
+) -> MessageResult {
+    // let organization = get_organization_by_id!(db, id).await?;
+    return custom_response!(Status::NotImplemented, "Not implemented");
+}
+
+#[openapi(tag = "Organization", deprecated)]
+#[delete("/organization/<id>", format = "application/json")]
+pub(crate) async fn delete(
+    db: &State<Database>,
+    token: Token,
+    id: String,
+) -> MessageResult {
+    // let organization = get_organization_by_id!(db, id).await?;
+    return custom_response!(Status::NotImplemented, "Not implemented");
 }
 
 #[openapi(tag = "Organization")]

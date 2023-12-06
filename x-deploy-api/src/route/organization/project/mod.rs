@@ -1,5 +1,4 @@
 use bson::{doc, oid};
-use crate::route::project::dto::CreateProjectBody;
 use crate::route::{Message, MessageResult};
 use mongodb::{Collection, Database};
 use rocket::http::Status;
@@ -11,6 +10,7 @@ use crate::cipher::token::Token;
 use crate::custom_response;
 use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
 use crate::db::project::Project;
+use crate::route::organization::project::dto::CreateProjectBody;
 
 mod dto;
 
@@ -38,8 +38,8 @@ macro_rules! get_organization_by_id {
     };
 }
 
-#[openapi(tag = "Project")]
-#[post("/project", format = "application/json", data = "<body>")]
+#[openapi(tag = "Organization Project")]
+#[post("/organization/{id}/project", format = "application/json", data = "<body>")]
 pub(crate) async fn new(
     db: &State<Database>,
     token: Token,
@@ -61,11 +61,34 @@ pub(crate) async fn new(
     return custom_response!(Status::Created, "Your project has been created !");
 }
 
-#[openapi(tag = "Project")]
-#[get("/project?<query..>", format = "application/json")]
+#[openapi(tag = "Organization Project")]
+#[get("/organization/<id>/project", format = "application/json")]
 pub(crate) async fn get_by_id(
     db: &State<Database>,
-    query: dto::GetByIdQuery,
+    token: Token,
+    id: &str,
+) -> MessageResult {
+    return custom_response!(Status::NotImplemented, "Not implemented");
+}
+
+#[openapi(tag = "Organization Project", deprecated)]
+#[patch("/organization/<id>/project/<project_id>", format = "application/json")]
+pub(crate) async fn update(
+    db: &State<Database>,
+    token: Token,
+    id: &str,
+    project_id: &str,
+) -> MessageResult {
+    return custom_response!(Status::NotImplemented, "Not implemented");
+}
+
+#[openapi(tag = "Organization Project", deprecated)]
+#[delete("/organization/<id>/project/<project_id>", format = "application/json")]
+pub(crate) async fn delete(
+    db: &State<Database>,
+    token: Token,
+    id: &str,
+    project_id: &str,
 ) -> MessageResult {
     return custom_response!(Status::NotImplemented, "Not implemented");
 }

@@ -81,28 +81,40 @@ async fn rocket() -> _ {
         route::account::verify_email,
         route::account::change_password,
         route::account::change_phone,
+        // Account Api Keys
+        route::account::api_key::new,
+        route::account::api_key::get,
+        route::account::api_key::get_by_id,
+        route::account::api_key::delete,
         // Organization
         route::organization::new,
         route::organization::get_by_id,
-        // Project
-        route::project::new,
-        route::project::get_by_id,
-        // Organization Ovh Credentials
-        route::organization::ovh::new,
-        route::organization::ovh::get,
-        route::organization::ovh::delete,
+        route::organization::update,
+        route::organization::delete,
+        // Organization Members
+        route::organization::member::get,
+        route::organization::member::delete,
+        // Organization Project
+        route::organization::project::new,
+        route::organization::project::get_by_id,
+        route::organization::project::update,
+        route::organization::project::delete,
         // Organization Aws Credentials
-        route::organization::aws::new,
-        route::organization::aws::get,
-        route::organization::aws::delete,
+        route::organization::credentials::aws::new,
+        route::organization::credentials::aws::get,
+        route::organization::credentials::aws::delete,
         // Organization Azure Credentials
-        route::organization::azure::new,
-        route::organization::azure::get,
-        route::organization::azure::delete,
+        route::organization::credentials::azure::new,
+        route::organization::credentials::azure::get,
+        route::organization::credentials::azure::delete,
         // Organization Google Cloud Credentials
-        route::organization::gc::new,
-        route::organization::gc::get,
-        route::organization::gc::delete,
+        route::organization::credentials::google_cloud::new,
+        route::organization::credentials::google_cloud::get,
+        route::organization::credentials::google_cloud::delete,
+        // Organization Ovh Credentials
+        route::organization::credentials::ovh::new,
+        route::organization::credentials::ovh::get,
+        route::organization::credentials::ovh::delete,
     ];
 
     rocket::build()

@@ -8,7 +8,6 @@ pub(crate) mod deploy;
 pub mod auth;
 pub mod organization;
 pub mod ovh;
-pub mod project;
 pub mod account;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

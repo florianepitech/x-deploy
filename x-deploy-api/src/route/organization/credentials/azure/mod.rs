@@ -10,8 +10,8 @@ use crate::cipher::token::Token;
 use crate::{custom_response, get_organization_by_id};
 use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
 
-#[openapi(tag = "Organization Ovh Credentials")]
-#[post("/organization/<id>/ovh", format = "application/json")]
+#[openapi(tag = "Organization Azure Credentials", deprecated)]
+#[post("/organization/<id>/credentials/azure", format = "application/json")]
 pub(crate) async fn new(
     db: &State<Database>,
     token: Token,
@@ -21,8 +21,8 @@ pub(crate) async fn new(
     return custom_response!(Status::NotImplemented, "Not implemented");
 }
 
-#[openapi(tag = "Organization Ovh Credentials")]
-#[get("/organization/<id>/ovh", format = "application/json")]
+#[openapi(tag = "Organization Azure Credentials", deprecated)]
+#[get("/organization/<id>/credentials/azure", format = "application/json")]
 pub(crate) async fn get(
     db: &State<Database>,
     token: Token,
@@ -32,8 +32,8 @@ pub(crate) async fn get(
     return custom_response!(Status::NotImplemented, "Not implemented");
 }
 
-#[openapi(tag = "Organization Ovh Credentials")]
-#[delete("/organization/<id>/ovh", format = "application/json")]
+#[openapi(tag = "Organization Azure Credentials", deprecated)]
+#[delete("/organization/<id>/credentials/azure", format = "application/json")]
 pub(crate) async fn delete(
     db: &State<Database>,
     token: Token,

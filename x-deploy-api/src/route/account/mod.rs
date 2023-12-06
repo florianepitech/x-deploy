@@ -7,6 +7,7 @@ use rocket_okapi::openapi;
 use crate::route::Message;
 
 mod dto;
+pub(crate) mod api_key;
 
 #[openapi(tag = "Account")]
 #[get("/account", format = "application/json")]
