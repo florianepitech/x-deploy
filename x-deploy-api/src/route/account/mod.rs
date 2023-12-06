@@ -20,13 +20,13 @@ pub(crate) async fn get_info(
         }),
     ))
 }
-/*
+
 #[openapi(tag = "Account")]
 #[post("/account/verify-email", format = "application/json", data = "<body>")]
 pub(crate) async fn verify_email(
     db: &State<Database>,
     body: Json<dto::VerifyEmailBody>,
-) -> Result<Json<dto::VerifyEmailResponse>, Custom<Json<Message>>> {
+) -> Result<Json<Message>, Custom<Json<Message>>> {
     Err(Custom(
         Status::NotImplemented,
         Json(Message {
@@ -40,21 +40,7 @@ pub(crate) async fn verify_email(
 pub(crate) async fn change_password(
     db: &State<Database>,
     body: Json<dto::ChangePasswordBody>,
-) -> Result<Json<dto::ChangePasswordResponse>, Custom<Json<Message>>> {
-    Err(Custom(
-        Status::NotImplemented,
-        Json(Message {
-            message: "Not implemented".to_string(),
-        }),
-    ))
-}
-
-#[openapi(tag = "Account")]
-#[post("/account/change-email", format = "application/json", data = "<body>")]
-pub(crate) async fn change_email(
-    db: &State<Database>,
-    body: Json<dto::ChangeEmailBody>,
-) -> Result<Json<dto::ChangeEmailResponse>, Custom<Json<Message>>> {
+) -> Result<Json<Message>, Custom<Json<Message>>> {
     Err(Custom(
         Status::NotImplemented,
         Json(Message {
@@ -68,7 +54,7 @@ pub(crate) async fn change_email(
 pub(crate) async fn change_phone(
     db: &State<Database>,
     body: Json<dto::ChangePhoneBody>,
-) -> Result<Json<dto::ChangePhoneResponse>, Custom<Json<Message>>> {
+) -> Result<Json<Message>, Custom<Json<Message>>> {
     Err(Custom(
         Status::NotImplemented,
         Json(Message {
@@ -76,4 +62,3 @@ pub(crate) async fn change_phone(
         }),
     ))
 }
- */

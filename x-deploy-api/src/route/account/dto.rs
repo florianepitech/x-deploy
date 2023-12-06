@@ -17,3 +17,21 @@ pub(crate) struct GetAccountInfoResponse {
     pub(crate) email_verified: bool,
 
 }
+
+#[derive(Deserialize, Serialize, Debug, JsonSchema)]
+pub(crate) struct ChangePasswordBody {
+    #[serde(rename = "newPassword")]
+    pub(crate) new_password: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, JsonSchema)]
+pub(crate) struct VerifyEmailBody {
+    #[serde(rename = "token")]
+    pub(crate) token: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, JsonSchema)]
+pub(crate) struct ChangePhoneBody {
+    #[serde(rename = "newPhone")]
+    pub(crate) new_phone: String,
+}

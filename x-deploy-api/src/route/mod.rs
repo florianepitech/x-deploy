@@ -20,3 +20,27 @@ impl Message {
         Self { message }
     }
 }
+
+#[macro_export]
+macro_rules! custom_response {
+    ($status:expr, $msg:expr) => {
+        Err(Custom(
+            $status,
+            Json(Message {
+                message: $msg.to_string(),
+            }),
+        ))
+    };
+}
+
+#[macro_export]
+macro_rules! custom_message {
+    ($status:expr, $msg:expr) => {
+        Ok(Custom(
+            $status,
+            Json(Message {
+                message: $msg.to_string(),
+            }),
+        ))
+    };
+}

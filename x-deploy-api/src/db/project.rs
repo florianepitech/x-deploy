@@ -1,7 +1,7 @@
 use bson::oid::ObjectId;
 use rocket::serde::{Deserialize, Serialize};
 
-pub(crate) const ORGANIZATION_COLLECTION_NAME: &str = "projects";
+pub(crate) const PROJECT_COLLECTION_NAME: &str = "projects";
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Project {
@@ -14,17 +14,17 @@ pub struct Project {
     #[serde(rename = "description")]
     pub description: String,
 
-    #[serde(rename = "name")]
-    pub organization: ObjectId,
+    #[serde(rename = "organizationId")]
+    pub organization_id: ObjectId,
 }
 
 impl Project {
-    pub fn new(name: String, description: String, organization: ObjectId) -> Self {
+    pub fn new(name: String, description: String, organization_id: ObjectId) -> Self {
         Self {
             id: ObjectId::new(),
             name,
             description,
-            organization,
+            organization_id,
         }
     }
 }

@@ -1,7 +1,7 @@
 use bson::oid::ObjectId;
 use rocket::serde::{Deserialize, Serialize};
 
-pub(crate) const ORGANIZATION_COLLECTION_NAME: &str = "users";
+pub(crate) const ORGANIZATION_COLLECTION_NAME: &str = "organizations";
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Organization {

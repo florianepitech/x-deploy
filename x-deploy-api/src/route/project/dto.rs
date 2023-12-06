@@ -15,6 +15,6 @@ pub(crate) struct CreateProjectBody {
     #[serde(rename = "description")]
     pub(crate) description: String,
 
-    #[serde(rename = "organization")]
-    pub(crate) organization: String,
+    #[serde(rename = "organizationId")]
+    pub(crate) organization_id: String,
 }

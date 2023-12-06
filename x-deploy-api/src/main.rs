@@ -72,6 +72,9 @@ async fn rocket() -> _ {
         route::auth::info,
         // Account
         route::account::get_info,
+        route::account::verify_email,
+        route::account::change_password,
+        route::account::change_phone,
         // Organization
         route::organization::new,
         route::organization::get_by_id,
