@@ -7,6 +7,7 @@ use rocket_okapi::rapidoc::{
     make_rapidoc, GeneralConfig, HideShowConfig, RapiDocConfig, Theme, UiConfig,
 };
 use rocket_okapi::settings::UrlObject;
+use rocket_okapi::swagger_ui::{make_swagger_ui, SwaggerUIConfig};
 
 #[macro_use]
 extern crate rocket;
@@ -63,6 +64,11 @@ async fn rocket() -> _ {
         ..Default::default()
     });
 
+    let swagger_ui_config = make_swagger_ui(&SwaggerUIConfig {
+        url: "../openapi.json".to_owned(),
+        ..Default::default()
+    });
+
     // Routes
 
     let routes = openapi_get_routes![
@@ -103,6 +109,7 @@ async fn rocket() -> _ {
         .manage(mongodb_database)
         .manage(redis_client)
         .register("/", catcher_list)
-        .mount("/docs", rapid_doc_config)
+        .mount("/rapidoc", rapid_doc_config)
+        .mount("/swagger-ui", swagger_ui_config)
         .mount("/", routes)
 }

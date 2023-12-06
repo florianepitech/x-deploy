@@ -9,7 +9,7 @@ edition = "2021"
 env_logger = "0.10.0"
 rocket = { version = "0.5.0-rc.3" }
 ovh-api = { path = "../ovh-api" }
-rocket_okapi = { version = "0.8.0-rc.3", features = ["rapidoc"] }
+rocket_okapi = { version = "0.8.0-rc.3", features = ["rapidoc", "swagger"] }
 serde_yaml = "0.9.27"
 serde = { workspace = true, features = ["derive"] }
 kube = { version = "0.87.1", features = ["runtime", "derive"] }
