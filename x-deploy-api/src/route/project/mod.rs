@@ -1,7 +1,6 @@
 use bson::{doc, oid};
-use crate::route::auth::dto::LoginResponse;
 use crate::route::project::dto::CreateProjectBody;
-use crate::route::Message;
+use crate::route::{Message, MessageResult};
 use mongodb::{Collection, Database};
 use rocket::http::Status;
 use rocket::response::status::Custom;
@@ -15,9 +14,15 @@ use crate::db::project::Project;
 
 mod dto;
 
+#[macro_export]
 macro_rules! get_organization_by_id {
     ($db:expr, $id:expr) => {
         async {
+            use bson::doc;
+            use mongodb::Collection;
+            use rocket::http::Status;
+            use crate::custom_response;
+            use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
             let oid = match oid::ObjectId::parse_str(&$id) {
                 Ok(oid) => oid,
                 Err(_) => return custom_response!(Status::BadRequest, "Invalid organization id"),
@@ -39,11 +44,7 @@ pub(crate) async fn new(
     db: &State<Database>,
     token: Token,
     body: Json<CreateProjectBody>,
-) -> Result<Json<Message>, Custom<Json<Message>>> {
-    // Verify if the id of the organization is valid
-    // let organization_id = body.organization_id.clone();
-    // let organization = get_organization_by_id!(db, organization_id);
-
+) -> MessageResult {
     let organization = get_organization_by_id!(db, body.organization_id.clone()).await?;
     let project_new = Project::new(
         body.name.clone(),
@@ -65,6 +66,6 @@ pub(crate) async fn new(
 pub(crate) async fn get_by_id(
     db: &State<Database>,
     query: dto::GetByIdQuery,
-) -> Result<Json<LoginResponse>, Custom<Json<Message>>> {
+) -> MessageResult {
     return custom_response!(Status::NotImplemented, "Not implemented");
 }

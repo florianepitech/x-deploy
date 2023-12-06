@@ -1,7 +1,6 @@
-use bson::Bson::ObjectId;
 use bson::oid;
 use crate::route::organization::dto::{CreateOrganizationBody, GetByIdQuery};
-use crate::route::Message;
+use crate::route::{Message, MessageResult};
 use mongodb::{Collection, Database};
 use rocket::http::Status;
 use rocket::response::status::Custom;
@@ -11,9 +10,19 @@ use rocket_okapi::openapi;
 use crate::cipher::token::Token;
 use crate::custom_response;
 use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
-use crate::route::auth::info;
 
 pub(crate) mod dto;
+pub(crate) mod ovh;
+pub(crate) mod aws;
+pub(crate) mod azure;
+pub(crate) mod gc;
+
+enum CloudProvider {
+    Ovh,
+    Aws,
+    Azure,
+    GoogleCloud,
+}
 
 #[openapi(tag = "Organization")]
 #[post("/organization", format = "application/json", data = "<body>")]
@@ -21,7 +30,7 @@ pub(crate) async fn new(
     db: &State<Database>,
     token: Token,
     body: Json<CreateOrganizationBody>,
-) -> Result<Json<Message>, Custom<Json<Message>>> {
+) -> MessageResult {
     let collection: Collection<Organization> = db.collection(ORGANIZATION_COLLECTION_NAME);
     // Get objectId from token
     let owner = oid::ObjectId::parse_str(&token.id);
@@ -36,7 +45,7 @@ pub(crate) async fn new(
         owner.unwrap(),
     );
     let result = collection.insert_one(new_organization, None).await;
-    if (result.is_err()) {
+    if result.is_err() {
         return custom_response!(Status::InternalServerError, "An error occurred while creating your organization");
     }
     let inserted_id = result.unwrap().inserted_id;
@@ -51,11 +60,6 @@ pub(crate) async fn new(
 pub(crate) async fn get_by_id(
     db: &State<Database>,
     query: GetByIdQuery,
-) -> Result<Json<Message>, Custom<Json<Message>>> {
-    Err(Custom(
-        Status::NotImplemented,
-        Json(Message {
-            message: format!("Not implemented: {}", query.id),
-        }),
-    ))
+) -> MessageResult {
+    return custom_response!(Status::NotImplemented, "Not implemented");
 }

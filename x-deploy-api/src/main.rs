@@ -81,18 +81,23 @@ async fn rocket() -> _ {
         // Project
         route::project::new,
         route::project::get_by_id,
-        // OVh
-        // route::ovh::post_credentials,
-        // route::ovh::delete_credentials,
-        // route::ovh::get_credentials
+        // Organization Ovh Credentials
+        route::organization::ovh::new,
+        route::organization::ovh::get,
+        route::organization::ovh::delete,
+        // Organization Aws Credentials
+        route::organization::aws::new,
+        route::organization::aws::get,
+        route::organization::aws::delete,
+        // Organization Azure Credentials
+        route::organization::azure::new,
+        route::organization::azure::get,
+        route::organization::azure::delete,
+        // Organization Google Cloud Credentials
+        route::organization::gc::new,
+        route::organization::gc::get,
+        route::organization::gc::delete,
     ];
-    /*
-    let ovh_routes = routes![
-        route::ovh::post_credentials,
-        route::ovh::delete_credentials,
-        route::ovh::get_credentials
-    ];
-     */
 
     rocket::build()
         .manage(mongodb_database)

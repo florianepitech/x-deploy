@@ -1,3 +1,5 @@
+use rocket::response::status::Custom;
+use rocket::serde::json::Json;
 use rocket_okapi::okapi::schemars;
 use rocket_okapi::okapi::schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -20,6 +22,10 @@ impl Message {
         Self { message }
     }
 }
+
+pub(crate) type MessageResult = Result<Json<Message>, Custom<Json<Message>>>;
+
+pub(crate) type CustomResult<T> = Result<T, Custom<Json<Message>>>;
 
 #[macro_export]
 macro_rules! custom_response {
