@@ -8,21 +8,27 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Rust toolchain
+      - name: Install Rust Toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
-
       - name: Build
         uses: actions-rs/cargo@v1
         with:
-          command: build
-#        env:
-#          RUSTFLAGS: -D warnings
-
-      - name: Run tests
+          command: build --verbose
+      - name: Tests
         uses: actions-rs/cargo@v1
         with:
           command: test
+      - name: Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy --all-targets --all-features -- -D warnings
+      - name: Install cargo audit
+        run: cargo install cargo-audit
+      - name: Audit
+        uses: actions-rs/cargo@v1
+        with:
+          command: audit

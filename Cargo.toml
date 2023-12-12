@@ -10,8 +10,8 @@ members = [
 ]
 
 [workspace.dependencies]
-futures = { version = "0.3.28" }
+futures = { version = "0.3.29" }
 log = { version = "0.4.20" }
-serde = { version = "1.0.188" }
+serde = { version = "1.0.147" }
 tokio = { version = "1.32.0" }
 serde_json = { version = "1.0.107" }

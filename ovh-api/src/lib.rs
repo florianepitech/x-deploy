@@ -7,7 +7,7 @@ pub mod route;
 
 pub(crate) const OVH_BASE_URL: &str = "https://api.ovh.com/1.0";
 
-pub struct  OvhClient {
+pub struct OvhClient {
     pub application_key: String,
     pub application_secret: String,
     pub consumer_key: String,
