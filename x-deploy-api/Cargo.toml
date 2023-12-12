@@ -17,7 +17,7 @@ k8s-openapi = { version = "0.20.0", features = ["latest"] }
 dotenv = "0.15.0"
 mongodb = { version = "2.7.1", features = ["tokio-sync"] }
 bson = "2.7.0"
-redis = "0.23.3"
+redis = "0.24.0"
 jsonwebtoken = "9.1.0"
 bcrypt = "0.15.0"
 lazy_static = "1.4.0"
