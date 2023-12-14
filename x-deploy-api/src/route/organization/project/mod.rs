@@ -5,7 +5,6 @@ use rocket::http::Status;
 use rocket::response::status::Custom;
 use rocket::serde::json::Json;
 use rocket::State;
-use rocket_okapi::openapi;
 use crate::cipher::token::Token;
 use crate::custom_response;
 use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
@@ -38,7 +37,6 @@ macro_rules! get_organization_by_id {
     };
 }
 
-#[openapi(tag = "Organization Project")]
 #[post("/organization/{id}/project", format = "application/json", data = "<body>")]
 pub(crate) async fn new(
     db: &State<Database>,
@@ -61,7 +59,6 @@ pub(crate) async fn new(
     return custom_response!(Status::Created, "Your project has been created !");
 }
 
-#[openapi(tag = "Organization Project")]
 #[get("/organization/<id>/project", format = "application/json")]
 pub(crate) async fn get_by_id(
     db: &State<Database>,
@@ -71,7 +68,6 @@ pub(crate) async fn get_by_id(
     return custom_response!(Status::NotImplemented, "Not implemented");
 }
 
-#[openapi(tag = "Organization Project", deprecated)]
 #[patch("/organization/<id>/project/<project_id>", format = "application/json")]
 pub(crate) async fn update(
     db: &State<Database>,
@@ -82,7 +78,6 @@ pub(crate) async fn update(
     return custom_response!(Status::NotImplemented, "Not implemented");
 }
 
-#[openapi(tag = "Organization Project", deprecated)]
 #[delete("/organization/<id>/project/<project_id>", format = "application/json")]
 pub(crate) async fn delete(
     db: &State<Database>,

@@ -12,10 +12,8 @@ use rocket::response::status::Custom;
 use rocket::serde::json::Json;
 use rocket::State;
 use std::str::FromStr;
-use rocket_okapi::openapi;
 use crate::custom_response;
 
-#[openapi(tag = "Account API Key")]
 #[post("/account/api-key", format = "application/json")]
 pub(crate) async fn new(
     db: &State<Database>,
@@ -24,7 +22,6 @@ pub(crate) async fn new(
     return custom_response!(Status::NotImplemented, "Not implemented");
 }
 
-#[openapi(tag = "Account API Key")]
 #[get("/account/api-key", format = "application/json")]
 pub(crate) async fn get(
     db: &State<Database>,
@@ -33,7 +30,6 @@ pub(crate) async fn get(
     return custom_response!(Status::NotImplemented, "Not implemented");
 }
 
-#[openapi(tag = "Account API Key")]
 #[get("/account/api-key/<id>", format = "application/json")]
 pub(crate) async fn get_by_id(
     db: &State<Database>,
@@ -43,7 +39,6 @@ pub(crate) async fn get_by_id(
     return custom_response!(Status::NotImplemented, "Not implemented");
 }
 
-#[openapi(tag = "Account API Key")]
 #[delete("/account/api-key/<id>", format = "application/json")]
 pub(crate) async fn delete(
     db: &State<Database>,

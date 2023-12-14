@@ -12,12 +12,10 @@ use rocket::http::Status;
 use rocket::response::status::Custom;
 use rocket::serde::json::Json;
 use rocket::State;
-use rocket_okapi::openapi;
 use std::str::FromStr;
 
 pub mod dto;
 
-#[openapi(tag = "Auth")]
 #[post("/auth/login", format = "application/json", data = "<body>")]
 pub(crate) async fn login(
     db: &State<Database>,
@@ -63,7 +61,6 @@ pub(crate) async fn login(
     return Ok(Json(LoginResponse { token: new_token }));
 }
 
-#[openapi(tag = "Auth")]
 #[post("/auth/register", format = "application/json", data = "<body>")]
 pub(crate) async fn register(
     db: &State<Database>,
@@ -105,7 +102,6 @@ pub(crate) async fn register(
     }));
 }
 
-#[openapi(tag = "Auth")]
 #[get("/auth/info")]
 pub(crate) async fn info(
     db: &State<Database>,

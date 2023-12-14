@@ -1,13 +1,12 @@
-use rocket_okapi::okapi::schemars;
-use rocket_okapi::okapi::schemars::JsonSchema;
+use utoipa::ToSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(FromForm, JsonSchema, Debug)]
+#[derive(FromForm, ToSchema, Debug)]
 pub struct GetByIdQuery {
     pub id: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, JsonSchema)]
+#[derive(Deserialize, Serialize, Debug, ToSchema)]
 pub(crate) struct CreateOrganizationBody {
     #[serde(rename = "name")]
     pub(crate) name: String,

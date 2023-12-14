@@ -1,8 +1,7 @@
-use rocket_okapi::okapi::schemars;
-use rocket_okapi::okapi::schemars::JsonSchema;
+use utoipa::ToSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug, JsonSchema)]
+#[derive(Deserialize, Serialize, Debug, ToSchema)]
 pub(crate) struct LoginBody {
     #[serde(rename = "email")]
     pub(crate) email: String,
@@ -11,13 +10,13 @@ pub(crate) struct LoginBody {
     pub(crate) password: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, JsonSchema)]
+#[derive(Deserialize, Serialize, Debug, ToSchema)]
 pub(crate) struct LoginResponse {
     #[serde(rename = "token")]
     pub(crate) token: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, JsonSchema)]
+#[derive(Deserialize, Serialize, Debug, ToSchema)]
 pub(crate) struct RegisterBody {
     #[serde(rename = "firstname")]
     pub(crate) firstname: String,
@@ -35,7 +34,7 @@ pub(crate) struct RegisterBody {
     pub(crate) password: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, JsonSchema)]
+#[derive(Deserialize, Serialize, Debug, ToSchema)]
 pub(crate) struct AccountInfo {
     #[serde(rename = "firstname")]
     pub(crate) firstname: String,

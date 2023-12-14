@@ -6,7 +6,6 @@ use rocket::http::Status;
 use rocket::response::status::Custom;
 use rocket::serde::json::Json;
 use rocket::State;
-use rocket_okapi::openapi;
 use crate::cipher::token::Token;
 use crate::custom_response;
 use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
@@ -23,7 +22,6 @@ enum CloudProvider {
     GoogleCloud,
 }
 
-#[openapi(tag = "Organization")]
 #[post("/organization", format = "application/json", data = "<body>")]
 pub(crate) async fn new(
     db: &State<Database>,
@@ -54,7 +52,6 @@ pub(crate) async fn new(
     }))
 }
 
-#[openapi(tag = "Organization", deprecated)]
 #[patch("/organization/<id>", format = "application/json")]
 pub(crate) async fn update(
     db: &State<Database>,
@@ -65,7 +62,6 @@ pub(crate) async fn update(
     return custom_response!(Status::NotImplemented, "Not implemented");
 }
 
-#[openapi(tag = "Organization", deprecated)]
 #[delete("/organization/<id>", format = "application/json")]
 pub(crate) async fn delete(
     db: &State<Database>,
@@ -76,7 +72,6 @@ pub(crate) async fn delete(
     return custom_response!(Status::NotImplemented, "Not implemented");
 }
 
-#[openapi(tag = "Organization")]
 #[get("/organization?<query..>", format = "application/json")]
 pub(crate) async fn get_by_id(
     db: &State<Database>,

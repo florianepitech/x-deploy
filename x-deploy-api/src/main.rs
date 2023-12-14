@@ -2,12 +2,6 @@ use crate::config::DotEnvConfig;
 use lazy_static::lazy_static;
 use rocket::futures::StreamExt;
 use rocket::serde::Deserialize;
-use rocket_okapi::openapi_get_routes;
-use rocket_okapi::rapidoc::{
-    make_rapidoc, GeneralConfig, HideShowConfig, RapiDocConfig, Theme, UiConfig,
-};
-use rocket_okapi::settings::UrlObject;
-use rocket_okapi::swagger_ui::{make_swagger_ui, SwaggerUIConfig};
 
 #[macro_use]
 extern crate rocket;
@@ -45,33 +39,9 @@ async fn rocket() -> _ {
         responder::unprocessable_entity
     ];
 
-    // Rapidoc
-
-    let rapid_doc_config = make_rapidoc(&RapiDocConfig {
-        general: GeneralConfig {
-            spec_urls: vec![UrlObject::new("General", "../openapi.json")],
-            ..Default::default()
-        },
-        hide_show: HideShowConfig {
-            allow_spec_url_load: false,
-            allow_spec_file_load: false,
-            ..Default::default()
-        },
-        ui: UiConfig {
-            theme: Theme::Dark,
-            ..Default::default()
-        },
-        ..Default::default()
-    });
-
-    let swagger_ui_config = make_swagger_ui(&SwaggerUIConfig {
-        url: "../openapi.json".to_owned(),
-        ..Default::default()
-    });
-
     // Routes
 
-    let routes = openapi_get_routes![
+    let routes = routes![
         // Auth
         route::auth::register,
         route::auth::login,
@@ -121,7 +91,5 @@ async fn rocket() -> _ {
         .manage(mongodb_database)
         .manage(redis_client)
         .register("/", catcher_list)
-        .mount("/rapidoc", rapid_doc_config)
-        .mount("/swagger-ui", swagger_ui_config)
         .mount("/", routes)
 }

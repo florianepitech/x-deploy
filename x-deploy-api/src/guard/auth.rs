@@ -13,13 +13,13 @@ impl<'r> request::FromRequest<'r> for Token {
 
         if keys.len() != 1 {
             let message = Message::new("Authorization header must be present".to_string());
-            return Outcome::Failure((rocket::http::Status::Unauthorized, message));
+            return Outcome::Error((rocket::http::Status::Unauthorized, message));
         }
 
         let key = keys[0];
         if !key.starts_with("Bearer ") {
             let message = Message::new("Authorization header must start with Bearer".to_string());
-            return Outcome::Failure((rocket::http::Status::Unauthorized, message));
+            return Outcome::Error((rocket::http::Status::Unauthorized, message));
         }
 
         let token = &key[7..]; // Remove "Bearer " prefix
@@ -27,7 +27,7 @@ impl<'r> request::FromRequest<'r> for Token {
         let token = decode_token(&token.to_string(), &jwt_secret);
         if token.is_err() {
             let message = Message::new("Invalid token".to_string());
-            return Outcome::Failure((rocket::http::Status::Unauthorized, message));
+            return Outcome::Error((rocket::http::Status::Unauthorized, message));
         }
         let token = token.unwrap();
         let token = token.claims;
@@ -35,7 +35,7 @@ impl<'r> request::FromRequest<'r> for Token {
         let now = chrono::Utc::now().timestamp();
         if token.exp < now {
             let message = Message::new("Token expired, please login again.".to_string());
-            return Outcome::Failure((rocket::http::Status::Unauthorized, message));
+            return Outcome::Error((rocket::http::Status::Unauthorized, message));
         }
         return Outcome::Success(token);
     }
