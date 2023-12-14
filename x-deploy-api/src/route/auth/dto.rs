@@ -3,7 +3,10 @@ use utoipa::ToSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
-#[schema(example = json!({"email": "john@doe.net", "password": "myAmazingStringPassword123!"}))]
+#[schema(example = json!({
+    "email": "john@doe.net",
+    "password": "myAmazingStringPassword123!"
+}))]
 pub(crate) struct LoginBody {
     #[serde(rename = "email")]
     pub(crate) email: String,
@@ -13,12 +16,22 @@ pub(crate) struct LoginBody {
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[schema(example = json!({
+    "token": "ey6b0pm7hk87bJB..."
+}))]
 pub(crate) struct LoginResponse {
     #[serde(rename = "token")]
     pub(crate) token: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[schema(example = json!({
+    "firstname": "John",
+    "lastname": "DOE",
+    "email": "john@doe.net",
+    "phone": "+1234567890",
+    "password": "myAmazingStringPassword123!"
+}))]
 pub(crate) struct RegisterBody {
     #[serde(rename = "firstname")]
     pub(crate) firstname: String,
@@ -37,6 +50,12 @@ pub(crate) struct RegisterBody {
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[schema(example = json!({
+    "firstname": "John",
+    "lastname": "DOE",
+    "email": "john@doe.net",
+    "phone": "+1234567890"
+}))]
 pub(crate) struct AccountInfo {
     #[serde(rename = "firstname")]
     pub(crate) firstname: String,

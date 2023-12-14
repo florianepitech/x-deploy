@@ -21,7 +21,7 @@ pub mod dto;
     path = "/auth/login",
     tag = "Auth",
     responses(
-        (status = 200, description = "You're now logged in")
+        (status = 200, description = "You're now logged in", body = LoginResponse),
     ),
     request_body = LoginBody,
 )]
