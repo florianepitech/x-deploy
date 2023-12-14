@@ -1,7 +1,9 @@
+use rocket::serde::json::serde_json::json;
 use utoipa::ToSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[schema(example = json!({"email": "john@doe.net", "password": "myAmazingStringPassword123!"}))]
 pub(crate) struct LoginBody {
     #[serde(rename = "email")]
     pub(crate) email: String,

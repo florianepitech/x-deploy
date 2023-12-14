@@ -22,7 +22,7 @@ build-prod:
 	cargo build --release
 
 run-dev-api:
-	cargo watch -x "run --bin $(API_NAME)"
+	export RUST_BACKTRACE=1 && cargo watch -x "run --bin $(API_NAME)"
 
 run-prod-api:
 	cargo run --release

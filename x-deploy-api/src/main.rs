@@ -2,6 +2,10 @@ use crate::config::DotEnvConfig;
 use lazy_static::lazy_static;
 use rocket::futures::StreamExt;
 use rocket::serde::Deserialize;
+use utoipa::OpenApi;
+use utoipa_rapidoc::RapiDoc;
+use utoipa_redoc::{Redoc, Servable};
+use utoipa_swagger_ui::SwaggerUi;
 
 #[macro_use]
 extern crate rocket;
@@ -20,6 +24,14 @@ extern crate ovh_api;
 lazy_static! {
     pub(crate) static ref DOTENV_CONFIG: DotEnvConfig = DotEnvConfig::from_dotenv();
 }
+
+#[derive(OpenApi)]
+#[openapi(
+    info(description = "My Api description"),
+    paths(route::auth::login, route::auth::register,),
+    components(schemas(route::auth::dto::LoginBody))
+)]
+struct ApiDoc;
 
 #[rocket::launch]
 async fn rocket() -> _ {
@@ -87,9 +99,21 @@ async fn rocket() -> _ {
         route::organization::credentials::ovh::delete,
     ];
 
+    let doc = ApiDoc::openapi();
+
+    let swagger_ui =
+        SwaggerUi::new("/swagger-ui/<_..>").url("/api-docs/openapi.json", ApiDoc::openapi());
+
+    let redoc_ui = Redoc::with_url("/redoc", ApiDoc::openapi());
+
+    let rapidoc_ui = RapiDoc::with_openapi("/", ApiDoc::openapi());
+
     rocket::build()
         .manage(mongodb_database)
         .manage(redis_client)
         .register("/", catcher_list)
+        .mount("/", swagger_ui)
+        .mount("/", redoc_ui)
+        //.mount("/", rapidoc_ui)
         .mount("/", routes)
 }

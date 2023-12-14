@@ -16,6 +16,15 @@ use std::str::FromStr;
 
 pub mod dto;
 
+#[utoipa::path(
+    post,
+    path = "/auth/login",
+    tag = "Auth",
+    responses(
+        (status = 200, description = "You're now logged in")
+    ),
+    request_body = LoginBody,
+)]
 #[post("/auth/login", format = "application/json", data = "<body>")]
 pub(crate) async fn login(
     db: &State<Database>,
@@ -25,16 +34,15 @@ pub(crate) async fn login(
     let mongodb_client = db.inner();
     let collection: Collection<User> = mongodb_client.collection(USER_COLLECTION_NAME);
     // Verify if email exists for an user
-    let user =
-        collection
-            .find_one(
-                doc! {
-                    "email.email": login_body.email
-                },
-                None,
-            )
-            .await
-            .unwrap();
+    let user = collection
+        .find_one(
+            doc! {
+                "email.email": login_body.email
+            },
+            None,
+        )
+        .await
+        .unwrap();
     if user.is_none() {
         return Err(Custom(
             Status::Unauthorized,
@@ -61,6 +69,14 @@ pub(crate) async fn login(
     return Ok(Json(LoginResponse { token: new_token }));
 }
 
+#[utoipa::path(
+    post,
+    path = "/auth/register",
+    tag = "Auth",
+    responses(
+        (status = 200, description = "You're now registred")
+    ),
+)]
 #[post("/auth/register", format = "application/json", data = "<body>")]
 pub(crate) async fn register(
     db: &State<Database>,
@@ -70,16 +86,15 @@ pub(crate) async fn register(
     let mongodb_client = db.inner();
     let collection: Collection<User> = mongodb_client.collection(USER_COLLECTION_NAME);
     // Verify if email exists for an user
-    let user =
-        collection
-            .find_one(
-                doc! {
-                    "email.email": body.email.clone()
-                },
-                None,
-            )
-            .await
-            .unwrap();
+    let user = collection
+        .find_one(
+            doc! {
+                "email.email": body.email.clone()
+            },
+            None,
+        )
+        .await
+        .unwrap();
     if user.is_some() {
         return Err(Custom(
             Status::Conflict,
@@ -118,16 +133,15 @@ pub(crate) async fn info(
             }),
         ));
     }
-    let user =
-        collection
-            .find_one(
-                doc! {
-                    "_id": object_id.unwrap()
-                },
-                None,
-            )
-            .await
-            .unwrap();
+    let user = collection
+        .find_one(
+            doc! {
+                "_id": object_id.unwrap()
+            },
+            None,
+        )
+        .await
+        .unwrap();
     if user.is_none() {
         return Err(Custom(
             Status::NotFound,
