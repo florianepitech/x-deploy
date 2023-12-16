@@ -24,4 +24,4 @@ jsonwebtoken = { version = "9.1.0" }
 bcrypt = { version = "0.15.0" }
 lazy_static = { version = "1.4.0" }
 log = { version = "0.4.20" }
-serde_json.workspace = true
+serde_json = { workspace = true }

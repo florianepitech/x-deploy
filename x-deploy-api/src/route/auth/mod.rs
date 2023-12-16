@@ -2,7 +2,7 @@ use crate::cipher::password::verify_password;
 use crate::cipher::token::{gen_new_token, Token};
 use crate::db::user::{User, USER_COLLECTION_NAME};
 use crate::route::auth::dto::{AccountInfo, LoginBody, LoginResponse, RegisterBody};
-use crate::route::Message;
+use crate::route::{Message, MessageResult};
 use crate::DOTENV_CONFIG;
 use bson::doc;
 use bson::oid::ObjectId;
@@ -74,14 +74,15 @@ pub(crate) async fn login(
     path = "/auth/register",
     tag = "Auth",
     responses(
-        (status = 200, description = "You're now registred")
+        (status = 200, description = "You're now registered", body = Message)
     ),
+    request_body = RegisterBody,
 )]
 #[post("/auth/register", format = "application/json", data = "<body>")]
 pub(crate) async fn register(
     db: &State<Database>,
     body: Json<RegisterBody>,
-) -> Result<Json<Message>, Custom<Json<Message>>> {
+) -> MessageResult {
     let body = body.into_inner();
     let mongodb_client = db.inner();
     let collection: Collection<User> = mongodb_client.collection(USER_COLLECTION_NAME);

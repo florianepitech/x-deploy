@@ -22,6 +22,15 @@ enum CloudProvider {
     GoogleCloud,
 }
 
+#[utoipa::path(
+    post,
+    path = "/organization",
+    tag = "Organization",
+    responses(
+        (status = 200, description = "Create a new organization", body = Message),
+    ),
+    request_body = CreateOrganizationBody,
+)]
 #[post("/organization", format = "application/json", data = "<body>")]
 pub(crate) async fn new(
     db: &State<Database>,
@@ -52,6 +61,30 @@ pub(crate) async fn new(
     }))
 }
 
+#[utoipa::path(
+    get,
+    path = "/organization",
+    tag = "Organization",
+    responses(
+        (status = 200, description = "Get organization by id", body = Message),
+    )
+)]
+#[get("/organization/<id>", format = "application/json")]
+pub(crate) async fn get_by_id(
+    db: &State<Database>,
+    id: String,
+) -> MessageResult {
+    return custom_response!(Status::NotImplemented, "Not implemented");
+}
+
+#[utoipa::path(
+    get,
+    path = "/organization/<id>",
+    tag = "Organization",
+    responses(
+        (status = 200, description = "Get organization by id", body = Message),
+    ),
+)]
 #[patch("/organization/<id>", format = "application/json")]
 pub(crate) async fn update(
     db: &State<Database>,
@@ -62,6 +95,14 @@ pub(crate) async fn update(
     return custom_response!(Status::NotImplemented, "Not implemented");
 }
 
+#[utoipa::path(
+    delete,
+    path = "/organization/<id>",
+    tag = "Organization",
+    responses(
+        (status = 200, description = "Delete organization by id", body = Message),
+    ),
+)]
 #[delete("/organization/<id>", format = "application/json")]
 pub(crate) async fn delete(
     db: &State<Database>,
@@ -69,13 +110,5 @@ pub(crate) async fn delete(
     id: String,
 ) -> MessageResult {
     // let organization = get_organization_by_id!(db, id).await?;
-    return custom_response!(Status::NotImplemented, "Not implemented");
-}
-
-#[get("/organization?<query..>", format = "application/json")]
-pub(crate) async fn get_by_id(
-    db: &State<Database>,
-    query: GetByIdQuery,
-) -> MessageResult {
     return custom_response!(Status::NotImplemented, "Not implemented");
 }

@@ -30,14 +30,33 @@ lazy_static! {
     paths(
         // Auth
         route::auth::login,
-        route::auth::register
+        route::auth::register,
+        // Account
+        route::account::get_info,
+        route::account::verify_email,
+        route::account::change_password,
+        route::account::change_phone,
+        // Organization
+        route::organization::new,
+        route::organization::get_by_id,
+        route::organization::update,
+        route::organization::delete,
     ),
     components(schemas(
+        // Global
+        route::Message,
         // Auth
         route::auth::dto::LoginBody,
         route::auth::dto::LoginResponse,
         route::auth::dto::RegisterBody,
-        route::auth::dto::AccountInfo
+        route::auth::dto::AccountInfo,
+        // Account
+        route::account::dto::GetAccountInfoResponse,
+        route::account::dto::VerifyEmailBody,
+        route::account::dto::ChangePasswordBody,
+        route::account::dto::ChangePhoneBody,
+        // Organization
+        route::organization::dto::CreateOrganizationBody
     ))
 )]
 struct ApiDoc;

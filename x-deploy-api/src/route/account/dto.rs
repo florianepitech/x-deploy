@@ -7,7 +7,7 @@ pub(crate) struct GetAccountInfoResponse {
     pub(crate) firstname: String,
 
     #[serde(rename = "lastname")]
-    pub(crate) name: String,
+    pub(crate) lastname: String,
 
     #[serde(rename = "email")]
     pub(crate) email: String,
@@ -15,6 +15,8 @@ pub(crate) struct GetAccountInfoResponse {
     #[serde(rename = "emailVerified")]
     pub(crate) email_verified: bool,
 
+    #[serde(rename = "phone")]
+    pub(crate) phone: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]

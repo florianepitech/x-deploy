@@ -1,13 +1,13 @@
 use rocket::response::status::Custom;
 use rocket::serde::json::Json;
-use utoipa::ToSchema;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 pub(crate) mod deploy;
 
+pub mod account;
 pub mod auth;
 pub mod organization;
 pub mod ovh;
-pub mod account;
 
 #[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub(crate) struct Message {
@@ -23,7 +23,7 @@ impl Message {
 
 pub(crate) type MessageResult = Result<Json<Message>, Custom<Json<Message>>>;
 
-pub(crate) type CustomResult<T> = Result<T, Custom<Json<Message>>>;
+pub(crate) type CustomResult<T> = Result<Json<T>, Custom<Json<Message>>>;
 
 #[macro_export]
 macro_rules! custom_response {
@@ -40,7 +40,7 @@ macro_rules! custom_response {
 #[macro_export]
 macro_rules! custom_message {
     ($status:expr, $msg:expr) => {
-        Ok(Custom(
+        Err(Custom(
             $status,
             Json(Message {
                 message: $msg.to_string(),
