@@ -5,7 +5,7 @@ use rocket::http::Status;
 use rocket::response::status::Custom;
 use rocket::serde::json::Json;
 use rocket::State;
-use crate::cipher::token::Token;
+use crate::guard::token::Token;
 use crate::custom_response;
 use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
 use crate::db::project::Project;

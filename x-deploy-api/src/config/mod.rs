@@ -3,6 +3,7 @@ pub(crate) struct DotEnvConfig {
     pub(crate) mongodb_database: String,
     pub(crate) redis_url: String,
     pub(crate) jwt_secret: String,
+    pub(crate) max_organization_by_owner: u64,
 }
 
 impl DotEnvConfig {
@@ -14,6 +15,10 @@ impl DotEnvConfig {
                 .expect("MONGODB_DATABASE must be set"),
             redis_url: dotenv::var("REDIS_URL").expect("REDIS_URL must be set"),
             jwt_secret: dotenv::var("JWT_SECRET").expect("JWT_SECRET must be set"),
+            max_organization_by_owner: dotenv::var("MAX_ORGANIZATION_BY_OWNER")
+                .expect("MAX_ORGANIZATION_BY_OWNER must be set")
+                .parse::<u64>()
+                .expect("MAX_ORGANIZATION_BY_OWNER must be an unsigned integer"),
         };
     }
 }

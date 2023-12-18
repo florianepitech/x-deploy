@@ -46,7 +46,7 @@ pub(crate) fn decode_token(
 
 #[cfg(test)]
 mod tests {
-    use crate::cipher::token::{decode_token, gen_new_token};
+    use crate::guard::token::{decode_token, gen_new_token};
     use crate::DOTENV_CONFIG;
     use bson::oid::ObjectId;
     use k8s_openapi::chrono;

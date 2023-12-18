@@ -1,5 +1,5 @@
 use crate::cipher::password::verify_password;
-use crate::cipher::token::{gen_new_token, Token};
+use crate::guard::token::{gen_new_token, Token};
 use crate::db::user::{User, USER_COLLECTION_NAME};
 use crate::route::auth::dto::{AccountInfo, LoginBody, LoginResponse, RegisterBody};
 use crate::route::{CustomResult, Message, MessageResult};

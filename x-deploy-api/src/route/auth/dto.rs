@@ -17,6 +17,15 @@ pub(crate) struct LoginBody {
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
 #[schema(example = json!({
+    "email": "john@doe.net",
+    "password": "123678"
+}))]
+pub(crate) struct TwoFactorCode {
+    pub(crate) code: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[schema(example = json!({
     "token": "ey6b0pm7hk87bJB..."
 }))]
 pub(crate) struct LoginResponse {

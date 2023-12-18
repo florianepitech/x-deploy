@@ -8,10 +8,10 @@ use rocket::response::status::Custom;
 use rocket::serde::json::Json;
 use rocket::State;
 use crate::cipher::password::verify_password;
-use crate::cipher::token::{gen_new_token, Token};
+use crate::guard::token::{gen_new_token, Token};
 use crate::db::user::{User, USER_COLLECTION_NAME};
-use crate::DOTENV_CONFIG;
-use crate::route::auth::dto::{AccountInfo, LoginBody, LoginResponse, RegisterBody};
+use crate::{custom_message, DOTENV_CONFIG};
+use crate::route::auth::dto::{AccountInfo, LoginBody, LoginResponse, RegisterBody, TwoFactorCode};
 use crate::route::{CustomResult, Message, MessageResult};
 
 pub(crate) async fn login(
@@ -55,6 +55,13 @@ pub(crate) async fn login(
     let new_token =
         gen_new_token(user.id.clone(), &duration, &jwt_secret).expect("Error generating token");
     return Ok(Json(LoginResponse { token: new_token }));
+}
+
+pub(crate) async fn two_factor_auth(
+    db: &State<Database>,
+    body: TwoFactorCode
+) -> MessageResult {
+    custom_message!(Status::NotImplemented, "Two factor authentication is not implemented yet.")
 }
 
 pub(crate) async fn register(

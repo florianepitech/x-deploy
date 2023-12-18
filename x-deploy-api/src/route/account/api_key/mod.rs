@@ -1,4 +1,4 @@
-use crate::cipher::token::Token;
+use crate::guard::token::Token;
 use crate::db::ovh_credentials::{OvhCredentials, OvhCredentialsStatus, OVH_CRED_COLLECTION_NAME};
 use crate::db::user::{User, USER_COLLECTION_NAME};
 use crate::ovh::auth::test_ovh_connection;

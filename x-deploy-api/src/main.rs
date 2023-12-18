@@ -41,6 +41,7 @@ lazy_static! {
         route::organization::get_by_id,
         route::organization::update,
         route::organization::delete,
+        route::organization::transfer,
     ),
     components(schemas(
         // Global
@@ -56,7 +57,8 @@ lazy_static! {
         route::account::dto::ChangePasswordBody,
         route::account::dto::ChangePhoneBody,
         // Organization
-        route::organization::dto::CreateOrganizationBody
+        route::organization::dto::CreateOrganizationBody,
+        route::organization::dto::TransferOrganizationBody,
     ))
 )]
 struct ApiDoc;
@@ -101,6 +103,7 @@ async fn rocket() -> _ {
         route::organization::get_by_id,
         route::organization::update,
         route::organization::delete,
+        route::organization::transfer,
         // Organization Members
         route::organization::member::get,
         route::organization::member::delete,
