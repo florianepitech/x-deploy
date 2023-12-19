@@ -1,21 +1,15 @@
-use crate::cipher::password::verify_password;
-use crate::guard::token::{gen_new_token, Token};
-use crate::db::user::{User, USER_COLLECTION_NAME};
-use crate::route::auth::dto::{AccountInfo, LoginBody, LoginResponse, RegisterBody};
-use crate::route::{CustomResult, Message, MessageResult};
-use crate::DOTENV_CONFIG;
+use crate::route::auth::dto::{
+  LoginBody, LoginResponse, RegisterBody, TwoFactorCode,
+};
+use crate::route::{CustomResponse, Message};
 use bson::doc;
-use bson::oid::ObjectId;
-use k8s_openapi::chrono;
-use mongodb::{Collection, Database};
-use rocket::http::Status;
-use rocket::response::status::Custom;
+use mongodb::Database;
 use rocket::serde::json::Json;
 use rocket::State;
 use std::str::FromStr;
 
-pub mod dto;
 mod controller;
+pub mod dto;
 
 #[utoipa::path(
     post,
@@ -28,10 +22,10 @@ mod controller;
 )]
 #[post("/auth/login", format = "application/json", data = "<body>")]
 pub(crate) async fn login(
-    db: &State<Database>,
-    body: Json<LoginBody>,
-) -> CustomResult<LoginResponse> {
-    return controller::login(db, body).await;
+  db: &State<Database>,
+  body: Json<LoginBody>,
+) -> CustomResponse<LoginResponse> {
+  return controller::login(db, body).await;
 }
 
 #[utoipa::path(
@@ -45,16 +39,25 @@ pub(crate) async fn login(
 )]
 #[post("/auth/register", format = "application/json", data = "<body>")]
 pub(crate) async fn register(
-    db: &State<Database>,
-    body: Json<RegisterBody>,
-) -> MessageResult {
-    return controller::register(db, body).await;
+  db: &State<Database>,
+  body: Json<RegisterBody>,
+) -> CustomResponse<Message> {
+  return controller::register(db, body).await;
 }
 
-#[get("/auth/info")]
-pub(crate) async fn info(
-    db: &State<Database>,
-    token: Token,
-) -> CustomResult<AccountInfo> {
-    return controller::info(db, token).await;
+#[utoipa::path(
+    post,
+    path = "/auth/two-factor",
+    tag = "Auth",
+    responses(
+        (status = 200, description = "You're now logged in", body = Message),
+    ),
+    request_body = TwoFactorCode,
+)]
+#[post("/auth/two-factor", format = "application/json", data = "<body>")]
+pub(crate) async fn two_factor(
+  db: &State<Database>,
+  body: Json<TwoFactorCode>,
+) -> CustomResponse<Message> {
+  return controller::two_factor(db, body).await;
 }

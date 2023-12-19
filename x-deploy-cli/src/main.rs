@@ -8,6 +8,6 @@ use clap::Parser;
 
 #[tokio::main]
 async fn main() {
-    let cmd_args = CmdArgs::parse();
-    execute(cmd_args);
+  let cmd_args = CmdArgs::parse();
+  execute(cmd_args);
 }

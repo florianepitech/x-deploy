@@ -1,17 +1,18 @@
+use crate::db::user::{User, USER_COLLECTION_NAME};
 use crate::guard::token::Token;
-use crate::route::account::dto::GetAccountInfoResponse;
-use crate::route::{CustomResult, Message};
-use crate::{custom_message};
+use crate::route::account::dto::{
+  GetAccountInfoResponse, TwoFactorCodeRequest, TwoFactorInfoRequest,
+  TwoFactorInfoResponse, TwoFactorSetupRequest, TwoFactorSetupResponse,
+};
+use crate::route::{custom_message, custom_response, CustomResponse, Message};
 use bson::doc;
 use bson::oid::ObjectId;
 use mongodb::{Collection, Database};
 use rocket::http::Status;
-use rocket::response::status::Custom;
 use rocket::serde::json::Json;
 use rocket::State;
-use crate::db::user::{User, USER_COLLECTION_NAME};
 
-pub(crate) mod api_key;
+mod controller;
 pub(crate) mod dto;
 
 #[utoipa::path(
@@ -24,33 +25,10 @@ pub(crate) mod dto;
 )]
 #[get("/account", format = "application/json")]
 pub(crate) async fn get_info(
-    token: Token,
-    db: &State<Database>,
-) -> CustomResult<GetAccountInfoResponse> {
-    let user_id: ObjectId = ObjectId::parse_str(token.id.as_str()).unwrap();
-    let mongodb_client = db.inner();
-    let collection: Collection<User> = mongodb_client.collection(USER_COLLECTION_NAME);
-    let user = collection
-        .find_one(
-            doc! {
-                "_id": user_id
-            },
-            None,
-        )
-        .await
-        .unwrap();
-    if user.is_none() {
-        return custom_message!(Status::NotFound, "You're account doesn't exist !");
-    }
-    let user = user.unwrap();
-    let result = GetAccountInfoResponse {
-        firstname: user.firstname,
-        lastname: user.lastname,
-        email: user.email.email,
-        email_verified: user.email.verified,
-        phone: user.phone.phone,
-    };
-    return Ok(Json(result));
+  token: Token,
+  db: &State<Database>,
+) -> CustomResponse<GetAccountInfoResponse> {
+  return controller::get_info(token, db).await;
 }
 
 #[deprecated]
@@ -65,15 +43,10 @@ pub(crate) async fn get_info(
 )]
 #[post("/account/verify-email", format = "application/json", data = "<body>")]
 pub(crate) async fn verify_email(
-    db: &State<Database>,
-    body: Json<dto::VerifyEmailBody>,
-) -> Result<Json<Message>, Custom<Json<Message>>> {
-    Err(Custom(
-        Status::NotImplemented,
-        Json(Message {
-            message: "Not implemented".to_string(),
-        }),
-    ))
+  db: &State<Database>,
+  body: Json<dto::VerifyEmailBody>,
+) -> CustomResponse<Message> {
+  return controller::verify_email(db, body).await;
 }
 
 #[deprecated]
@@ -87,20 +60,15 @@ pub(crate) async fn verify_email(
     request_body = ChangePasswordBody,
 )]
 #[post(
-    "/account/change-password",
-    format = "application/json",
-    data = "<body>"
+  "/account/change-password",
+  format = "application/json",
+  data = "<body>"
 )]
 pub(crate) async fn change_password(
-    db: &State<Database>,
-    body: Json<dto::ChangePasswordBody>,
-) -> Result<Json<Message>, Custom<Json<Message>>> {
-    Err(Custom(
-        Status::NotImplemented,
-        Json(Message {
-            message: "Not implemented".to_string(),
-        }),
-    ))
+  db: &State<Database>,
+  body: Json<dto::ChangePasswordBody>,
+) -> CustomResponse<Message> {
+  return controller::change_password(db, body).await;
 }
 
 #[deprecated]
@@ -115,13 +83,86 @@ pub(crate) async fn change_password(
 )]
 #[post("/account/change-phone", format = "application/json", data = "<body>")]
 pub(crate) async fn change_phone(
-    db: &State<Database>,
-    body: Json<dto::ChangePhoneBody>,
-) -> Result<Json<Message>, Custom<Json<Message>>> {
-    Err(Custom(
-        Status::NotImplemented,
-        Json(Message {
-            message: "Not implemented".to_string(),
-        }),
-    ))
+  db: &State<Database>,
+  body: Json<dto::ChangePhoneBody>,
+) -> CustomResponse<Message> {
+  return controller::change_phone(db, body).await;
+}
+
+// 2FA
+
+#[deprecated]
+#[utoipa::path(
+  post,
+  path = "/account/2fa",
+  tag = "Account",
+  responses(
+    (status = 200, description = "Information about your 2FA", body = TwoFactorInfoResponse),
+  ),
+  request_body = TwoFactorInfoRequest,
+)]
+#[post("/account/2fa", format = "application/json", data = "<body>")]
+pub(crate) async fn info_2fa(
+  db: &State<Database>,
+  token: Token,
+  body: Json<TwoFactorInfoRequest>,
+) -> CustomResponse<TwoFactorInfoResponse> {
+  return controller::info_2fa(db, token, body).await;
+}
+
+#[deprecated]
+#[utoipa::path(
+  post,
+  path = "/account/2fa/setup",
+  tag = "Account",
+  responses(
+    (status = 200, description = "The data about your new 2FA setup", body = TwoFactorSetupResponse),
+  ),
+  request_body = TwoFactorSetupRequest,
+)]
+#[post("/account/2fa/setup", format = "application/json", data = "<body>")]
+pub(crate) async fn setup_2fa(
+  db: &State<Database>,
+  token: Token,
+  body: Json<TwoFactorSetupRequest>,
+) -> CustomResponse<TwoFactorSetupResponse> {
+  return controller::setup_2fa(db, token, body).await;
+}
+
+#[deprecated]
+#[utoipa::path(
+    post,
+    path = "/account/2fa/enable",
+    tag = "Account",
+    responses(
+        (status = 200, description = "Create api key", body = Message),
+    ),
+    request_body = TwoFactorCodeRequest,
+)]
+#[post("/account/2fa/enable", format = "application/json", data = "<body>")]
+pub(crate) async fn enable_2fa(
+  db: &State<Database>,
+  token: Token,
+  body: Json<TwoFactorCodeRequest>,
+) -> CustomResponse<Message> {
+  return controller::enable_2fa(db, token, body).await;
+}
+
+#[deprecated]
+#[utoipa::path(
+    post,
+    path = "/account/2fa/disable",
+    tag = "Account",
+    responses(
+        (status = 200, description = "Create api key", body = Message),
+    ),
+    request_body = TwoFactorCodeRequest,
+)]
+#[post("/account/2fa/disable", format = "application/json", data = "<body>")]
+pub(crate) async fn disable_2fa(
+  db: &State<Database>,
+  token: Token,
+  body: Json<TwoFactorCodeRequest>,
+) -> CustomResponse<Message> {
+  return controller::disable_2fa(db, token, body).await;
 }

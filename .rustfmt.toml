@@ -1,0 +1,13 @@
+#
+# Configuration de l'outil de formatage de code
+# X-Deploy 2023
+#
+
+# Force les arguments de fonction à être sur des lignes séparées
+fn_params_layout = "Vertical"
+
+# Definir longueur de ligne à 80 caractères
+max_width = 80
+
+# Definir l'indentation à 2 espaces
+tab_spaces = 2

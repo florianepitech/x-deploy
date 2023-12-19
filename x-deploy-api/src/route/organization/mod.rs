@@ -1,21 +1,24 @@
-use crate::route::organization::dto::{CreateOrganizationBody, TransferOrganizationBody};
-use crate::route::{MessageResult};
-use mongodb::{Database};
+use crate::guard::token::Token;
+use crate::route::organization::dto::{
+  CreateOrganizationBody, TransferOrganizationBody,
+};
+use crate::route::{CustomResponse, Message};
+use mongodb::Database;
 use rocket::serde::json::Json;
 use rocket::State;
-use crate::guard::token::Token;
 
-pub(crate) mod dto;
-pub(crate) mod project;
-pub(crate) mod credentials;
-pub(crate) mod member;
+pub(crate) mod api_key;
 mod controller;
+pub(crate) mod credentials;
+pub(crate) mod dto;
+pub(crate) mod member;
+pub(crate) mod project;
 
 enum CloudProvider {
-    Ovh,
-    Aws,
-    Azure,
-    GoogleCloud,
+  Ovh,
+  Aws,
+  Azure,
+  GoogleCloud,
 }
 
 #[utoipa::path(
@@ -29,11 +32,11 @@ enum CloudProvider {
 )]
 #[post("/organization", format = "application/json", data = "<body>")]
 pub(crate) async fn new(
-    db: &State<Database>,
-    token: Token,
-    body: Json<CreateOrganizationBody>,
-) -> MessageResult {
-    controller::new(db, token, body).await
+  db: &State<Database>,
+  token: Token,
+  body: Json<CreateOrganizationBody>,
+) -> CustomResponse<Message> {
+  controller::new(db, token, body).await
 }
 
 #[utoipa::path(
@@ -46,10 +49,10 @@ pub(crate) async fn new(
 )]
 #[get("/organization/<id>", format = "application/json")]
 pub(crate) async fn get_by_id(
-    db: &State<Database>,
-    id: String,
-) -> MessageResult {
-    controller::get_by_id(db, id).await
+  db: &State<Database>,
+  id: String,
+) -> CustomResponse<Message> {
+  controller::get_by_id(db, id).await
 }
 
 #[utoipa::path(
@@ -62,11 +65,11 @@ pub(crate) async fn get_by_id(
 )]
 #[patch("/organization/<id>", format = "application/json")]
 pub(crate) async fn update(
-    db: &State<Database>,
-    token: Token,
-    id: String,
-) -> MessageResult {
-    controller::update(db, token, id).await
+  db: &State<Database>,
+  token: Token,
+  id: String,
+) -> CustomResponse<Message> {
+  controller::update(db, token, id).await
 }
 
 #[utoipa::path(
@@ -79,11 +82,11 @@ pub(crate) async fn update(
 )]
 #[delete("/organization/<id>", format = "application/json")]
 pub(crate) async fn delete(
-    db: &State<Database>,
-    token: Token,
-    id: String,
-) -> MessageResult {
-    controller::delete(db, token, id).await
+  db: &State<Database>,
+  token: Token,
+  id: String,
+) -> CustomResponse<Message> {
+  controller::delete(db, token, id).await
 }
 
 #[utoipa::path(
@@ -95,12 +98,16 @@ pub(crate) async fn delete(
     ),
     request_body = TransferOrganizationBody,
 )]
-#[post("/organization/<id>/transfer", format = "application/json", data = "<body>")]
+#[post(
+  "/organization/<id>/transfer",
+  format = "application/json",
+  data = "<body>"
+)]
 pub(crate) async fn transfer(
-    db: &State<Database>,
-    token: Token,
-    id: String,
-    body: Json<TransferOrganizationBody>,
-) -> MessageResult {
-    controller::transfer(db, token, id, body).await
+  db: &State<Database>,
+  token: Token,
+  id: String,
+  body: Json<TransferOrganizationBody>,
+) -> CustomResponse<Message> {
+  controller::transfer(db, token, id, body).await
 }

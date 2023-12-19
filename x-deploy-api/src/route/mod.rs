@@ -11,40 +11,29 @@ pub mod ovh;
 
 #[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub(crate) struct Message {
-    #[serde(rename = "message")]
-    pub(crate) message: String,
+  #[serde(rename = "message")]
+  pub(crate) message: String,
 }
 
 impl Message {
-    pub(crate) fn new(message: String) -> Self {
-        Self { message }
-    }
+  pub(crate) fn new(message: String) -> Self {
+    Self { message }
+  }
 }
 
-pub(crate) type MessageResult = Result<Json<Message>, Custom<Json<Message>>>;
+pub type CustomResponse<T> = Result<Custom<Json<T>>, Custom<Json<Message>>>;
 
-pub(crate) type CustomResult<T> = Result<Json<T>, Custom<Json<Message>>>;
-
-#[macro_export]
-macro_rules! custom_response {
-    ($status:expr, $msg:expr) => {
-        Err(Custom(
-            $status,
-            Json(Message {
-                message: $msg.to_string(),
-            }),
-        ))
-    };
+pub fn custom_message<T: Serialize>(
+  status: rocket::http::Status,
+  message: &str,
+) -> CustomResponse<T> {
+  let message = Message::new(message.to_string());
+  Err(Custom(status, Json(message)))
 }
 
-#[macro_export]
-macro_rules! custom_message {
-    ($status:expr, $msg:expr) => {
-        Err(Custom(
-            $status,
-            Json(Message {
-                message: $msg.to_string(),
-            }),
-        ))
-    };
+pub fn custom_response<T: Serialize>(
+  status: rocket::http::Status,
+  body: T,
+) -> CustomResponse<T> {
+  Ok(Custom(status, Json(body)))
 }
