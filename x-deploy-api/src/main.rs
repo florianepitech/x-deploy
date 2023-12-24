@@ -18,6 +18,7 @@ mod kbs;
 mod ovh;
 mod responder;
 mod route;
+mod event;
 
 extern crate ovh_api;
 
@@ -33,6 +34,8 @@ lazy_static! {
         // Auth
         route::auth::login,
         route::auth::register,
+        route::auth::two_factor,
+        route::auth::two_factor_recovery,
         // Account
         route::account::get_info,
         route::account::verify_email,
@@ -43,6 +46,7 @@ lazy_static! {
         route::account::enable_2fa,
         route::account::disable_2fa,
         // Organization
+        route::organization::all,
         route::organization::new,
         route::organization::get_by_id,
         route::organization::update,
@@ -75,6 +79,7 @@ lazy_static! {
         // Organization
         route::organization::dto::CreateOrganizationBody,
         route::organization::dto::TransferOrganizationBody,
+        route::organization::dto::OrganizationInfoResponse,
         // Organization Api Keys
         route::organization::api_key::dto::CreateApiKeyBody,
     ))
@@ -118,6 +123,7 @@ async fn rocket() -> _ {
     route::account::enable_2fa,
     route::account::disable_2fa,
     // Organization
+    route::organization::all,
     route::organization::new,
     route::organization::get_by_id,
     route::organization::update,

@@ -1,10 +1,10 @@
+mod controller;
+mod dto;
+
 use crate::guard::token::Token;
-use crate::route::{custom_message, ApiResponse, SuccessMessage};
-use bson::{doc, oid};
-use mongodb::{Collection, Database};
-use rocket::http::Status;
-use rocket::response::status::Custom;
-use rocket::serde::json::Json;
+use crate::route::{ApiResponse, SuccessMessage};
+use bson::doc;
+use mongodb::Database;
 use rocket::State;
 
 #[get("/organization/<id>/member", format = "application/json")]
@@ -13,8 +13,7 @@ pub(crate) async fn get(
   token: Token,
   id: String,
 ) -> ApiResponse<SuccessMessage> {
-  // let organization = get_organization_by_id!(db, id).await?;
-  return custom_message(Status::NotImplemented, "Not implemented");
+  controller::get(db, token, id).await
 }
 
 #[delete("/organization/<id>/member/<member_id>", format = "application/json")]
@@ -24,6 +23,5 @@ pub(crate) async fn delete(
   id: String,
   member_id: String,
 ) -> ApiResponse<SuccessMessage> {
-  // let organization = get_organization_by_id!(db, id).await?;
-  return custom_message(Status::NotImplemented, "Not implemented");
+  controller::delete(db, token, id, member_id).await
 }

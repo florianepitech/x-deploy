@@ -1,7 +1,5 @@
 use crate::guard::token::Token;
-use crate::route::organization::dto::{
-  CreateOrganizationBody, TransferOrganizationBody,
-};
+use crate::route::organization::dto::{CreateOrganizationBody, DeleteOrganizationBody, OrganizationInfoResponse, TransferOrganizationBody, UpdateOrganizationBody};
 use crate::route::{ApiResponse, SuccessMessage};
 use mongodb::Database;
 use rocket::serde::json::Json;
@@ -14,11 +12,20 @@ pub(crate) mod dto;
 pub(crate) mod member;
 pub(crate) mod project;
 
-enum CloudProvider {
-  Ovh,
-  Aws,
-  Azure,
-  GoogleCloud,
+#[utoipa::path(
+    get,
+    path = "/organization",
+    tag = "Organization",
+    responses(
+        (status = 200, description = "Get all organizations", body = Vec<OrganizationInfoResponse>),
+    ),
+)]
+#[get("/organization", format = "application/json")]
+pub(crate) async fn all(
+  db: &State<Database>,
+  token: Token,
+) -> ApiResponse<Vec<OrganizationInfoResponse>> {
+  controller::all(db, token).await
 }
 
 #[utoipa::path(
@@ -26,7 +33,7 @@ enum CloudProvider {
     path = "/organization",
     tag = "Organization",
     responses(
-        (status = 200, description = "Create a new organization", body = Message),
+        (status = 200, description = "Create a new organization", body = SuccessMessage),
     ),
     request_body = CreateOrganizationBody,
 )]
@@ -41,35 +48,38 @@ pub(crate) async fn new(
 
 #[utoipa::path(
     get,
-    path = "/organization",
+    path = "/organization/<id>",
     tag = "Organization",
     responses(
-        (status = 200, description = "Get organization by id", body = Message),
+        (status = 200, description = "Get organization by id", body = OrganizationInfoResponse),
     )
 )]
 #[get("/organization/<id>", format = "application/json")]
 pub(crate) async fn get_by_id(
   db: &State<Database>,
+  token: Token,
   id: String,
-) -> ApiResponse<SuccessMessage> {
-  controller::get_by_id(db, id).await
+) -> ApiResponse<OrganizationInfoResponse> {
+  controller::get_by_id(db, token, id).await
 }
 
 #[utoipa::path(
-    get,
+    patch,
     path = "/organization/<id>",
     tag = "Organization",
     responses(
-        (status = 200, description = "Get organization by id", body = Message),
+        (status = 200, description = "Update an organization by id", body = SuccessMessage),
     ),
+    request_body = UpdateOrganizationBody,
 )]
-#[patch("/organization/<id>", format = "application/json")]
+#[patch("/organization/<id>", format = "application/json", data = "<body>")]
 pub(crate) async fn update(
   db: &State<Database>,
   token: Token,
   id: String,
+  body: Json<UpdateOrganizationBody>,
 ) -> ApiResponse<SuccessMessage> {
-  controller::update(db, token, id).await
+  controller::update(db, token, id, body).await
 }
 
 #[utoipa::path(
@@ -77,16 +87,18 @@ pub(crate) async fn update(
     path = "/organization/<id>",
     tag = "Organization",
     responses(
-        (status = 200, description = "Delete organization by id", body = Message),
+        (status = 200, description = "Delete organization by id", body = SuccessMessage),
     ),
+    request_body = DeleteOrganizationBody,
 )]
-#[delete("/organization/<id>", format = "application/json")]
+#[delete("/organization/<id>", format = "application/json", data = "<body>")]
 pub(crate) async fn delete(
   db: &State<Database>,
   token: Token,
   id: String,
+  body: Json<DeleteOrganizationBody>,
 ) -> ApiResponse<SuccessMessage> {
-  controller::delete(db, token, id).await
+  controller::delete(db, token, id, body).await
 }
 
 #[utoipa::path(
@@ -94,7 +106,7 @@ pub(crate) async fn delete(
     path = "/organization/<id>/transfer",
     tag = "Organization",
     responses(
-        (status = 200, description = "Transfer organization by id", body = Message),
+        (status = 200, description = "Transfer organization by id", body = SuccessMessage),
     ),
     request_body = TransferOrganizationBody,
 )]

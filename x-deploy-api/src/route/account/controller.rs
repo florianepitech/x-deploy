@@ -102,21 +102,21 @@ pub(crate) async fn setup_2fa(
   let user = get_user_from_db(db, &user_id).await?;
   let valid_password =
     verify_password(body.password.as_str(), user.password.password.as_str())?;
-  if (!valid_password) {
+  if !valid_password {
     return custom_error(
       Status::Unauthorized,
       "The password provided for setup 2FA is invalid",
     );
   }
   if let Some(two_factor) = user.two_factor.clone() {
-    return match two_factor.setup {
-      // If 2FA is setup, don't allow to setup it again
-      Some(_) => custom_error(
+    // Verify 2FA is not already enabled
+    return match two_factor.is_enabled() {
+      true => custom_error(
         Status::BadRequest,
-        "2FA is already setup for this account",
+        "2FA is already enabled for this account",
       ),
-      // If 2FA is not setup, return the 2FA secret
-      None => {
+      false => {
+        // 2FA is already generated, return the secret
         let totp = crate::cipher::two_factor::from_two_factor(
           &two_factor,
           user.email.email.clone(),
@@ -131,10 +131,10 @@ pub(crate) async fn setup_2fa(
   }
   // Setup the 2FA in database
   let new_two_factor = new_2fa(user.email.email.clone())?;
-  setup_2fa_in_db(db, &user, &new_two_factor).await?;
+  let two_factor = setup_2fa_in_db(db, &user, &new_two_factor).await?;
   // Return the 2FA secret
   let response: TwoFactorSetupResponse = TwoFactorSetupResponse {
-    recovery_code: new_two_factor.get_secret_base32(),
+    recovery_code: two_factor.recovery_code,
     qr_code: new_two_factor.get_qr_base64().unwrap(),
   };
   custom_response(Status::Ok, response)
@@ -163,7 +163,14 @@ pub(crate) async fn enable_2fa(
     );
   }
   // Verify 2FA code
-  verify_2fa_code(user.email.email.clone(), &two_factor, body.code.clone())?;
+  let valid =
+    verify_2fa_code(user.email.email.clone(), &two_factor, body.code.clone())?;
+  if !valid {
+    return custom_message(
+      Status::BadRequest,
+      "2FA code is invalid for verifying",
+    );
+  }
   // Update 2FA state in database
   update_2fa_state_in_db(db, &user, true).await?;
   custom_message(Status::Ok, "Your 2FA is now enabled")

@@ -16,7 +16,7 @@ use std::str::FromStr;
     path = "/organization/{id}/api-key",
     tag = "Organization ApiKey",
     responses(
-        (status = 200, description = "Your api key has been created", body = Message)
+        (status = 200, description = "Your api key has been created", body = SuccessMessage)
     ),
     request_body = CreateApiKeyBody,
 )]
@@ -40,7 +40,7 @@ pub(crate) async fn new(
     path = "/organization/{id}/api-key",
     tag = "Organization ApiKey",
     responses(
-        (status = 200, description = "Api key retrieved", body = Message),
+        (status = 200, description = "Api key retrieved", body = SuccessMessage),
     )
 )]
 #[get("/organization/<id>/api-key", format = "application/json")]
@@ -58,7 +58,7 @@ pub(crate) async fn get(
     path = "/organization/{id}/api-key/{key_id}",
     tag = "Organization ApiKey",
     responses(
-        (status = 200, description = "Specific api key retrieved", body = Message),
+        (status = 200, description = "Specific api key retrieved", body = SuccessMessage),
     )
 )]
 #[get("/organization/<id>/api-key/<key_id>", format = "application/json")]
@@ -77,7 +77,7 @@ pub(crate) async fn get_by_id(
     path = "/organization/{id}/api-key/{key_id}",
     tag = "Organization ApiKey",
     responses(
-        (status = 200, description = "Api key deleted", body = Message),
+        (status = 200, description = "Api key deleted", body = SuccessMessage),
     )
 )]
 #[delete("/organization/<id>/api-key/<key_id>", format = "application/json")]

@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+kafka = { version = "0.10.0" }
 env_logger = { version = "0.10.0" }
 rocket = { version = "0.5.0", features = ["json"] }
 utoipa = { version = "4.1.0", features = ["rocket_extras"] }
@@ -27,3 +28,4 @@ lazy_static = { version = "1.4.0" }
 log = { version = "0.4.20" }
 serde_json = { workspace = true }
 rand = "0.8.5"
+regex = "1.10.2"

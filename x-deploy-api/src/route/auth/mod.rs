@@ -33,7 +33,7 @@ pub(crate) async fn login(
     path = "/auth/register",
     tag = "Auth",
     responses(
-        (status = 200, description = "You're now registered", body = Message)
+        (status = 200, description = "You're now registered", body = SuccessMessage)
     ),
     request_body = RegisterBody,
 )]
@@ -50,7 +50,7 @@ pub(crate) async fn register(
     path = "/auth/2fa",
     tag = "Auth",
     responses(
-        (status = 200, description = "You're now logged in", body = Message),
+        (status = 200, description = "You're now logged in", body = SuccessMessage),
     ),
     request_body = TwoFactorCode,
 )]
@@ -67,7 +67,7 @@ pub(crate) async fn two_factor(
     path = "/auth/2fa/recovery",
     tag = "Auth",
     responses(
-        (status = 200, description = "You're now logged out", body = Message),
+        (status = 200, description = "You're now logged out", body = SuccessMessage),
     ),
     request_body = TwoFactorRecoveryBody,
 )]

@@ -1,3 +1,4 @@
+use crate::error::ApiError;
 use k8s_openapi::chrono;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
@@ -73,7 +74,7 @@ pub struct TwoFactor {
   pub recovery_code: String,
 
   #[serde(rename = "setup")]
-  pub setup: Option<chrono::DateTime<chrono::Utc>>,
+  pub setup: Option<bson::DateTime>,
 }
 
 impl TwoFactor {
@@ -114,5 +115,15 @@ impl User {
         code: None,
       },
     }
+  }
+
+  pub(crate) fn verify_password(
+    &self,
+    password: &str,
+  ) -> Result<bool, ApiError> {
+    return crate::cipher::password::verify_password(
+      password,
+      &self.password.password,
+    );
   }
 }

@@ -42,7 +42,7 @@ pub(crate) async fn get_info(
     path = "/account/verify-email",
     tag = "Account",
     responses(
-        (status = 200, description = "Verify email", body = Message),
+        (status = 200, description = "Verify email", body = SuccessMessage),
     ),
     request_body = VerifyEmailBody,
 )]
@@ -60,7 +60,7 @@ pub(crate) async fn verify_email(
     path = "/account/change-password",
     tag = "Account",
     responses(
-        (status = 200, description = "Change password", body = Message),
+        (status = 200, description = "Change password", body = SuccessMessage),
     ),
     request_body = ChangePasswordBody,
 )]
@@ -82,7 +82,7 @@ pub(crate) async fn change_password(
     path = "/account/change-phone",
     tag = "Account",
     responses(
-        (status = 200, description = "Change phone", body = Message),
+        (status = 200, description = "Change phone", body = SuccessMessage),
     ),
     request_body = ChangePhoneBody,
 )]
@@ -140,7 +140,7 @@ pub(crate) async fn setup_2fa(
     path = "/account/2fa/enable",
     tag = "Account",
     responses(
-        (status = 200, description = "Create api key", body = Message),
+        (status = 200, description = "Create api key", body = SuccessMessage),
     ),
     request_body = TwoFactorCodeRequest,
 )]
@@ -159,7 +159,7 @@ pub(crate) async fn enable_2fa(
     path = "/account/2fa/disable",
     tag = "Account",
     responses(
-        (status = 200, description = "Create api key", body = Message),
+        (status = 200, description = "Create api key", body = SuccessMessage),
     ),
     request_body = TwoFactorCodeRequest,
 )]

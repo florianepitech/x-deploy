@@ -1,21 +1,18 @@
-use crate::cipher::password::verify_password;
+use crate::cipher::password::{is_strong_password, verify_password};
 use crate::cipher::two_factor::verify_2fa_code;
-use crate::db::query::user::get_user_from_db;
 use crate::db::query::user::two_factor::delete_2fa_in_db;
+use crate::db::query::user::{get_user_from_db, get_user_from_email};
 use crate::db::user::{User, USER_COLLECTION_NAME};
-use crate::guard::token::{gen_new_token, Token};
+use crate::guard::token::Token;
 use crate::route::auth::dto::{
   LoginBody, LoginResponse, RegisterBody, TwoFactorCode, TwoFactorRecoveryBody,
 };
 use crate::route::{
-  custom_error, custom_message, custom_response, ApiResponse, ErrorMessage,
-  SuccessMessage,
+  custom_error, custom_message, custom_response, ApiResponse, SuccessMessage,
 };
-use crate::DOTENV_CONFIG;
 use bson::doc;
 use k8s_openapi::chrono;
 use mongodb::{Collection, Database};
-use rocket::figment::Source::Custom;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::State;
@@ -25,26 +22,8 @@ pub(crate) async fn login(
   body: Json<LoginBody>,
 ) -> ApiResponse<LoginResponse> {
   let login_body = body.into_inner();
-  let mongodb_client = db.inner();
-  let collection: Collection<User> =
-    mongodb_client.collection(USER_COLLECTION_NAME);
   // Verify if email exists for an user
-  let user = collection
-    .find_one(
-      doc! {
-          "email.email": login_body.email
-      },
-      None,
-    )
-    .await
-    .unwrap();
-  if user.is_none() {
-    return custom_error(
-      Status::Unauthorized,
-      "Email or password is incorrect",
-    );
-  }
-  let user = user.unwrap();
+  let user = get_user_from_email(db, &login_body.email).await?;
   // Verify if password is correct
   let valid_password =
     verify_password(&login_body.password, user.password.password.as_str())?;
@@ -54,11 +33,14 @@ pub(crate) async fn login(
       "Email or password is incorrect",
     );
   }
-  let duration = chrono::Duration::hours(24);
-  let jwt_secret = DOTENV_CONFIG.jwt_secret.clone();
-  let new_token = gen_new_token(user.id.clone(), &duration, &jwt_secret, None)
-    .expect("Error generating token");
-  let response = LoginResponse { token: new_token };
+  let two_factor: Option<bool> = if user.two_factor.is_some() {
+    Some(false)
+  } else {
+    None
+  };
+  let token = Token::new(user.id.clone(), two_factor)?;
+  let jwt = token.to_jwt()?;
+  let response = LoginResponse { token: jwt };
   custom_response(Status::Ok, response)
 }
 
@@ -92,6 +74,14 @@ pub(crate) async fn register(
     .unwrap();
   if user.is_some() {
     return custom_error(Status::Conflict, "Email already exists for an user");
+  }
+  // Verify if password is strong
+  let strong = is_strong_password(&body.password.clone())?;
+  if !strong {
+    return custom_error(
+      Status::BadRequest,
+      "Password is not strong enough, please use a stronger password",
+    );
   }
   let password_hash =
     crate::cipher::password::hash_password(body.password.as_str())?;
@@ -166,11 +156,7 @@ pub(crate) async fn two_factor_recovery(
           // Disable 2 factor
           delete_2fa_in_db(db, &user_id).await?;
           // Generate a new token with jwt ans send the jwt
-          let token = Token::new_with_duration(
-            user_id,
-            &chrono::Duration::days(7),
-            None,
-          )?;
+          let token = Token::new(user_id, None)?;
           let jwt = token.to_jwt()?;
           let response = LoginResponse { token: jwt };
           custom_response(Status::Ok, response)

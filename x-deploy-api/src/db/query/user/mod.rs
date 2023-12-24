@@ -31,3 +31,27 @@ pub(crate) async fn get_user_from_db(
     )),
   };
 }
+
+pub(crate) async fn get_user_from_email(
+  db: &State<Database>,
+  email: &str,
+) -> Result<User, ApiError> {
+  let mongodb_client = db.inner();
+  let collection: Collection<User> =
+    mongodb_client.collection(USER_COLLECTION_NAME);
+  let user = collection
+    .find_one(
+      doc! {
+          "email.email": email
+      },
+      None,
+    )
+    .await?;
+  return match user {
+    Some(user) => Ok(user),
+    None => Err(ApiError::new(
+      Status::NotFound,
+      "Your account does not exist".to_string(),
+    )),
+  };
+}
