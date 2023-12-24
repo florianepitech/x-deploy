@@ -3,7 +3,7 @@ use crate::db::organization_apikey::{
 };
 use crate::guard::token::Token;
 use crate::route::organization::api_key::dto::CreateApiKeyBody;
-use crate::route::{custom_message, CustomResponse, Message};
+use crate::route::{custom_message, ApiResponse, SuccessMessage};
 use crate::DOTENV_CONFIG;
 use bson::doc;
 use bson::oid::ObjectId;
@@ -19,7 +19,7 @@ pub(crate) async fn new(
   token: Token,
   id: String,
   body: Json<CreateApiKeyBody>,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   let objectId = ObjectId::from_str(&id);
   if objectId.is_err() {
     return custom_message(Status::BadRequest, "Invalid organization id");
@@ -32,7 +32,7 @@ pub(crate) async fn get(
   db: &State<Database>,
   token: Token,
   id: String,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   return custom_message(Status::NotImplemented, "Not implemented");
 }
 
@@ -41,7 +41,7 @@ pub(crate) async fn get_by_id(
   token: Token,
   id: String,
   key_id: String,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   return custom_message(Status::NotImplemented, "Not implemented");
 }
 
@@ -50,7 +50,7 @@ pub(crate) async fn delete(
   token: Token,
   id: String,
   key_id: String,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   return custom_message(Status::NotImplemented, "Not implemented");
 }
 

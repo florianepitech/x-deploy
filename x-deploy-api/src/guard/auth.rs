@@ -1,12 +1,13 @@
+use crate::error::ApiError;
 use crate::guard::token::{decode_token, Token};
-use crate::route::Message;
+use crate::route::ErrorMessage;
 use crate::DOTENV_CONFIG;
 use k8s_openapi::chrono;
 use rocket::{outcome::Outcome, request, Request};
 
 #[rocket::async_trait]
 impl<'r> request::FromRequest<'r> for Token {
-  type Error = Message;
+  type Error = ErrorMessage;
 
   async fn from_request(
     req: &'r Request<'_>
@@ -15,33 +16,33 @@ impl<'r> request::FromRequest<'r> for Token {
 
     if keys.len() != 1 {
       let message =
-        Message::new("Authorization header must be present".to_string());
+        ErrorMessage::new("Authorization header must be present".to_string());
       return Outcome::Error((rocket::http::Status::Unauthorized, message));
     }
 
-    let key = keys[0];
-    if !key.starts_with("Bearer ") {
-      let message =
-        Message::new("Authorization header must start with Bearer".to_string());
-      return Outcome::Error((rocket::http::Status::Unauthorized, message));
-    }
-
-    let token = &key[7..]; // Remove "Bearer " prefix
-    let jwt_secret = DOTENV_CONFIG.jwt_secret.clone();
-    let token = decode_token(&token.to_string(), &jwt_secret);
-    if token.is_err() {
-      let message = Message::new("Invalid token".to_string());
-      return Outcome::Error((rocket::http::Status::Unauthorized, message));
-    }
-    let token = token.unwrap();
-    let token = token.claims;
-    // Verify if the token is expired
-    let now = chrono::Utc::now().timestamp();
-    if token.exp < now {
-      let message =
-        Message::new("Token expired, please login again.".to_string());
-      return Outcome::Error((rocket::http::Status::Unauthorized, message));
-    }
-    return Outcome::Success(token);
+    let header = keys[0];
+    let parse_header = Token::parse_authorization_header(&header.to_string());
+    return match parse_header {
+      Ok(token) => {
+        // Verify if token is expired
+        if (token.is_expired()) {
+          return Outcome::Error((
+            rocket::http::Status::Unauthorized,
+            ErrorMessage::new("Token expired, please login again.".to_string()),
+          ));
+        }
+        // Verify if 2FA is validated
+        if let Some(otp) = token.otp {
+          if !otp {
+            return Outcome::Error((
+              rocket::http::Status::Unauthorized,
+              ErrorMessage::new("2FA not validated".to_string()),
+            ));
+          }
+        }
+        Outcome::Success(token)
+      }
+      Err(e) => Outcome::Error((e.status, ErrorMessage::new(e.message))),
+    };
   }
 }

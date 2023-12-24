@@ -2,7 +2,7 @@ use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
 use crate::db::project::Project;
 use crate::guard::token::Token;
 use crate::route::organization::project::dto::CreateProjectBody;
-use crate::route::{CustomResponse, Message};
+use crate::route::{ApiResponse, SuccessMessage};
 use bson::{doc, oid};
 use mongodb::{Collection, Database};
 use rocket::http::Status;
@@ -48,7 +48,7 @@ pub(crate) async fn new(
   db: &State<Database>,
   token: Token,
   body: Json<CreateProjectBody>,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   controller::new(db, token, body).await
 }
 
@@ -57,7 +57,7 @@ pub(crate) async fn get_by_id(
   db: &State<Database>,
   token: Token,
   id: &str,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   controller::get_by_id(db, token, id).await
 }
 
@@ -67,7 +67,7 @@ pub(crate) async fn update(
   token: Token,
   id: &str,
   project_id: &str,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   controller::update(db, token, id, project_id).await
 }
 
@@ -80,6 +80,6 @@ pub(crate) async fn delete(
   token: Token,
   id: &str,
   project_id: &str,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   controller::delete(db, token, id, project_id).await
 }

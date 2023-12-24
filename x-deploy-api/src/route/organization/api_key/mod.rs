@@ -3,7 +3,7 @@ pub(crate) mod dto;
 
 use crate::guard::token::Token;
 use crate::route::organization::api_key::dto::CreateApiKeyBody;
-use crate::route::{CustomResponse, Message};
+use crate::route::{ApiResponse, SuccessMessage};
 use bson::doc;
 use mongodb::Database;
 use rocket::serde::json::Json;
@@ -30,7 +30,7 @@ pub(crate) async fn new(
   token: Token,
   id: String,
   body: Json<CreateApiKeyBody>,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   controller::new(db, token, id, body).await
 }
 
@@ -48,7 +48,7 @@ pub(crate) async fn get(
   db: &State<Database>,
   token: Token,
   id: String,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   controller::get(db, token, id).await
 }
 
@@ -67,7 +67,7 @@ pub(crate) async fn get_by_id(
   token: Token,
   id: String,
   key_id: String,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   controller::get_by_id(db, token, id, key_id).await
 }
 
@@ -86,6 +86,6 @@ pub(crate) async fn delete(
   token: Token,
   id: String,
   key_id: String,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   controller::delete(db, token, id, key_id).await
 }

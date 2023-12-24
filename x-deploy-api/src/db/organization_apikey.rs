@@ -2,7 +2,7 @@ use rocket::serde::{Deserialize, Serialize};
 
 pub(crate) const ORGANIZATION_APIKEY_COLLECTION_NAME: &str = "organizations";
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct OrganizationApiKey {
   #[serde(rename = "_id")]
   pub id: String,

@@ -26,3 +26,4 @@ bcrypt = { version = "0.15.0" }
 lazy_static = { version = "1.4.0" }
 log = { version = "0.4.20" }
 serde_json = { workspace = true }
+rand = "0.8.5"

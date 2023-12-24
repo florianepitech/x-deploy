@@ -63,14 +63,10 @@ pub(crate) struct ChangePhoneBody {
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
 #[schema(example = json!({
     "password": "MyActualStrongPassword123!",
-    "description": "My Google Authenticator 2FA"
 }))]
 pub(crate) struct TwoFactorSetupRequest {
   #[serde(rename = "password")]
   pub(crate) password: String,
-
-  #[serde(rename = "description")]
-  pub(crate) description: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
@@ -79,8 +75,8 @@ pub(crate) struct TwoFactorSetupRequest {
     "qrCode": "Ipofsjbkl9875UJIKkfds..."
 }))]
 pub(crate) struct TwoFactorSetupResponse {
-  #[serde(rename = "secret")]
-  pub(crate) secret: String,
+  #[serde(rename = "recoveryCode")]
+  pub(crate) recovery_code: String,
 
   #[serde(rename = "qrCode")]
   pub(crate) qr_code: String,

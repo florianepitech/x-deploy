@@ -4,10 +4,10 @@
 # 2023
 #
 
-.PHONY: build-dev-api \
-		build-prod \
-		run-dev-api \
-		run-prod-api
+.PHONY: build-dev \
+	build-prod \
+	run-dev-api \
+	run-prod-api
 
 # Variables
 
@@ -15,7 +15,9 @@ API_NAME = x-deploy-api
 
 # Targets
 
-build-dev-api:
+all:	build-prod
+
+build-dev:
 	cargo build
 
 build-prod:

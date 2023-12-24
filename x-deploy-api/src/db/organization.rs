@@ -3,7 +3,7 @@ use rocket::serde::{Deserialize, Serialize};
 
 pub(crate) const ORGANIZATION_COLLECTION_NAME: &str = "organizations";
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Organization {
   #[serde(rename = "_id")]
   pub id: ObjectId,

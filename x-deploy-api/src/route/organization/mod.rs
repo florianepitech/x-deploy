@@ -2,7 +2,7 @@ use crate::guard::token::Token;
 use crate::route::organization::dto::{
   CreateOrganizationBody, TransferOrganizationBody,
 };
-use crate::route::{CustomResponse, Message};
+use crate::route::{ApiResponse, SuccessMessage};
 use mongodb::Database;
 use rocket::serde::json::Json;
 use rocket::State;
@@ -35,7 +35,7 @@ pub(crate) async fn new(
   db: &State<Database>,
   token: Token,
   body: Json<CreateOrganizationBody>,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   controller::new(db, token, body).await
 }
 
@@ -51,7 +51,7 @@ pub(crate) async fn new(
 pub(crate) async fn get_by_id(
   db: &State<Database>,
   id: String,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   controller::get_by_id(db, id).await
 }
 
@@ -68,7 +68,7 @@ pub(crate) async fn update(
   db: &State<Database>,
   token: Token,
   id: String,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   controller::update(db, token, id).await
 }
 
@@ -85,7 +85,7 @@ pub(crate) async fn delete(
   db: &State<Database>,
   token: Token,
   id: String,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   controller::delete(db, token, id).await
 }
 
@@ -108,6 +108,6 @@ pub(crate) async fn transfer(
   token: Token,
   id: String,
   body: Json<TransferOrganizationBody>,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   controller::transfer(db, token, id, body).await
 }

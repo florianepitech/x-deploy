@@ -1,5 +1,5 @@
 use crate::guard::token::Token;
-use crate::route::{custom_message, CustomResponse, Message};
+use crate::route::{custom_message, ApiResponse, SuccessMessage};
 use bson::{doc, oid};
 use mongodb::{Collection, Database};
 use rocket::http::Status;
@@ -12,7 +12,7 @@ pub(crate) async fn get(
   db: &State<Database>,
   token: Token,
   id: String,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   // let organization = get_organization_by_id!(db, id).await?;
   return custom_message(Status::NotImplemented, "Not implemented");
 }
@@ -23,7 +23,7 @@ pub(crate) async fn delete(
   token: Token,
   id: String,
   member_id: String,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   // let organization = get_organization_by_id!(db, id).await?;
   return custom_message(Status::NotImplemented, "Not implemented");
 }

@@ -66,17 +66,23 @@ pub struct Password {
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct TwoFactor {
-  #[serde(rename = "enabled")]
-  pub enabled: bool,
+  #[serde(rename = "secretBase32")]
+  pub secret_base32: String,
 
-  #[serde(rename = "secret")]
-  pub secret: Vec<u8>,
+  #[serde(rename = "recoveryCode")]
+  pub recovery_code: String,
 
-  #[serde(rename = "description")]
-  pub description: String,
+  #[serde(rename = "setup")]
+  pub setup: Option<chrono::DateTime<chrono::Utc>>,
+}
 
-  #[serde(rename = "created")]
-  pub created: chrono::DateTime<chrono::Utc>,
+impl TwoFactor {
+  pub(crate) fn is_enabled(&self) -> bool {
+    return match self.setup {
+      Some(_) => true,
+      None => false,
+    };
+  }
 }
 
 impl User {

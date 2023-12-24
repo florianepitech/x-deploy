@@ -17,11 +17,28 @@ pub(crate) struct LoginBody {
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
 #[schema(example = json!({
-    "email": "john@doe.net",
-    "password": "123678"
+    "token": "ey6b0pm7hk87bJB...",
+    "code": "123678"
 }))]
 pub(crate) struct TwoFactorCode {
+  #[serde(rename = "token")]
+  pub(crate) token: String,
+
+  #[serde(rename = "code")]
   pub(crate) code: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[schema(example = json!({
+    "token": "ey6b0pm7hk87bJB...",
+    "recoveryCode": "123678JFDF86FDSF786Y..."
+}))]
+pub(crate) struct TwoFactorRecoveryBody {
+  #[serde(rename = "token")]
+  pub(crate) token: String,
+
+  #[serde(rename = "recoveryCode")]
+  pub(crate) recovery_code: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]

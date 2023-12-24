@@ -2,7 +2,7 @@ use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
 use crate::db::project::Project;
 use crate::guard::token::Token;
 use crate::route::organization::project::dto::CreateProjectBody;
-use crate::route::{custom_message, CustomResponse, Message};
+use crate::route::{custom_message, ApiResponse, SuccessMessage};
 use bson::{doc, oid};
 use mongodb::{Collection, Database};
 use rocket::http::Status;
@@ -14,7 +14,7 @@ pub(crate) async fn new(
   db: &State<Database>,
   token: Token,
   body: Json<CreateProjectBody>,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   // let organization = get_organization_by_id!(db, body.organization_id.clone()).await?;
   // let project_new = Project::new(
   //     body.name.clone(),
@@ -36,7 +36,7 @@ pub(crate) async fn get_by_id(
   db: &State<Database>,
   token: Token,
   id: &str,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   return custom_message(Status::NotImplemented, "Not implemented");
 }
 
@@ -45,7 +45,7 @@ pub(crate) async fn update(
   token: Token,
   id: &str,
   project_id: &str,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   return custom_message(Status::NotImplemented, "Not implemented");
 }
 
@@ -54,6 +54,6 @@ pub(crate) async fn delete(
   token: Token,
   id: &str,
   project_id: &str,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   return custom_message(Status::NotImplemented, "Not implemented");
 }

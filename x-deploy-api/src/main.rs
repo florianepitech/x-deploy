@@ -12,6 +12,7 @@ extern crate rocket;
 mod cipher;
 mod config;
 mod db;
+mod error;
 mod guard;
 mod kbs;
 mod ovh;
@@ -55,7 +56,8 @@ lazy_static! {
     ),
     components(schemas(
         // Global
-        route::Message,
+        route::SuccessMessage,
+        route::ErrorMessage,
         // Auth
         route::auth::dto::LoginBody,
         route::auth::dto::LoginResponse,

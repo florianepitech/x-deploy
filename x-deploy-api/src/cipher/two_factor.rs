@@ -1,17 +1,18 @@
 use crate::db::user::TwoFactor;
-use crate::route::Message;
+use crate::error::ApiError;
 use crate::DOTENV_CONFIG;
-use k8s_openapi::chrono;
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 use rocket::http::Status;
-use rocket::response::status::Custom;
-use rocket::serde::json::Json;
-use totp_rs::{Algorithm, Secret, TOTP};
+use totp_rs::{Algorithm, Secret, SecretParseError, TotpUrlError, TOTP};
 
 const DIGITS: usize = 6;
 const SKEW: u8 = 1;
 const STEP: u64 = 30;
 
-pub(crate) fn new_2fa(email: String) -> Result<TOTP, Custom<Json<Message>>> {
+const RECOVERY_CODE_LENGTH: usize = 30;
+
+pub(crate) fn new_2fa(email: String) -> Result<TOTP, ApiError> {
   let secret = Secret::default().to_bytes().unwrap();
   let app_name = DOTENV_CONFIG.app_name.clone();
   let result = totp_rs::TOTP::new(
@@ -25,11 +26,9 @@ pub(crate) fn new_2fa(email: String) -> Result<TOTP, Custom<Json<Message>>> {
   );
   match result {
     Ok(totp) => Ok(totp),
-    Err(e) => Err(Custom(
+    Err(_) => Err(ApiError::new(
       Status::InternalServerError,
-      Json(Message {
-        message: format!("Error while creating 2FA: {}", e),
-      }),
+      "Error while creating 2FA".to_string(),
     )),
   }
 }
@@ -37,53 +36,60 @@ pub(crate) fn new_2fa(email: String) -> Result<TOTP, Custom<Json<Message>>> {
 pub(crate) fn from_two_factor(
   two_factor: &TwoFactor,
   email: String,
-) -> Result<TOTP, Custom<Json<Message>>> {
+) -> Result<TOTP, ApiError> {
   let app_name = DOTENV_CONFIG.app_name.clone();
-  let result = totp_rs::TOTP::new(
+  let secret_base32 = two_factor.secret_base32.clone();
+  let secret = Secret::Encoded(secret_base32).to_bytes()?;
+  Ok(totp_rs::TOTP::new(
     Algorithm::SHA256,
     DIGITS,
     SKEW,
     STEP,
-    two_factor.secret.clone(),
+    secret,
     Some(app_name),
     email,
-  );
-  match result {
-    Ok(totp) => Ok(totp),
-    Err(e) => Err(Custom(
-      Status::InternalServerError,
-      Json(Message {
-        message: format!("Error while creating 2FA: {}", e),
-      }),
-    )),
-  }
+  )?)
 }
 
 pub(crate) fn verify_2fa_code(
   email: String,
-  two_factor: TwoFactor,
+  two_factor: &TwoFactor,
   code: String,
-) -> Result<(), Custom<Json<Message>>> {
+) -> Result<bool, ApiError> {
   let totp = from_two_factor(&two_factor, email)?;
   let check = totp.check_current(code.as_str());
   match check {
-    Ok(result) => {
-      if result {
-        Ok(())
-      } else {
-        Err(Custom(
-          Status::BadRequest,
-          Json(Message {
-            message: "Invalid 2FA code".to_string(),
-          }),
-        ))
-      }
-    }
-    Err(e) => Err(Custom(
+    Ok(result) => Ok(result),
+    Err(_) => Err(ApiError::new(
       Status::InternalServerError,
-      Json(Message {
-        message: format!("Error while creating 2FA: {}", e),
-      }),
+      "Error while verifying 2FA code".to_string(),
     )),
+  }
+}
+
+pub(crate) fn generate_recovery_code() -> String {
+  rand::thread_rng()
+    .sample_iter(&Alphanumeric)
+    .take(RECOVERY_CODE_LENGTH)
+    .map(char::from)
+    .collect::<String>()
+    .to_uppercase()
+}
+
+impl From<TotpUrlError> for ApiError {
+  fn from(_: TotpUrlError) -> Self {
+    ApiError::new(
+      Status::InternalServerError,
+      "Error with your 2FA configuration".to_string(),
+    )
+  }
+}
+
+impl From<SecretParseError> for ApiError {
+  fn from(_: SecretParseError) -> Self {
+    ApiError::new(
+      Status::InternalServerError,
+      "Error with your 2FA configuration".to_string(),
+    )
   }
 }

@@ -4,7 +4,9 @@ use crate::route::account::dto::{
   GetAccountInfoResponse, TwoFactorCodeRequest, TwoFactorInfoRequest,
   TwoFactorInfoResponse, TwoFactorSetupRequest, TwoFactorSetupResponse,
 };
-use crate::route::{custom_message, custom_response, CustomResponse, Message};
+use crate::route::{
+  custom_message, custom_response, ApiResponse, SuccessMessage,
+};
 use bson::doc;
 use bson::oid::ObjectId;
 use mongodb::{Collection, Database};
@@ -19,6 +21,9 @@ pub(crate) mod dto;
     get,
     path = "/account",
     tag = "Account",
+    security(
+      ("token_jwt" = [])
+    ),
     responses(
         (status = 200, description = "Get account info", body = GetAccountInfoResponse),
     ),
@@ -27,7 +32,7 @@ pub(crate) mod dto;
 pub(crate) async fn get_info(
   token: Token,
   db: &State<Database>,
-) -> CustomResponse<GetAccountInfoResponse> {
+) -> ApiResponse<GetAccountInfoResponse> {
   return controller::get_info(token, db).await;
 }
 
@@ -45,7 +50,7 @@ pub(crate) async fn get_info(
 pub(crate) async fn verify_email(
   db: &State<Database>,
   body: Json<dto::VerifyEmailBody>,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   return controller::verify_email(db, body).await;
 }
 
@@ -67,7 +72,7 @@ pub(crate) async fn verify_email(
 pub(crate) async fn change_password(
   db: &State<Database>,
   body: Json<dto::ChangePasswordBody>,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   return controller::change_password(db, body).await;
 }
 
@@ -85,7 +90,7 @@ pub(crate) async fn change_password(
 pub(crate) async fn change_phone(
   db: &State<Database>,
   body: Json<dto::ChangePhoneBody>,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   return controller::change_phone(db, body).await;
 }
 
@@ -106,7 +111,7 @@ pub(crate) async fn info_2fa(
   db: &State<Database>,
   token: Token,
   body: Json<TwoFactorInfoRequest>,
-) -> CustomResponse<TwoFactorInfoResponse> {
+) -> ApiResponse<TwoFactorInfoResponse> {
   return controller::info_2fa(db, token, body).await;
 }
 
@@ -125,7 +130,7 @@ pub(crate) async fn setup_2fa(
   db: &State<Database>,
   token: Token,
   body: Json<TwoFactorSetupRequest>,
-) -> CustomResponse<TwoFactorSetupResponse> {
+) -> ApiResponse<TwoFactorSetupResponse> {
   return controller::setup_2fa(db, token, body).await;
 }
 
@@ -144,7 +149,7 @@ pub(crate) async fn enable_2fa(
   db: &State<Database>,
   token: Token,
   body: Json<TwoFactorCodeRequest>,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   return controller::enable_2fa(db, token, body).await;
 }
 
@@ -163,6 +168,6 @@ pub(crate) async fn disable_2fa(
   db: &State<Database>,
   token: Token,
   body: Json<TwoFactorCodeRequest>,
-) -> CustomResponse<Message> {
+) -> ApiResponse<SuccessMessage> {
   return controller::disable_2fa(db, token, body).await;
 }

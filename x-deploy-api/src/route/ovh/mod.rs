@@ -6,7 +6,7 @@ use crate::db::ovh_credentials::{
 use crate::db::user::{User, USER_COLLECTION_NAME};
 use crate::guard::token::Token;
 use crate::ovh::auth::test_ovh_connection;
-use crate::route::Message;
+use crate::route::SuccessMessage;
 use bson::doc;
 use bson::oid::ObjectId;
 use mongodb::{Collection, Database};
@@ -23,7 +23,7 @@ pub async fn post_credentials(
   db: &State<Database>,
   token: Token,
   body: Json<dto::Auth>,
-) -> Result<Json<Message>, Custom<Json<Message>>> {
+) -> Result<Json<SuccessMessage>, Custom<Json<SuccessMessage>>> {
   let auth_body = body.into_inner();
   let client = OvhClient::new(
     auth_body.application_key,
@@ -46,7 +46,7 @@ pub async fn post_credentials(
   if object_id.is_err() {
     return Err(Custom(
       Status::BadRequest,
-      Json(Message {
+      Json(SuccessMessage {
         message: "Malformed objectId in your token.".to_string(),
       }),
     ));
@@ -61,7 +61,7 @@ pub async fn post_credentials(
   );
   collection.insert_one(ovh_credentials, None).await.unwrap();
 
-  Ok(Json(Message {
+  Ok(Json(SuccessMessage {
     message: "Credentials added".to_string(),
   }))
 }
@@ -72,7 +72,7 @@ pub async fn delete_credentials(
   db: &State<Database>,
   token: Token,
   id: String,
-) -> Result<Json<Message>, Custom<Json<Message>>> {
+) -> Result<Json<SuccessMessage>, Custom<Json<SuccessMessage>>> {
   let mongodb_client = db.inner();
   let collection: Collection<OvhCredentials> =
     mongodb_client.collection(OVH_CRED_COLLECTION_NAME);
@@ -83,7 +83,7 @@ pub async fn delete_credentials(
     Err(_) => {
       return Err(Custom(
         Status::BadRequest,
-        Json(Message {
+        Json(SuccessMessage {
           message: "Malformed objectId in your token.".to_string(),
         }),
       ))
@@ -96,7 +96,7 @@ pub async fn delete_credentials(
     Err(_) => {
       return Err(Custom(
         Status::BadRequest,
-        Json(Message {
+        Json(SuccessMessage {
           message: "Invalid credentials ID.".to_string(),
         }),
       ))
@@ -120,20 +120,20 @@ pub async fn delete_credentials(
       if delete_response.deleted_count == 0 {
         Err(Custom(
           Status::NotFound,
-          Json(Message {
+          Json(SuccessMessage {
             message: "Credentials not found or not belonging to the user."
               .to_string(),
           }),
         ))
       } else {
-        Ok(Json(Message {
+        Ok(Json(SuccessMessage {
           message: "Credentials deleted.".to_string(),
         }))
       }
     }
     Err(_) => Err(Custom(
       Status::InternalServerError,
-      Json(Message {
+      Json(SuccessMessage {
         message: "Internal server error occurred.".to_string(),
       }),
     )),
@@ -146,7 +146,7 @@ pub async fn get_credentials(
   db: &State<Database>,
   token: Token,
   credential_id: String,
-) -> Result<Json<OvhCredentials>, Custom<Json<Message>>> {
+) -> Result<Json<OvhCredentials>, Custom<Json<SuccessMessage>>> {
   let mongodb_client = db.inner();
   let collection: Collection<OvhCredentials> =
     mongodb_client.collection(OVH_CRED_COLLECTION_NAME);
@@ -164,7 +164,7 @@ pub async fn get_credentials(
       Some(cred) => Ok(Json(cred)),
       None => Err(Custom(
         Status::NotFound,
-        Json(Message {
+        Json(SuccessMessage {
           message: "Credentials not found or not belonging to the user."
             .to_string(),
         }),
