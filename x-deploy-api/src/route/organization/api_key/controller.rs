@@ -4,7 +4,7 @@ use crate::db::organization_apikey::{
 use crate::guard::token::Token;
 use crate::route::organization::api_key::dto::CreateApiKeyBody;
 use crate::route::{custom_message, ApiResponse, SuccessMessage};
-use crate::DOTENV_CONFIG;
+use crate::CONFIG;
 use bson::doc;
 use bson::oid::ObjectId;
 use mongodb::Collection;
@@ -66,7 +66,7 @@ async fn verify_max_api_key(
     .await;
   return match count {
     Ok(count) => {
-      let max_key_by_org = DOTENV_CONFIG.max_apikey_by_organization;
+      let max_key_by_org = CONFIG.max_apikey_by_organization;
       if count >= max_key_by_org {
         let error_message = format!(
           "You have reached the maximum of {} api keys for your organization",

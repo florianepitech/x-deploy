@@ -1,4 +1,4 @@
-use crate::config::DotEnvConfig;
+use crate::config::Config;
 use lazy_static::lazy_static;
 use rocket::futures::StreamExt;
 use rocket::serde::Deserialize;
@@ -13,18 +13,17 @@ mod cipher;
 mod config;
 mod db;
 mod error;
+mod event;
+mod fairing;
 mod guard;
-mod kbs;
 mod ovh;
 mod responder;
 mod route;
-mod event;
 
 extern crate ovh_api;
 
 lazy_static! {
-  pub(crate) static ref DOTENV_CONFIG: DotEnvConfig =
-    DotEnvConfig::from_dotenv();
+  pub(crate) static ref CONFIG: Config = Config::from_config();
 }
 
 #[derive(OpenApi)]
@@ -89,12 +88,11 @@ struct ApiDoc;
 #[rocket::launch]
 async fn rocket() -> _ {
   let mongodb_client =
-    mongodb::Client::with_uri_str(DOTENV_CONFIG.mongodb_url.as_str()).await;
+    mongodb::Client::with_uri_str(CONFIG.mongodb_url.as_str()).await;
   let mongodb_database = mongodb_client
     .unwrap()
-    .database(DOTENV_CONFIG.mongodb_database.as_str());
-  let redis_client =
-    redis::Client::open(DOTENV_CONFIG.redis_url.as_str()).unwrap();
+    .database(CONFIG.mongodb_database.as_str());
+  let redis_client = redis::Client::open(CONFIG.redis_url.as_str()).unwrap();
 
   // Catchers
 

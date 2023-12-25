@@ -1,6 +1,6 @@
 use crate::db::user::TwoFactor;
 use crate::error::ApiError;
-use crate::DOTENV_CONFIG;
+use crate::CONFIG;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use rocket::http::Status;
@@ -14,7 +14,7 @@ const RECOVERY_CODE_LENGTH: usize = 30;
 
 pub(crate) fn new_2fa(email: String) -> Result<TOTP, ApiError> {
   let secret = Secret::default().to_bytes().unwrap();
-  let app_name = DOTENV_CONFIG.app_name.clone();
+  let app_name = CONFIG.app_name.clone();
   let result = totp_rs::TOTP::new(
     Algorithm::SHA256,
     DIGITS,
@@ -37,7 +37,7 @@ pub(crate) fn from_two_factor(
   two_factor: &TwoFactor,
   email: String,
 ) -> Result<TOTP, ApiError> {
-  let app_name = DOTENV_CONFIG.app_name.clone();
+  let app_name = CONFIG.app_name.clone();
   let secret_base32 = two_factor.secret_base32.clone();
   let secret = Secret::Encoded(secret_base32).to_bytes()?;
   Ok(totp_rs::TOTP::new(

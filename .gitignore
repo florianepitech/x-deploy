@@ -1,4 +1,4 @@
 /target
-.env
-.env
+config.toml
+config.toml
 Cargo.lock

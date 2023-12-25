@@ -4,8 +4,6 @@ use rocket::serde::json::Json;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-pub(crate) mod deploy;
-
 pub mod account;
 pub mod auth;
 pub mod organization;

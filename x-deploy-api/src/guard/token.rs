@@ -1,6 +1,6 @@
 use crate::error::ApiError;
 use crate::route::{custom_message, SuccessMessage};
-use crate::DOTENV_CONFIG;
+use crate::CONFIG;
 use bson::oid::ObjectId;
 use jsonwebtoken::{
   decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation,
@@ -25,7 +25,7 @@ impl Token {
     id: ObjectId,
     otp: Option<bool>,
   ) -> Result<Self, ApiError> {
-    let duration_min = DOTENV_CONFIG.jwt_key_duration_in_minutes;
+    let duration_min = CONFIG.jwt_key_duration_in_minutes;
     let duration = chrono::Duration::minutes(duration_min as i64);
     let expiration = chrono::Utc::now().checked_add_signed(duration.clone());
     match expiration {
@@ -55,7 +55,7 @@ impl Token {
   }
 
   pub(crate) fn parse_jwt(token: &String) -> Result<Token, ApiError> {
-    let jwt_secret = DOTENV_CONFIG.jwt_secret.clone();
+    let jwt_secret = CONFIG.jwt_secret.clone();
     let decoding_key = DecodingKey::from_secret(jwt_secret.as_ref());
     let token_data =
       decode::<Token>(token, &decoding_key, &Validation::default());
@@ -81,7 +81,7 @@ impl Token {
   }
 
   pub(crate) fn to_jwt(&self) -> Result<String, ApiError> {
-    let jwt_secret = DOTENV_CONFIG.jwt_secret.clone();
+    let jwt_secret = CONFIG.jwt_secret.clone();
     let encoding_key = EncodingKey::from_secret(jwt_secret.as_ref());
     let jwt_encode = encode(&Header::default(), &self, &encoding_key);
     return match jwt_encode {

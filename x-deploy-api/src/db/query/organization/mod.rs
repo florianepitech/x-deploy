@@ -1,6 +1,6 @@
 use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
 use crate::error::ApiError;
-use crate::DOTENV_CONFIG;
+use crate::CONFIG;
 use bson::{doc, oid};
 use mongodb::results::{DeleteResult, InsertOneResult, UpdateResult};
 use mongodb::{Collection, Database};
@@ -68,7 +68,7 @@ pub(crate) async fn verify_number_of_created_organization(
   db: &State<Database>,
   user_id: &oid::ObjectId,
 ) -> Result<(), ApiError> {
-  let max_by_owner = DOTENV_CONFIG.max_organization_by_owner;
+  let max_by_owner = CONFIG.max_organization_by_owner;
   let collection: Collection<Organization> =
     db.collection(ORGANIZATION_COLLECTION_NAME);
   let count = collection
