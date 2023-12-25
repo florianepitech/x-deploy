@@ -3,6 +3,7 @@ use crate::cipher::two_factor::verify_2fa_code;
 use crate::db::query::user::two_factor::delete_2fa_in_db;
 use crate::db::query::user::{get_user_from_db, get_user_from_email};
 use crate::db::user::{User, USER_COLLECTION_NAME};
+use crate::event::user::send_user_registered_event;
 use crate::guard::token::Token;
 use crate::route::auth::dto::{
   LoginBody, LoginResponse, RegisterBody, TwoFactorCode, TwoFactorRecoveryBody,
@@ -92,7 +93,10 @@ pub(crate) async fn register(
     body.email.clone(),
     body.password.clone(),
   );
+  let id = new_user.id.clone();
   collection.insert_one(new_user, None).await.unwrap();
+  let _ =
+    send_user_registered_event(id, body.firstname, body.lastname, body.email);
   return custom_message(Status::Created, "You are now registered");
 }
 

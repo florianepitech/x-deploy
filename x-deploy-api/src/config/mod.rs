@@ -20,7 +20,7 @@ pub(crate) struct Config {
 }
 
 impl Config {
-  pub(crate) fn from_config() -> Self {
+  pub(crate) fn from_config_file() -> Self {
     let contents = fs::read_to_string("config.toml").expect(
       format!("Error while reading file: {}", CONFIG_FILE_NAME).as_str(),
     );

@@ -21,6 +21,7 @@ pub(crate) fn send_organization_created_event(
 
 pub(super) const ORGANIZATION_DELETED_TOPIC: &str = "organization.deleted";
 
+#[deprecated]
 pub(crate) fn send_organization_deleted_event(
   user_id: bson::oid::ObjectId,
   organization_id: bson::oid::ObjectId,

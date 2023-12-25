@@ -6,6 +6,7 @@ use crate::db::query::organization::{
   verify_number_of_created_organization,
 };
 use crate::db::query::user::get_user_from_db;
+use crate::event::organization::send_organization_created_event;
 use crate::guard::token::Token;
 use crate::route::organization::dto::{
   CreateOrganizationBody, OrganizationInfoResponse, UpdateOrganizationBody,
@@ -60,7 +61,8 @@ pub(crate) async fn new(
     owner,
   );
   let result = insert_one_organization(&db, &new_organization).await?;
-  let inserted_id = result.inserted_id;
+  let inserted_id = result.inserted_id.as_object_id().unwrap();
+  let _ = send_organization_created_event(owner, inserted_id);
   info!("Inserted new organization with id: {}", inserted_id);
   custom_message(Status::Ok, "Organization created successfully")
 }

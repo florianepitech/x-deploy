@@ -24,7 +24,7 @@ mod route;
 extern crate ovh_api;
 
 lazy_static! {
-  pub(crate) static ref CONFIG: Config = Config::from_config();
+  pub(crate) static ref CONFIG: Config = Config::from_config_file();
 }
 
 #[derive(OpenApi)]
@@ -66,6 +66,8 @@ lazy_static! {
         route::auth::dto::LoginBody,
         route::auth::dto::LoginResponse,
         route::auth::dto::RegisterBody,
+        route::auth::dto::TwoFactorRecoveryBody,
+        route::auth::dto::TwoFactorCode,
         // Account
         route::account::dto::GetAccountInfoResponse,
         route::account::dto::VerifyEmailBody,
@@ -80,6 +82,8 @@ lazy_static! {
         route::organization::dto::CreateOrganizationBody,
         route::organization::dto::TransferOrganizationBody,
         route::organization::dto::OrganizationInfoResponse,
+        route::organization::dto::UpdateOrganizationBody,
+        route::organization::dto::DeleteOrganizationBody,
         // Organization Api Keys
         route::organization::api_key::dto::CreateApiKeyBody,
     ))
