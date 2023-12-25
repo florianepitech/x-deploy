@@ -14,6 +14,9 @@ pub(crate) struct Config {
   pub(crate) max_organization_by_owner: u64,
   pub(crate) max_apikey_by_organization: u64,
   pub(crate) jwt_key_duration_in_minutes: u64,
+  pub(crate) cors_allowed_origins: Vec<String>,
+  pub(crate) cors_allowed_methods: Vec<String>,
+  pub(crate) cors_allowed_headers: Vec<String>,
 }
 
 impl Config {

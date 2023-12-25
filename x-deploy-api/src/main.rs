@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::fairing::cors::Cors;
 use lazy_static::lazy_static;
 use rocket::futures::StreamExt;
 use rocket::serde::Deserialize;
@@ -166,6 +167,7 @@ async fn rocket() -> _ {
   let redoc_ui = Redoc::with_url("/redoc", ApiDoc::openapi());
 
   rocket::build()
+    .attach(Cors)
     .manage(mongodb_database)
     .manage(redis_client)
     .register("/", catcher_list)

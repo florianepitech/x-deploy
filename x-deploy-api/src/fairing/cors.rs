@@ -1,11 +1,16 @@
+use crate::CONFIG;
 use rocket::fairing::{Fairing, Info, Kind};
+use rocket::http::hyper::header::{
+  ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS,
+  ACCESS_CONTROL_ALLOW_ORIGIN,
+};
 use rocket::http::Header;
 use rocket::{Request, Response};
 
-pub struct CORS;
+pub(crate) struct Cors;
 
 #[rocket::async_trait]
-impl Fairing for CORS {
+impl Fairing for Cors {
   fn info(&self) -> Info {
     Info {
       name: "Add headers to allow CORS",
@@ -18,8 +23,20 @@ impl Fairing for CORS {
     _request: &'r Request<'_>,
     response: &mut Response<'r>,
   ) {
-    response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
-    response.set_header(Header::new("Access-Control-Allow-Methods", "*"));
-    response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
+    let cors_allowed_origins = CONFIG.cors_allowed_origins.join(",");
+    let cors_allowed_methods = CONFIG.cors_allowed_methods.join(",");
+    let cors_allowed_headers = CONFIG.cors_allowed_headers.join(",");
+    response.set_header(Header::new(
+      ACCESS_CONTROL_ALLOW_ORIGIN.to_string(),
+      cors_allowed_origins,
+    ));
+    response.set_header(Header::new(
+      ACCESS_CONTROL_ALLOW_METHODS.to_string(),
+      cors_allowed_methods,
+    ));
+    response.set_header(Header::new(
+      ACCESS_CONTROL_ALLOW_HEADERS.to_string(),
+      cors_allowed_headers,
+    ));
   }
 }
