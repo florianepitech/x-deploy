@@ -2,7 +2,6 @@ use crate::db::user::{TwoFactor, User, USER_COLLECTION_NAME};
 use crate::error::ApiError;
 use bson::oid::ObjectId;
 use bson::{doc, Bson};
-use k8s_openapi::chrono;
 use mongodb::{Collection, Database};
 use rocket::http::Status;
 use rocket::yansi::Paint;
