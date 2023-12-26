@@ -3,10 +3,12 @@ use crate::cipher::two_factor::verify_2fa_code;
 use crate::db::query::user::two_factor::delete_2fa_in_db;
 use crate::db::query::user::{get_user_from_db, get_user_from_email};
 use crate::db::user::{User, USER_COLLECTION_NAME};
-use crate::event::user::send_user_registered_event;
+use crate::event::user::{send_magic_link_event, send_user_registered_event};
 use crate::guard::token::Token;
+use crate::route::auth::controller;
 use crate::route::auth::dto::{
-  LoginBody, LoginResponse, RegisterBody, TwoFactorCode, TwoFactorRecoveryBody,
+  LoginBody, LoginResponse, MagicLinkBody, RegisterBody, TwoFactorCode,
+  TwoFactorRecoveryBody,
 };
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResponse, SuccessMessage,
@@ -33,10 +35,10 @@ pub(crate) async fn login(
       "Email or password is incorrect",
     );
   }
-  let two_factor: Option<bool> = if user.two_factor.is_some() {
-    Some(false)
-  } else {
+  let two_factor: Option<bool> = if let None = user.two_factor.clone() {
     None
+  } else {
+    Some(false)
   };
   let token = Token::new(user.id.clone(), two_factor)?;
   let jwt = token.to_jwt()?;
@@ -44,14 +46,21 @@ pub(crate) async fn login(
   custom_response(Status::Ok, response)
 }
 
-pub(crate) async fn two_factor_auth(
+pub(crate) async fn magic_link(
   db: &State<Database>,
-  body: TwoFactorCode,
+  body: Json<MagicLinkBody>,
 ) -> ApiResponse<SuccessMessage> {
-  custom_error(
-    Status::NotImplemented,
-    "Two factor authentication is not implemented yet.",
-  )
+  let email = body.email.clone();
+  let user = get_user_from_email(db, &email).await?;
+  let two_factor: Option<bool> = if let None = user.two_factor.clone() {
+    None
+  } else {
+    Some(false)
+  };
+  let token = Token::new(user.id.clone(), two_factor)?;
+  let jwt = token.to_jwt()?;
+  let _ = send_magic_link_event(user.id, email, jwt);
+  custom_message(Status::Ok, "You will receive a magic link in your email")
 }
 
 pub(crate) async fn register(
@@ -145,30 +154,29 @@ pub(crate) async fn two_factor_recovery(
   // Verify if 2 factor exist and are enabled for user
   return match user.two_factor {
     Some(two_factor) => {
-      match two_factor.setup {
-        Some(_) => {
-          // Verify if the code is valid
-          let code = body.recovery_code.clone().replace(" ", "");
-          let recovery_code = two_factor.recovery_code.clone();
-          if !recovery_code.eq(&code) {
-            return custom_error(
-              Status::Unauthorized,
-              "Recovery code is invalid for this account",
-            );
-          }
-          // Disable 2 factor
-          delete_2fa_in_db(db, &user_id).await?;
-          // Generate a new token with jwt ans send the jwt
-          let token = Token::new(user_id, None)?;
-          let jwt = token.to_jwt()?;
-          let response = LoginResponse { token: jwt };
-          custom_response(Status::Ok, response)
-        }
-        None => custom_error(
+      // Verify if 2 factor is enabled
+      if !two_factor.is_enabled() {
+        return custom_error(
           Status::Unauthorized,
           "2 factor is not enabled for this account",
-        ),
+        );
       }
+      // Verify if the code is valid
+      let code = body.recovery_code.clone().replace(" ", "");
+      let recovery_code = two_factor.recovery_code.clone();
+      if !recovery_code.eq(&code) {
+        return custom_error(
+          Status::Unauthorized,
+          "Recovery code is invalid for this account",
+        );
+      }
+      // Disable 2 factor
+      delete_2fa_in_db(db, &user_id).await?;
+      // Generate a new token with jwt ans send the jwt
+      let token = Token::new(user_id, None)?;
+      let jwt = token.to_jwt()?;
+      let response = LoginResponse { token: jwt };
+      custom_response(Status::Ok, response)
     }
     None => custom_error(
       Status::Unauthorized,

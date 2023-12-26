@@ -1,8 +1,9 @@
 use crate::db::user::{User, USER_COLLECTION_NAME};
 use crate::guard::token::Token;
 use crate::route::account::dto::{
-  GetAccountInfoResponse, TwoFactorCodeRequest, TwoFactorInfoRequest,
-  TwoFactorInfoResponse, TwoFactorSetupRequest, TwoFactorSetupResponse,
+  ChangePasswordBody, GetAccountInfoResponse, TwoFactorCodeRequest,
+  TwoFactorInfoRequest, TwoFactorInfoResponse, TwoFactorSetupRequest,
+  TwoFactorSetupResponse,
 };
 use crate::route::{
   custom_message, custom_response, ApiResponse, SuccessMessage,
@@ -36,7 +37,6 @@ pub(crate) async fn get_info(
   return controller::get_info(token, db).await;
 }
 
-#[deprecated]
 #[utoipa::path(
     post,
     path = "/account/verify-email",
@@ -49,9 +49,10 @@ pub(crate) async fn get_info(
 #[post("/account/verify-email", format = "application/json", data = "<body>")]
 pub(crate) async fn verify_email(
   db: &State<Database>,
+  token: Token,
   body: Json<dto::VerifyEmailBody>,
 ) -> ApiResponse<SuccessMessage> {
-  return controller::verify_email(db, body).await;
+  return controller::verify_email(db, token, body).await;
 }
 
 #[deprecated]
@@ -71,9 +72,10 @@ pub(crate) async fn verify_email(
 )]
 pub(crate) async fn change_password(
   db: &State<Database>,
-  body: Json<dto::ChangePasswordBody>,
+  token: Token,
+  body: Json<ChangePasswordBody>,
 ) -> ApiResponse<SuccessMessage> {
-  return controller::change_password(db, body).await;
+  return controller::change_password(db, token, body).await;
 }
 
 #[deprecated]

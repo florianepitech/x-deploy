@@ -1,5 +1,6 @@
 use crate::route::auth::dto::{
-  LoginBody, LoginResponse, RegisterBody, TwoFactorCode, TwoFactorRecoveryBody,
+  LoginBody, LoginResponse, MagicLinkBody, RegisterBody, TwoFactorCode,
+  TwoFactorRecoveryBody,
 };
 use crate::route::{ApiResponse, SuccessMessage};
 use bson::doc;
@@ -26,6 +27,22 @@ pub(crate) async fn login(
   body: Json<LoginBody>,
 ) -> ApiResponse<LoginResponse> {
   return controller::login(db, body).await;
+}
+
+#[utoipa::path(
+    post,
+    path = "/auth/magic-link",
+    tag = "Auth",
+    responses(
+        (status = 200, description = "The magic was sent", body = SuccessMessage),
+    ),
+)]
+#[post("/auth/magic-link", format = "application/json", data = "<body>")]
+pub(crate) async fn magic_link(
+  db: &State<Database>,
+  body: Json<MagicLinkBody>,
+) -> ApiResponse<SuccessMessage> {
+  return controller::magic_link(db, body).await;
 }
 
 #[utoipa::path(

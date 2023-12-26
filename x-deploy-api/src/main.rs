@@ -33,6 +33,7 @@ lazy_static! {
     paths(
         // Auth
         route::auth::login,
+        route::auth::magic_link,
         route::auth::register,
         route::auth::two_factor,
         route::auth::two_factor_recovery,
@@ -65,6 +66,7 @@ lazy_static! {
         // Auth
         route::auth::dto::LoginBody,
         route::auth::dto::LoginResponse,
+        route::auth::dto::MagicLinkBody,
         route::auth::dto::RegisterBody,
         route::auth::dto::TwoFactorRecoveryBody,
         route::auth::dto::TwoFactorCode,
@@ -115,6 +117,7 @@ async fn rocket() -> _ {
     // Auth
     route::auth::register,
     route::auth::login,
+    route::auth::magic_link,
     route::auth::two_factor,
     // Account
     route::account::get_info,

@@ -17,6 +17,14 @@ pub(crate) struct LoginBody {
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
 #[schema(example = json!({
+    "email": "john@doe.net"
+}))]
+pub(crate) struct MagicLinkBody {
+  pub(crate) email: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[schema(example = json!({
     "token": "ey6b0pm7hk87bJB...",
     "code": "123678"
 }))]

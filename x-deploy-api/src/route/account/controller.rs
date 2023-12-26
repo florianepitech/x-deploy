@@ -1,14 +1,19 @@
-use crate::cipher::password::verify_password;
+use crate::cipher::password::{
+  hash_password, is_strong_password, verify_password,
+};
 use crate::cipher::two_factor::{new_2fa, verify_2fa_code};
+use crate::db::query::user::email::confirm_email;
 use crate::db::query::user::get_user_from_db;
+use crate::db::query::user::password::update_password;
 use crate::db::query::user::two_factor::{
   delete_2fa_in_db, setup_2fa_in_db, update_2fa_state_in_db,
 };
 use crate::guard::token::Token;
 use crate::route::account::dto;
 use crate::route::account::dto::{
-  GetAccountInfoResponse, TwoFactorCodeRequest, TwoFactorInfoRequest,
-  TwoFactorInfoResponse, TwoFactorSetupRequest, TwoFactorSetupResponse,
+  ChangePasswordBody, ChangePhoneBody, GetAccountInfoResponse,
+  TwoFactorCodeRequest, TwoFactorInfoRequest, TwoFactorInfoResponse,
+  TwoFactorSetupRequest, TwoFactorSetupResponse, VerifyEmailBody,
 };
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResponse, SuccessMessage,
@@ -36,23 +41,78 @@ pub(crate) async fn get_info(
 
 pub(crate) async fn verify_email(
   db: &State<Database>,
-  body: Json<dto::VerifyEmailBody>,
+  token: Token,
+  body: Json<VerifyEmailBody>,
 ) -> ApiResponse<SuccessMessage> {
-  custom_message(Status::NotImplemented, "Not implemented")
+  let id = token.parse_id()?;
+  let user = get_user_from_db(db, &id).await?;
+  // Check if email is already verified
+  if user.email.verified {
+    return custom_error(Status::BadRequest, "Email is already verified");
+  }
+  let body_code = body.code.clone();
+  let user_code = match user.email.code.clone() {
+    None => {
+      return custom_error(
+        Status::InternalServerError,
+        "Code for verify email is empty in database",
+      )
+    }
+    Some(code) => code,
+  };
+  // Verify if code is correct
+  if body_code != user_code {
+    return custom_error(
+      Status::BadRequest,
+      "Code for verify email is invalid",
+    );
+  }
+  confirm_email(&db.inner(), &id).await?;
+  custom_message(Status::Ok, "Your email is now verified")
 }
 
 pub(crate) async fn change_password(
   db: &State<Database>,
-  body: Json<dto::ChangePasswordBody>,
+  token: Token,
+  body: Json<ChangePasswordBody>,
 ) -> ApiResponse<SuccessMessage> {
-  custom_message(Status::NotImplemented, "Not implemented")
+  let id = token.parse_id()?;
+  let user = get_user_from_db(db, &id).await?;
+  // Verify password of the account
+  let hash_actual_password = user.password.password.clone();
+  let actual_password = body.actual_password.clone();
+  let valid =
+    verify_password(actual_password.as_str(), hash_actual_password.as_str())?;
+  if !valid {
+    return custom_error(
+      Status::Unauthorized,
+      "The password of your account for changing password is invalid",
+    );
+  }
+  if is_strong_password(&body.new_password)? {
+    return custom_error(
+      Status::BadRequest,
+      "The new password is not strong enough",
+    );
+  }
+  let hash_new_password = hash_password(body.new_password.clone().as_str())?;
+  // Update password in database
+  let result = update_password(db, &id, &hash_new_password).await?;
+  if result.modified_count == 0 {
+    return custom_error(
+      Status::InternalServerError,
+      "Password is not updated in database",
+    );
+  }
+  custom_message(Status::Ok, "Your password is now updated")
 }
 
 pub(crate) async fn change_phone(
   db: &State<Database>,
-  body: Json<dto::ChangePhoneBody>,
+  body: Json<ChangePhoneBody>,
 ) -> ApiResponse<SuccessMessage> {
-  custom_message(Status::NotImplemented, "Not implemented")
+  let new_phone = body.new_phone.clone();
+  todo!("Change phone")
 }
 
 // 2FA

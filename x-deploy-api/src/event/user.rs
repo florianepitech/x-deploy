@@ -18,3 +18,18 @@ pub(crate) fn send_user_registered_event(
   });
   send_event(USER_REGISTERED_TOPIC.to_string(), json)
 }
+
+pub(super) const USER_MAGIC_LINK_TOPIC: &str = "user.magic_link";
+
+pub(crate) fn send_magic_link_event(
+  object_id: bson::oid::ObjectId,
+  email: String,
+  jwt: String,
+) -> Result<(), Error> {
+  let json: Value = json!({
+    "id": object_id.to_string(),
+    "email": email,
+    "jwt": jwt,
+  });
+  send_event(USER_MAGIC_LINK_TOPIC.to_string(), json)
+}

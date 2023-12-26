@@ -7,6 +7,9 @@ use mongodb::{Collection, Database};
 use rocket::http::Status;
 use rocket::State;
 
+pub(crate) mod email;
+pub(crate) mod password;
+mod phone;
 pub(crate) mod two_factor;
 
 pub(crate) async fn add_user_to_db(

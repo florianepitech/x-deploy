@@ -29,20 +29,24 @@ pub(crate) struct GetAccountInfoResponse {
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
 #[schema(example = json!({
+    "actualPassword": "MyActualStrongPassword123!",
     "newPassword": "MyNewAmazingStrongPassword123!",
 }))]
 pub(crate) struct ChangePasswordBody {
+  #[serde(rename = "actualPassword")]
+  pub(crate) actual_password: String,
+
   #[serde(rename = "newPassword")]
   pub(crate) new_password: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
 #[schema(example = json!({
-  "token": "Okb97fsqdlkjh97fsddflkjhsdf..."
+  "code": "768905"
 }))]
 pub(crate) struct VerifyEmailBody {
   #[serde(rename = "token")]
-  pub(crate) token: String,
+  pub(crate) code: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
