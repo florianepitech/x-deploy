@@ -7,6 +7,11 @@ use bson::doc;
 use mongodb::Database;
 use rocket::State;
 
+#[utoipa::path(
+    post,
+    path = "/organization/<id>/member",
+    tag = "Organization Members",
+)]
 #[get("/organization/<id>/member", format = "application/json")]
 pub(crate) async fn get(
   db: &State<Database>,
@@ -16,6 +21,14 @@ pub(crate) async fn get(
   controller::get(db, token, id).await
 }
 
+#[utoipa::path(
+    post,
+    path = "/organization/<id>/member",
+    tag = "Organization Members",
+    responses(
+        (status = 200, description = "Member was removed from organization", body = SuccessMessage),
+    )
+)]
 #[delete("/organization/<id>/member/<member_id>", format = "application/json")]
 pub(crate) async fn delete(
   db: &State<Database>,

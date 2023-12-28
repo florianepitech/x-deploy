@@ -1,6 +1,6 @@
 use crate::route::auth::dto::{
-  LoginBody, LoginResponse, MagicLinkBody, RegisterBody, TwoFactorCode,
-  TwoFactorRecoveryBody,
+  ForgotPasswordBody, LoginBody, LoginResponse, MagicLinkBody, RegisterBody,
+  TwoFactorCode, TwoFactorRecoveryBody,
 };
 use crate::route::{ApiResponse, SuccessMessage};
 use bson::doc;
@@ -94,4 +94,11 @@ pub(crate) async fn two_factor_recovery(
   body: Json<TwoFactorRecoveryBody>,
 ) -> ApiResponse<LoginResponse> {
   return controller::two_factor_recovery(db, body).await;
+}
+
+pub(crate) async fn forgot_password(
+  db: &State<Database>,
+  body: Json<ForgotPasswordBody>,
+) -> ApiResponse<SuccessMessage> {
+  controller::forgot_password(db, body).await
 }

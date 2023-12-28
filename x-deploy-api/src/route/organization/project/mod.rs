@@ -1,7 +1,9 @@
 use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
 use crate::db::project::Project;
 use crate::guard::token::Token;
-use crate::route::organization::project::dto::CreateProjectBody;
+use crate::route::organization::project::dto::{
+  CreateProjectBody, ProjectInfoResponse, UpdateProjectInfoBody,
+};
 use crate::route::{ApiResponse, SuccessMessage};
 use bson::{doc, oid};
 use mongodb::{Collection, Database};
@@ -11,75 +13,101 @@ use rocket::serde::json::Json;
 use rocket::State;
 
 mod controller;
-mod dto;
+pub(crate) mod dto;
 
-/*
-#[macro_export]
-macro_rules! get_organization_by_id {
-    ($db:expr, $id:expr) => {
-        async {
-            use bson::doc;
-            use mongodb::Collection;
-            use rocket::http::Status;
-            use crate::custom_response;
-            use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
-            let oid = match oid::ObjectId::parse_str(&$id) {
-                Ok(oid) => oid,
-                Err(_) => return custom_response!(Status::BadRequest, "Invalid organization id"),
-            };
-
-            let collection: Collection<Organization> = $db.collection(ORGANIZATION_COLLECTION_NAME);
-            match collection.find_one(doc! {"_id": oid}, None).await {
-                Ok(Some(organization)) => Ok(organization),
-                Ok(None) => custom_response!(Status::NotFound, "Organization not found"),
-                Err(_) => custom_response!(Status::InternalServerError, "An error occurred while getting your organization"),
-            }
-        }
-    };
+#[utoipa::path(
+  get,
+  path = "/organization/<org_id>/project",
+  tag = "Organization Projects",
+  responses(
+    (status = 200, description = "Get all projects", body = Vec<ProjectInfoResponse>),
+  ),
+)]
+#[get("/organization/<org_id>/project", format = "application/json")]
+pub(crate) async fn get_all(
+  db: &State<Database>,
+  token: Token,
+  org_id: &str,
+) -> ApiResponse<Vec<ProjectInfoResponse>> {
+  controller::get_all(db, token, org_id).await
 }
-*/
 
+#[utoipa::path(
+  get,
+  path = "/organization/<org_id>/project/<project_id>",
+  tag = "Organization Projects",
+  responses(
+    (status = 200, description = "Get project by id", body = ProjectInfoResponse),
+  ),
+)]
+#[get(
+  "/organization/<org_id>/project/<project_id>",
+  format = "application/json"
+)]
+pub(crate) async fn get_by_id(
+  db: &State<Database>,
+  token: Token,
+  org_id: &str,
+  project_id: &str,
+) -> ApiResponse<ProjectInfoResponse> {
+  controller::get_by_id(db, token, org_id, project_id).await
+}
+
+#[utoipa::path(
+  post,
+  path = "/organization/<org_id>/project",
+  tag = "Organization Projects",
+  request_body = CreateProjectBody
+)]
 #[post(
-  "/organization/{id}/project",
+  "/organization/<org_id>/project",
   format = "application/json",
   data = "<body>"
 )]
 pub(crate) async fn new(
   db: &State<Database>,
   token: Token,
+  org_id: &str,
   body: Json<CreateProjectBody>,
 ) -> ApiResponse<SuccessMessage> {
-  controller::new(db, token, body).await
+  controller::new(db, token, org_id, body).await
 }
 
-#[get("/organization/<id>/project", format = "application/json")]
-pub(crate) async fn get_by_id(
-  db: &State<Database>,
-  token: Token,
-  id: &str,
-) -> ApiResponse<SuccessMessage> {
-  controller::get_by_id(db, token, id).await
-}
-
-#[patch("/organization/<id>/project/<project_id>", format = "application/json")]
+#[utoipa::path(
+  patch,
+  path = "/organization/<org_id>/project/<project_id>",
+  tag = "Organization Projects",
+  request_body = UpdateProjectInfoBody
+)]
+#[patch(
+  "/organization/<org_id>/project/<project_id>",
+  format = "application/json",
+  data = "<body>"
+)]
 pub(crate) async fn update(
   db: &State<Database>,
   token: Token,
-  id: &str,
+  org_id: &str,
   project_id: &str,
+  body: Json<UpdateProjectInfoBody>,
 ) -> ApiResponse<SuccessMessage> {
-  controller::update(db, token, id, project_id).await
+  controller::update(db, token, org_id, project_id, body).await
 }
 
+#[utoipa::path(
+  delete,
+  path = "/organization/<org_id>/project/<project_id>",
+  tag = "Organization Projects"
+)]
 #[delete(
-  "/organization/<id>/project/<project_id>",
+  "/organization/<org_id>/project/<project_id>",
   format = "application/json"
 )]
 pub(crate) async fn delete(
   db: &State<Database>,
   token: Token,
-  id: &str,
+  org_id: &str,
   project_id: &str,
 ) -> ApiResponse<SuccessMessage> {
-  controller::delete(db, token, id, project_id).await
+  controller::delete(db, token, org_id, project_id).await
 }

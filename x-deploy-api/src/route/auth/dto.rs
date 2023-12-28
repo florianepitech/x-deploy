@@ -82,3 +82,12 @@ pub(crate) struct RegisterBody {
   #[serde(rename = "password")]
   pub(crate) password: String,
 }
+
+#[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[schema(example = json!({
+    "email": "john@doe.net",
+}))]
+pub(crate) struct ForgotPasswordBody {
+  #[serde(rename = "email")]
+  pub(crate) email: String,
+}

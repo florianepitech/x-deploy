@@ -1,5 +1,8 @@
 use crate::guard::token::Token;
-use crate::route::organization::dto::{CreateOrganizationBody, DeleteOrganizationBody, OrganizationInfoResponse, TransferOrganizationBody, UpdateOrganizationBody};
+use crate::route::organization::dto::{
+  CreateOrganizationBody, DeleteOrganizationBody, OrganizationInfoResponse,
+  TransferOrganizationBody, UpdateOrganizationBody,
+};
 use crate::route::{ApiResponse, SuccessMessage};
 use mongodb::Database;
 use rocket::serde::json::Json;
@@ -9,8 +12,10 @@ pub(crate) mod api_key;
 mod controller;
 pub(crate) mod credentials;
 pub(crate) mod dto;
+pub(crate) mod invitation;
 pub(crate) mod member;
 pub(crate) mod project;
+pub(crate) mod custom_role;
 
 #[utoipa::path(
     get,

@@ -58,6 +58,14 @@ lazy_static! {
         route::organization::api_key::get,
         route::organization::api_key::get_by_id,
         route::organization::api_key::delete,
+        // Organization Members
+        route::organization::member::get,
+        route::organization::member::delete,
+        // Organization Project
+        route::organization::project::new,
+        route::organization::project::get_by_id,
+        route::organization::project::update,
+        route::organization::project::delete,
     ),
     components(schemas(
         // Global
@@ -88,6 +96,10 @@ lazy_static! {
         route::organization::dto::DeleteOrganizationBody,
         // Organization Api Keys
         route::organization::api_key::dto::CreateApiKeyBody,
+        // Organization Project
+        route::organization::project::dto::CreateProjectBody,
+        route::organization::project::dto::ProjectInfoResponse,
+        route::organization::project::dto::UpdateProjectInfoBody,
     ))
 )]
 struct ApiDoc;
@@ -95,10 +107,11 @@ struct ApiDoc;
 #[rocket::launch]
 async fn rocket() -> _ {
   let mongodb_client =
-    mongodb::Client::with_uri_str(CONFIG.mongodb_url.as_str()).await;
-  let mongodb_database = mongodb_client
-    .unwrap()
-    .database(CONFIG.mongodb_database.as_str());
+    mongodb::Client::with_uri_str(CONFIG.mongodb_url.as_str())
+      .await
+      .expect("Failed to connect to mongodb");
+  let mongodb_database =
+    mongodb_client.database(CONFIG.mongodb_database.as_str());
   let redis_client = redis::Client::open(CONFIG.redis_url.as_str()).unwrap();
 
   // Catchers
@@ -181,4 +194,9 @@ async fn rocket() -> _ {
     .mount("/", swagger_ui)
     .mount("/", redoc_ui)
     .mount("/", routes)
+    .configure(rocket::Config {
+      address: "0.0.0.0".parse().unwrap(),
+      port: 8000,
+      ..rocket::Config::default()
+    })
 }

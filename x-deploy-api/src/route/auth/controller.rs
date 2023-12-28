@@ -7,8 +7,8 @@ use crate::event::user::{send_magic_link_event, send_user_registered_event};
 use crate::guard::token::Token;
 use crate::route::auth::controller;
 use crate::route::auth::dto::{
-  LoginBody, LoginResponse, MagicLinkBody, RegisterBody, TwoFactorCode,
-  TwoFactorRecoveryBody,
+  ForgotPasswordBody, LoginBody, LoginResponse, MagicLinkBody, RegisterBody,
+  TwoFactorCode, TwoFactorRecoveryBody,
 };
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResponse, SuccessMessage,
@@ -183,4 +183,13 @@ pub(crate) async fn two_factor_recovery(
       "2 factor is not setup for this account",
     ),
   };
+}
+
+pub(crate) async fn forgot_password(
+  db: &State<Database>,
+  body: Json<ForgotPasswordBody>,
+) -> ApiResponse<SuccessMessage> {
+  let email = body.email.clone();
+  let user = get_user_from_email(db, &email).await?;
+  todo!("Send email with reset password link")
 }
