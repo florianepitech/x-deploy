@@ -2,7 +2,7 @@ mod controller;
 pub(crate) mod dto;
 
 use crate::guard::token::Token;
-use crate::route::organization::api_key::dto::CreateApiKeyBody;
+use crate::route::organization::api_key::dto::CreateApiKeyRequest;
 use crate::route::{ApiResponse, SuccessMessage};
 use bson::doc;
 use mongodb::Database;
@@ -18,7 +18,7 @@ use std::str::FromStr;
     responses(
         (status = 200, description = "Your api key has been created", body = SuccessMessage)
     ),
-    request_body = CreateApiKeyBody,
+    request_body = CreateApiKeyRequest,
 )]
 #[post(
   "/organization/<id>/api-key",
@@ -29,7 +29,7 @@ pub(crate) async fn new(
   db: &State<Database>,
   token: Token,
   id: String,
-  body: Json<CreateApiKeyBody>,
+  body: Json<CreateApiKeyRequest>,
 ) -> ApiResponse<SuccessMessage> {
   controller::new(db, token, id, body).await
 }

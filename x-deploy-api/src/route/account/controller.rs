@@ -4,16 +4,16 @@ use crate::cipher::password::{
 use crate::cipher::two_factor::{new_2fa, verify_2fa_code};
 use crate::db::query::user::email::confirm_email;
 use crate::db::query::user::get_user_from_db;
-use crate::db::query::user::password::update_password;
+use crate::db::query::user::password::query_user_password_update_hash;
 use crate::db::query::user::two_factor::{
   delete_2fa_in_db, setup_2fa_in_db, update_2fa_state_in_db,
 };
 use crate::guard::token::Token;
 use crate::route::account::dto;
 use crate::route::account::dto::{
-  ChangePasswordBody, ChangePhoneBody, GetAccountInfoResponse,
+  ChangePasswordRequest, ChangePhoneRequest, GetAccountInfoResponse,
   TwoFactorCodeRequest, TwoFactorInfoRequest, TwoFactorInfoResponse,
-  TwoFactorSetupRequest, TwoFactorSetupResponse, VerifyEmailBody,
+  TwoFactorSetupRequest, TwoFactorSetupResponse, VerifyEmailRequest,
 };
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResponse, SuccessMessage,
@@ -42,7 +42,7 @@ pub(crate) async fn get_info(
 pub(crate) async fn verify_email(
   db: &State<Database>,
   token: Token,
-  body: Json<VerifyEmailBody>,
+  body: Json<VerifyEmailRequest>,
 ) -> ApiResponse<SuccessMessage> {
   let id = token.parse_id()?;
   let user = get_user_from_db(db, &id).await?;
@@ -74,7 +74,7 @@ pub(crate) async fn verify_email(
 pub(crate) async fn change_password(
   db: &State<Database>,
   token: Token,
-  body: Json<ChangePasswordBody>,
+  body: Json<ChangePasswordRequest>,
 ) -> ApiResponse<SuccessMessage> {
   let id = token.parse_id()?;
   let user = get_user_from_db(db, &id).await?;
@@ -97,7 +97,7 @@ pub(crate) async fn change_password(
   }
   let hash_new_password = hash_password(body.new_password.clone().as_str())?;
   // Update password in database
-  let result = update_password(db, &id, &hash_new_password).await?;
+  let result = query_user_password_update_hash(db, &id, &hash_new_password).await?;
   if result.modified_count == 0 {
     return custom_error(
       Status::InternalServerError,
@@ -109,7 +109,7 @@ pub(crate) async fn change_password(
 
 pub(crate) async fn change_phone(
   db: &State<Database>,
-  body: Json<ChangePhoneBody>,
+  body: Json<ChangePhoneRequest>,
 ) -> ApiResponse<SuccessMessage> {
   let new_phone = body.new_phone.clone();
   todo!("Change phone")

@@ -1,6 +1,10 @@
 use crate::error::ApiError;
 use bcrypt::{hash, verify, DEFAULT_COST};
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 use rocket::http::Status;
+
+const FORGOT_PASSWORD_TOKEN_LENGTH: usize = 64;
 
 pub(crate) fn hash_password(password: &str) -> Result<String, ApiError> {
   let result = hash(password, DEFAULT_COST);
@@ -40,4 +44,13 @@ pub(crate) fn is_strong_password(password: &String) -> Result<bool, ApiError> {
       return Err(ApiError::new(Status::InternalServerError, message));
     }
   }
+}
+
+pub(crate) fn generate_forgot_password_token() -> String {
+  rand::thread_rng()
+    .sample_iter(&Alphanumeric)
+    .take(FORGOT_PASSWORD_TOKEN_LENGTH)
+    .map(char::from)
+    .collect::<String>()
+    .to_uppercase()
 }

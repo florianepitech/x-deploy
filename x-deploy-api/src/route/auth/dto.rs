@@ -7,7 +7,7 @@ use utoipa::ToSchema;
     "email": "john@doe.net",
     "password": "myAmazingStringPassword123!"
 }))]
-pub(crate) struct LoginBody {
+pub(crate) struct LoginRequest {
   #[serde(rename = "email")]
   pub(crate) email: String,
 
@@ -19,7 +19,7 @@ pub(crate) struct LoginBody {
 #[schema(example = json!({
     "email": "john@doe.net"
 }))]
-pub(crate) struct MagicLinkBody {
+pub(crate) struct MagicLinkRequest {
   pub(crate) email: String,
 }
 
@@ -41,7 +41,7 @@ pub(crate) struct TwoFactorCode {
     "token": "ey6b0pm7hk87bJB...",
     "recoveryCode": "123678JFDF86FDSF786Y..."
 }))]
-pub(crate) struct TwoFactorRecoveryBody {
+pub(crate) struct TwoFactorRecoveryRequest {
   #[serde(rename = "token")]
   pub(crate) token: String,
 
@@ -66,7 +66,7 @@ pub(crate) struct LoginResponse {
     "phone": "+1234567890",
     "password": "myAmazingStringPassword123!"
 }))]
-pub(crate) struct RegisterBody {
+pub(crate) struct RegisterRequest {
   #[serde(rename = "firstname")]
   pub(crate) firstname: String,
 
@@ -87,7 +87,19 @@ pub(crate) struct RegisterBody {
 #[schema(example = json!({
     "email": "john@doe.net",
 }))]
-pub(crate) struct ForgotPasswordBody {
+pub(crate) struct ForgotPasswordRequest {
   #[serde(rename = "email")]
   pub(crate) email: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[schema(example = json!({
+    "token": "povshdiobndsolnOIU98YY97FGDIshkbf...",
+}))]
+pub(crate) struct ResetPasswordRequest {
+  #[serde(rename = "token")]
+  pub(crate) token: String,
+
+  #[serde(rename = "newPassword")]
+  pub(crate) new_password: String,
 }

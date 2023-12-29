@@ -14,7 +14,7 @@ pub struct GetByIdQuery {
     "website": "https://my-stunning-organization.net",
     "contact_email": "contact@my-stunning-organization.net",
 }))]
-pub(crate) struct CreateOrganizationBody {
+pub(crate) struct CreateOrganizationRequest {
   #[serde(rename = "name")]
   pub(crate) name: String,
 
@@ -35,7 +35,7 @@ pub(crate) struct CreateOrganizationBody {
     "website": "https://my-stunning-organization.net",
     "contact_email": "contact@my-stunning-organization.net",
 }))]
-pub(crate) struct UpdateOrganizationBody {
+pub(crate) struct UpdateOrganizationRequest {
   #[serde(rename = "name")]
   pub(crate) name: String,
 
@@ -54,7 +54,7 @@ pub(crate) struct UpdateOrganizationBody {
     "new_owner_email": "john@doe.net",
     "password": "myAmazingStringPassword123!"
 }))]
-pub(crate) struct TransferOrganizationBody {
+pub(crate) struct TransferOrganizationRequest {
   #[serde(rename = "newOwnerEmail")]
   pub(crate) new_owner_email: String,
 
@@ -66,7 +66,7 @@ pub(crate) struct TransferOrganizationBody {
 #[schema(example = json!({
     "password": "myAmazingStringPassword123!"
 }))]
-pub(crate) struct DeleteOrganizationBody {
+pub(crate) struct DeleteOrganizationRequest {
   #[serde(rename = "password")]
   pub(crate) password: String,
 }

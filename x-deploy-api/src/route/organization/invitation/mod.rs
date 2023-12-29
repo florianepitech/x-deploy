@@ -1,4 +1,5 @@
 use crate::guard::token::Token;
+use crate::route::organization::invitation::dto::InvitationInfoResponse;
 use crate::route::{ApiResponse, SuccessMessage};
 use mongodb::Database;
 use rocket::State;
@@ -8,17 +9,17 @@ mod dto;
 
 #[utoipa::path(
     post,
-    path = "/organization/<id>/invitation",
+    path = "/organization/<org_id>/invitation",
     tag = "Organization Invitations",
     responses(
-        (status = 200, description = "List of your current invitation", body = SuccessMessage),
+        (status = 200, description = "List of your current invitation", body = Vec<InvitationInfoResponse>),
     )
 )]
-#[post("/organization/<id>/invitation", format = "application/json")]
-pub async fn get(
+#[get("/organization/<org_id>/invitation", format = "application/json")]
+pub async fn get_all(
   db: &State<Database>,
   token: Token,
-  id: String,
-) -> ApiResponse<SuccessMessage> {
-  controller::get(db, token, id).await
+  org_id: String,
+) -> ApiResponse<Vec<InvitationInfoResponse>> {
+  controller::get_all(db, token, org_id).await
 }

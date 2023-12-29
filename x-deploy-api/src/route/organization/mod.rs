@@ -1,7 +1,8 @@
 use crate::guard::token::Token;
 use crate::route::organization::dto::{
-  CreateOrganizationBody, DeleteOrganizationBody, OrganizationInfoResponse,
-  TransferOrganizationBody, UpdateOrganizationBody,
+  CreateOrganizationRequest, DeleteOrganizationRequest,
+  OrganizationInfoResponse, TransferOrganizationRequest,
+  UpdateOrganizationRequest,
 };
 use crate::route::{ApiResponse, SuccessMessage};
 use mongodb::Database;
@@ -11,11 +12,11 @@ use rocket::State;
 pub(crate) mod api_key;
 mod controller;
 pub(crate) mod credentials;
+pub(crate) mod custom_role;
 pub(crate) mod dto;
 pub(crate) mod invitation;
 pub(crate) mod member;
 pub(crate) mod project;
-pub(crate) mod custom_role;
 
 #[utoipa::path(
     get,
@@ -40,13 +41,13 @@ pub(crate) async fn all(
     responses(
         (status = 200, description = "Create a new organization", body = SuccessMessage),
     ),
-    request_body = CreateOrganizationBody,
+    request_body = CreateOrganizationRequest,
 )]
 #[post("/organization", format = "application/json", data = "<body>")]
 pub(crate) async fn new(
   db: &State<Database>,
   token: Token,
-  body: Json<CreateOrganizationBody>,
+  body: Json<CreateOrganizationRequest>,
 ) -> ApiResponse<SuccessMessage> {
   controller::new(db, token, body).await
 }
@@ -75,14 +76,14 @@ pub(crate) async fn get_by_id(
     responses(
         (status = 200, description = "Update an organization by id", body = SuccessMessage),
     ),
-    request_body = UpdateOrganizationBody,
+    request_body = UpdateOrganizationRequest,
 )]
 #[patch("/organization/<id>", format = "application/json", data = "<body>")]
 pub(crate) async fn update(
   db: &State<Database>,
   token: Token,
   id: String,
-  body: Json<UpdateOrganizationBody>,
+  body: Json<UpdateOrganizationRequest>,
 ) -> ApiResponse<SuccessMessage> {
   controller::update(db, token, id, body).await
 }
@@ -94,14 +95,14 @@ pub(crate) async fn update(
     responses(
         (status = 200, description = "Delete organization by id", body = SuccessMessage),
     ),
-    request_body = DeleteOrganizationBody,
+    request_body = DeleteOrganizationRequest,
 )]
 #[delete("/organization/<id>", format = "application/json", data = "<body>")]
 pub(crate) async fn delete(
   db: &State<Database>,
   token: Token,
   id: String,
-  body: Json<DeleteOrganizationBody>,
+  body: Json<DeleteOrganizationRequest>,
 ) -> ApiResponse<SuccessMessage> {
   controller::delete(db, token, id, body).await
 }
@@ -113,7 +114,7 @@ pub(crate) async fn delete(
     responses(
         (status = 200, description = "Transfer organization by id", body = SuccessMessage),
     ),
-    request_body = TransferOrganizationBody,
+    request_body = TransferOrganizationRequest,
 )]
 #[post(
   "/organization/<id>/transfer",
@@ -124,7 +125,7 @@ pub(crate) async fn transfer(
   db: &State<Database>,
   token: Token,
   id: String,
-  body: Json<TransferOrganizationBody>,
+  body: Json<TransferOrganizationRequest>,
 ) -> ApiResponse<SuccessMessage> {
   controller::transfer(db, token, id, body).await
 }

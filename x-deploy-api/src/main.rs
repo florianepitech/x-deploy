@@ -37,6 +37,8 @@ lazy_static! {
         route::auth::register,
         route::auth::two_factor,
         route::auth::two_factor_recovery,
+        route::auth::forgot_password,
+        route::auth::reset_password,
         // Account
         route::account::get_info,
         route::account::verify_email,
@@ -59,7 +61,7 @@ lazy_static! {
         route::organization::api_key::get_by_id,
         route::organization::api_key::delete,
         // Organization Members
-        route::organization::member::get,
+        route::organization::member::get_all,
         route::organization::member::delete,
         // Organization Project
         route::organization::project::new,
@@ -72,34 +74,34 @@ lazy_static! {
         route::SuccessMessage,
         route::ErrorMessage,
         // Auth
-        route::auth::dto::LoginBody,
+        route::auth::dto::LoginRequest,
         route::auth::dto::LoginResponse,
-        route::auth::dto::MagicLinkBody,
-        route::auth::dto::RegisterBody,
-        route::auth::dto::TwoFactorRecoveryBody,
+        route::auth::dto::MagicLinkRequest,
+        route::auth::dto::RegisterRequest,
+        route::auth::dto::TwoFactorRecoveryRequest,
         route::auth::dto::TwoFactorCode,
         // Account
         route::account::dto::GetAccountInfoResponse,
-        route::account::dto::VerifyEmailBody,
-        route::account::dto::ChangePasswordBody,
-        route::account::dto::ChangePhoneBody,
+        route::account::dto::VerifyEmailRequest,
+        route::account::dto::ChangePasswordRequest,
+        route::account::dto::ChangePhoneRequest,
         route::account::dto::TwoFactorSetupRequest,
         route::account::dto::TwoFactorSetupResponse,
         route::account::dto::TwoFactorInfoRequest,
         route::account::dto::TwoFactorInfoResponse,
         route::account::dto::TwoFactorCodeRequest,
         // Organization
-        route::organization::dto::CreateOrganizationBody,
-        route::organization::dto::TransferOrganizationBody,
+        route::organization::dto::CreateOrganizationRequest,
+        route::organization::dto::TransferOrganizationRequest,
         route::organization::dto::OrganizationInfoResponse,
-        route::organization::dto::UpdateOrganizationBody,
-        route::organization::dto::DeleteOrganizationBody,
+        route::organization::dto::UpdateOrganizationRequest,
+        route::organization::dto::DeleteOrganizationRequest,
         // Organization Api Keys
-        route::organization::api_key::dto::CreateApiKeyBody,
+        route::organization::api_key::dto::CreateApiKeyRequest,
         // Organization Project
-        route::organization::project::dto::CreateProjectBody,
+        route::organization::project::dto::CreateProjectRequest,
         route::organization::project::dto::ProjectInfoResponse,
-        route::organization::project::dto::UpdateProjectInfoBody,
+        route::organization::project::dto::UpdateProjectInfoRequest,
     ))
 )]
 struct ApiDoc;
@@ -132,6 +134,8 @@ async fn rocket() -> _ {
     route::auth::login,
     route::auth::magic_link,
     route::auth::two_factor,
+    route::auth::reset_password,
+    route::auth::forgot_password,
     // Account
     route::account::get_info,
     route::account::verify_email,
@@ -154,7 +158,7 @@ async fn rocket() -> _ {
     route::organization::api_key::get_by_id,
     route::organization::api_key::delete,
     // Organization Members
-    route::organization::member::get,
+    route::organization::member::get_all,
     route::organization::member::delete,
     // Organization Project
     route::organization::project::new,

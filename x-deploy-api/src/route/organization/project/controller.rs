@@ -6,7 +6,7 @@ use crate::db::query::project::{
 };
 use crate::guard::token::Token;
 use crate::route::organization::project::dto::{
-  CreateProjectBody, ProjectInfoResponse, UpdateProjectInfoBody,
+  CreateProjectRequest, ProjectInfoResponse, UpdateProjectInfoRequest,
 };
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResponse, SuccessMessage,
@@ -22,7 +22,7 @@ pub(crate) async fn new(
   db: &State<Database>,
   token: Token,
   org_id: &str,
-  body: Json<CreateProjectBody>,
+  body: Json<CreateProjectRequest>,
 ) -> ApiResponse<SuccessMessage> {
   let user_id = token.parse_id()?;
   let org_id = match oid::ObjectId::from_str(org_id) {
@@ -127,7 +127,7 @@ pub(crate) async fn update(
   token: Token,
   org_id: &str,
   project_id: &str,
-  body: Json<UpdateProjectInfoBody>,
+  body: Json<UpdateProjectInfoRequest>,
 ) -> ApiResponse<SuccessMessage> {
   let user_id = token.parse_id()?;
   let org_id = match oid::ObjectId::from_str(org_id) {

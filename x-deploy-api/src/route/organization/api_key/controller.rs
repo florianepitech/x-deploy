@@ -2,7 +2,7 @@ use crate::db::organization_apikey::{
   OrganizationApiKey, ORGANIZATION_APIKEY_COLLECTION_NAME,
 };
 use crate::guard::token::Token;
-use crate::route::organization::api_key::dto::CreateApiKeyBody;
+use crate::route::organization::api_key::dto::CreateApiKeyRequest;
 use crate::route::{custom_message, ApiResponse, SuccessMessage};
 use crate::CONFIG;
 use bson::doc;
@@ -18,7 +18,7 @@ pub(crate) async fn new(
   db: &State<Database>,
   token: Token,
   id: String,
-  body: Json<CreateApiKeyBody>,
+  body: Json<CreateApiKeyRequest>,
 ) -> ApiResponse<SuccessMessage> {
   let objectId = ObjectId::from_str(&id);
   if objectId.is_err() {

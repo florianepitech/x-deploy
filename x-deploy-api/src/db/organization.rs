@@ -19,12 +19,6 @@ pub struct Organization {
 
   #[serde(rename = "contactEmail")]
   pub contact_email: String,
-
-  #[serde(rename = "owner")]
-  pub owner: ObjectId,
-
-  #[serde(rename = "members")]
-  pub members: Vec<ObjectId>,
 }
 
 impl Organization {
@@ -33,7 +27,6 @@ impl Organization {
     description: String,
     website: String,
     contact_email: String,
-    owner: ObjectId,
   ) -> Self {
     Self {
       id: ObjectId::new(),
@@ -41,8 +34,6 @@ impl Organization {
       description,
       website,
       contact_email,
-      owner,
-      members: vec![],
     }
   }
 }

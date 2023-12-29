@@ -1,18 +1,21 @@
 use crate::cipher::password::verify_password;
 use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
+use crate::db::organization_member::OrganizationMember;
 use crate::db::query::organization::{
   delete_organization_by_id, get_all_orgs_of_user, get_org_by_id_with_owner,
   insert_one_organization, update_organization_info,
   verify_number_of_created_organization,
 };
+use crate::db::query::organization_member::query_organization_member_insert_one;
 use crate::db::query::user::get_user_from_db;
 use crate::event::organization::send_organization_created_event;
 use crate::guard::token::Token;
 use crate::route::organization::dto::{
-  CreateOrganizationBody, OrganizationInfoResponse, UpdateOrganizationBody,
+  CreateOrganizationRequest, OrganizationInfoResponse,
+  UpdateOrganizationRequest,
 };
 use crate::route::organization::dto::{
-  DeleteOrganizationBody, TransferOrganizationBody,
+  DeleteOrganizationRequest, TransferOrganizationRequest,
 };
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResponse, SuccessMessage,
@@ -48,21 +51,26 @@ pub(crate) async fn all(
 pub(crate) async fn new(
   db: &State<Database>,
   token: Token,
-  body: Json<CreateOrganizationBody>,
+  body: Json<CreateOrganizationRequest>,
 ) -> ApiResponse<SuccessMessage> {
-  let owner = oid::ObjectId::parse_str(&token.id).unwrap();
-  verify_number_of_created_organization(db, &owner).await?;
-  // Get objectId from token
+  let user_id = token.parse_id()?;
+  verify_number_of_created_organization(db, &user_id).await?;
+
+  // Insert Organization in database
   let new_organization = Organization::new(
     body.name.clone(),
     body.description.clone(),
     body.website.clone(),
     body.contact_email.clone(),
-    owner,
   );
-  let result = insert_one_organization(&db, &new_organization).await?;
-  let inserted_id = result.inserted_id.as_object_id().unwrap();
-  let _ = send_organization_created_event(owner, inserted_id);
+  insert_one_organization(&db, &new_organization).await?;
+  let inserted_id = new_organization.id.clone();
+
+  // Insert Organization member as owner
+  let owner = OrganizationMember::new(inserted_id.clone(), user_id, true, None);
+  query_organization_member_insert_one(&db, &owner).await?;
+
+  let _ = send_organization_created_event(user_id, inserted_id);
   info!("Inserted new organization with id: {}", inserted_id);
   custom_message(Status::Ok, "Organization created successfully")
 }
@@ -94,7 +102,7 @@ pub(crate) async fn update(
   db: &State<Database>,
   token: Token,
   id: String,
-  body: Json<UpdateOrganizationBody>,
+  body: Json<UpdateOrganizationRequest>,
 ) -> ApiResponse<SuccessMessage> {
   let user_id = token.parse_id()?;
   let org_id = match oid::ObjectId::parse_str(&id) {
@@ -120,7 +128,7 @@ pub(crate) async fn delete(
   db: &State<Database>,
   token: Token,
   id: String,
-  body: Json<DeleteOrganizationBody>,
+  body: Json<DeleteOrganizationRequest>,
 ) -> ApiResponse<SuccessMessage> {
   let user_id = token.parse_id()?;
   let password = body.password.clone();
@@ -153,7 +161,7 @@ pub(crate) async fn transfer(
   db: &State<Database>,
   token: Token,
   id: String,
-  body: Json<TransferOrganizationBody>,
+  body: Json<TransferOrganizationRequest>,
 ) -> ApiResponse<SuccessMessage> {
   // let organization = get_organization_by_id!(db, id).await?;
   return custom_message(Status::NotImplemented, "Not implemented");

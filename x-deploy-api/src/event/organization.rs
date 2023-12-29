@@ -1,5 +1,7 @@
 use crate::event::send_event;
+use bson::oid;
 use kafka::Error;
+use oid::ObjectId;
 use serde_json::{json, Value};
 
 // Organization created
@@ -7,8 +9,8 @@ use serde_json::{json, Value};
 pub(super) const ORGANIZATION_CREATED_TOPIC: &str = "organization.created";
 
 pub(crate) fn send_organization_created_event(
-  user_id: bson::oid::ObjectId,
-  organization_id: bson::oid::ObjectId,
+  user_id: ObjectId,
+  organization_id: ObjectId,
 ) -> Result<(), Error> {
   let json: Value = json!({
     "userId": user_id.to_string(),
@@ -23,8 +25,8 @@ pub(super) const ORGANIZATION_DELETED_TOPIC: &str = "organization.deleted";
 
 #[deprecated]
 pub(crate) fn send_organization_deleted_event(
-  user_id: bson::oid::ObjectId,
-  organization_id: bson::oid::ObjectId,
+  user_id: ObjectId,
+  organization_id: ObjectId,
 ) -> Result<(), Error> {
   let json: Value = json!({
     "userId": user_id.to_string(),
@@ -39,9 +41,9 @@ pub(super) const ORGANIZATION_TRANSFER_OWNERSHIP_TOPIC: &str =
   "organization.transfer_ownership";
 
 pub(crate) fn send_organization_transfer_ownership_event(
-  organization_id: bson::oid::ObjectId,
-  previous_owner_id: bson::oid::ObjectId,
-  new_owner_id: bson::oid::ObjectId,
+  organization_id: ObjectId,
+  previous_owner_id: ObjectId,
+  new_owner_id: ObjectId,
 ) -> Result<(), Error> {
   let json: Value = json!({
     "organizationId": organization_id.to_string(),

@@ -2,39 +2,43 @@ mod controller;
 mod dto;
 
 use crate::guard::token::Token;
+use crate::route::organization::member::dto::MemberInfoResponse;
 use crate::route::{ApiResponse, SuccessMessage};
 use bson::doc;
 use mongodb::Database;
 use rocket::State;
 
 #[utoipa::path(
-    post,
-    path = "/organization/<id>/member",
-    tag = "Organization Members",
+  post,
+  path = "/organization/<org_id>/member",
+  tag = "Organization Members"
 )]
-#[get("/organization/<id>/member", format = "application/json")]
-pub(crate) async fn get(
+#[get("/organization/<org_id>/member", format = "application/json")]
+pub(crate) async fn get_all(
   db: &State<Database>,
   token: Token,
-  id: String,
-) -> ApiResponse<SuccessMessage> {
-  controller::get(db, token, id).await
+  org_id: &str,
+) -> ApiResponse<Vec<MemberInfoResponse>> {
+  controller::get_all(db, token, org_id).await
 }
 
 #[utoipa::path(
     post,
-    path = "/organization/<id>/member",
+    path = "/organization/<org_id>/member",
     tag = "Organization Members",
     responses(
         (status = 200, description = "Member was removed from organization", body = SuccessMessage),
     )
 )]
-#[delete("/organization/<id>/member/<member_id>", format = "application/json")]
+#[delete(
+  "/organization/<org_id>/member/<member_id>",
+  format = "application/json"
+)]
 pub(crate) async fn delete(
   db: &State<Database>,
   token: Token,
-  id: String,
+  org_id: String,
   member_id: String,
 ) -> ApiResponse<SuccessMessage> {
-  controller::delete(db, token, id, member_id).await
+  controller::delete(db, token, org_id, member_id).await
 }

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
-pub(crate) struct CreateApiKeyBody {
+pub(crate) struct CreateApiKeyRequest {
   #[serde(rename = "description")]
   pub(crate) description: String,
 
@@ -44,7 +44,7 @@ pub(crate) struct PlainApiKey {
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
-pub(crate) struct DeleteApiKeyBody {
+pub(crate) struct DeleteApiKeyRequest {
   #[serde(rename = "id")]
   pub(crate) id: String,
 

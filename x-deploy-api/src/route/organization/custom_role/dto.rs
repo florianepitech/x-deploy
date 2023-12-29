@@ -3,7 +3,7 @@ use rocket::serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 #[derive(Deserialize, Serialize, Clone, Debug, ToSchema)]
-pub struct CreateCustomRoleBody {
+pub struct CreateCustomRoleRequest {
   #[serde(rename = "name")]
   pub name: String,
 

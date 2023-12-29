@@ -1,14 +1,25 @@
-use crate::cipher::password::{is_strong_password, verify_password};
+use crate::cipher::password::{
+  generate_forgot_password_token, hash_password, is_strong_password,
+  verify_password,
+};
 use crate::cipher::two_factor::verify_2fa_code;
+use crate::db::query::user::password::{
+  query_user_password_from_token, query_user_password_update_hash,
+  query_user_password_update_token,
+};
 use crate::db::query::user::two_factor::delete_2fa_in_db;
 use crate::db::query::user::{get_user_from_db, get_user_from_email};
 use crate::db::user::{User, USER_COLLECTION_NAME};
-use crate::event::user::{send_magic_link_event, send_user_registered_event};
+use crate::event::user::{
+  send_forgot_password_event, send_magic_link_event, send_password_reset_event,
+  send_user_registered_event,
+};
 use crate::guard::token::Token;
 use crate::route::auth::controller;
 use crate::route::auth::dto::{
-  ForgotPasswordBody, LoginBody, LoginResponse, MagicLinkBody, RegisterBody,
-  TwoFactorCode, TwoFactorRecoveryBody,
+  ForgotPasswordRequest, LoginRequest, LoginResponse, MagicLinkRequest,
+  RegisterRequest, ResetPasswordRequest, TwoFactorCode,
+  TwoFactorRecoveryRequest,
 };
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResponse, SuccessMessage,
@@ -21,7 +32,7 @@ use rocket::State;
 
 pub(crate) async fn login(
   db: &State<Database>,
-  body: Json<LoginBody>,
+  body: Json<LoginRequest>,
 ) -> ApiResponse<LoginResponse> {
   let login_body = body.into_inner();
   // Verify if email exists for an user
@@ -48,7 +59,7 @@ pub(crate) async fn login(
 
 pub(crate) async fn magic_link(
   db: &State<Database>,
-  body: Json<MagicLinkBody>,
+  body: Json<MagicLinkRequest>,
 ) -> ApiResponse<SuccessMessage> {
   let email = body.email.clone();
   let user = get_user_from_email(db, &email).await?;
@@ -65,7 +76,7 @@ pub(crate) async fn magic_link(
 
 pub(crate) async fn register(
   db: &State<Database>,
-  body: Json<RegisterBody>,
+  body: Json<RegisterRequest>,
 ) -> ApiResponse<SuccessMessage> {
   let body = body.into_inner();
   let mongodb_client = db.inner();
@@ -143,7 +154,7 @@ pub(crate) async fn two_factor(
 
 pub(crate) async fn two_factor_recovery(
   db: &State<Database>,
-  body: Json<TwoFactorRecoveryBody>,
+  body: Json<TwoFactorRecoveryRequest>,
 ) -> ApiResponse<LoginResponse> {
   let mut token = Token::parse_jwt(&body.token)?;
   if token.is_expired() {
@@ -187,9 +198,51 @@ pub(crate) async fn two_factor_recovery(
 
 pub(crate) async fn forgot_password(
   db: &State<Database>,
-  body: Json<ForgotPasswordBody>,
+  body: Json<ForgotPasswordRequest>,
 ) -> ApiResponse<SuccessMessage> {
   let email = body.email.clone();
   let user = get_user_from_email(db, &email).await?;
-  todo!("Send email with reset password link")
+  let token = generate_forgot_password_token();
+  query_user_password_update_token(db, &user.id, Some(&token)).await?;
+  let _ = send_forgot_password_event(
+    user.id,
+    user.firstname,
+    user.lastname,
+    user.email.email,
+    token,
+  );
+  custom_message(
+    Status::Ok,
+    "You will receive a link to reset your password in your email",
+  )
+}
+
+pub(crate) async fn reset_password(
+  db: &State<Database>,
+  body: Json<ResetPasswordRequest>,
+) -> ApiResponse<SuccessMessage> {
+  let user = query_user_password_from_token(db, &body.token).await?;
+  return match user {
+    Some(user) => {
+      let strong = is_strong_password(&body.new_password)?;
+      if !strong {
+        return custom_error(
+          Status::BadRequest,
+          "Password is not strong enough, please use a stronger password",
+        );
+      }
+      let password_hash = hash_password(body.new_password.as_str())?;
+      let _ = query_user_password_update_token(db, &user.id, None).await?;
+      let _ =
+        query_user_password_update_hash(db, &user.id, &password_hash).await?;
+      let _ = send_password_reset_event(
+        user.id,
+        user.firstname,
+        user.lastname,
+        user.email.email,
+      );
+      custom_message(Status::Ok, "Your password was reset")
+    }
+    None => custom_error(Status::Unauthorized, "Token is invalid"),
+  };
 }

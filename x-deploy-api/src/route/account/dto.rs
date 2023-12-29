@@ -32,7 +32,7 @@ pub(crate) struct GetAccountInfoResponse {
     "actualPassword": "MyActualStrongPassword123!",
     "newPassword": "MyNewAmazingStrongPassword123!",
 }))]
-pub(crate) struct ChangePasswordBody {
+pub(crate) struct ChangePasswordRequest {
   #[serde(rename = "actualPassword")]
   pub(crate) actual_password: String,
 
@@ -44,7 +44,7 @@ pub(crate) struct ChangePasswordBody {
 #[schema(example = json!({
   "code": "768905"
 }))]
-pub(crate) struct VerifyEmailBody {
+pub(crate) struct VerifyEmailRequest {
   #[serde(rename = "token")]
   pub(crate) code: String,
 }
@@ -53,7 +53,7 @@ pub(crate) struct VerifyEmailBody {
 #[schema(example = json!({
     "newPhone": "+34612345678",
 }))]
-pub(crate) struct ChangePhoneBody {
+pub(crate) struct ChangePhoneRequest {
   #[serde(rename = "newPhone")]
   pub(crate) new_phone: String,
 }

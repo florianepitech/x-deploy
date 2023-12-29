@@ -1,7 +1,7 @@
 use crate::db::user::{User, USER_COLLECTION_NAME};
 use crate::guard::token::Token;
 use crate::route::account::dto::{
-  ChangePasswordBody, GetAccountInfoResponse, TwoFactorCodeRequest,
+  ChangePasswordRequest, GetAccountInfoResponse, TwoFactorCodeRequest,
   TwoFactorInfoRequest, TwoFactorInfoResponse, TwoFactorSetupRequest,
   TwoFactorSetupResponse,
 };
@@ -44,13 +44,13 @@ pub(crate) async fn get_info(
     responses(
         (status = 200, description = "Verify email", body = SuccessMessage),
     ),
-    request_body = VerifyEmailBody,
+    request_body = VerifyEmailRequest,
 )]
 #[post("/account/verify-email", format = "application/json", data = "<body>")]
 pub(crate) async fn verify_email(
   db: &State<Database>,
   token: Token,
-  body: Json<dto::VerifyEmailBody>,
+  body: Json<dto::VerifyEmailRequest>,
 ) -> ApiResponse<SuccessMessage> {
   return controller::verify_email(db, token, body).await;
 }
@@ -63,7 +63,7 @@ pub(crate) async fn verify_email(
     responses(
         (status = 200, description = "Change password", body = SuccessMessage),
     ),
-    request_body = ChangePasswordBody,
+    request_body = ChangePasswordRequest,
 )]
 #[post(
   "/account/change-password",
@@ -73,7 +73,7 @@ pub(crate) async fn verify_email(
 pub(crate) async fn change_password(
   db: &State<Database>,
   token: Token,
-  body: Json<ChangePasswordBody>,
+  body: Json<ChangePasswordRequest>,
 ) -> ApiResponse<SuccessMessage> {
   return controller::change_password(db, token, body).await;
 }
@@ -86,12 +86,12 @@ pub(crate) async fn change_password(
     responses(
         (status = 200, description = "Change phone", body = SuccessMessage),
     ),
-    request_body = ChangePhoneBody,
+    request_body = ChangePhoneRequest,
 )]
 #[post("/account/change-phone", format = "application/json", data = "<body>")]
 pub(crate) async fn change_phone(
   db: &State<Database>,
-  body: Json<dto::ChangePhoneBody>,
+  body: Json<dto::ChangePhoneRequest>,
 ) -> ApiResponse<SuccessMessage> {
   return controller::change_phone(db, body).await;
 }

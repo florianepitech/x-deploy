@@ -8,7 +8,7 @@ use utoipa::ToSchema;
     "description": "My Stunning Organization description",
     "organizationId": "5f9b3b4b9b9b9b9b9b9b9b9b",
 }))]
-pub(crate) struct CreateProjectBody {
+pub(crate) struct CreateProjectRequest {
   #[serde(rename = "name")]
   pub(crate) name: String,
 
@@ -42,7 +42,7 @@ pub(crate) struct ProjectInfoResponse {
     "name": "My Stunning New Organization name",
     "description": "My Stunning New Organization description",
 }))]
-pub(crate) struct UpdateProjectInfoBody {
+pub(crate) struct UpdateProjectInfoRequest {
   #[serde(rename = "name")]
   pub(crate) name: String,
   #[serde(rename = "description")]

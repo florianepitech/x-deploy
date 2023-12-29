@@ -33,3 +33,39 @@ pub(crate) fn send_magic_link_event(
   });
   send_event(USER_MAGIC_LINK_TOPIC.to_string(), json)
 }
+
+pub(super) const USER_FORGOT_PASSWORD_TOPIC: &str = "user.forgot_password";
+
+pub(crate) fn send_forgot_password_event(
+  object_id: bson::oid::ObjectId,
+  email: String,
+  firstname: String,
+  lastname: String,
+  token: String,
+) -> Result<(), Error> {
+  let json: Value = json!({
+    "id": object_id.to_string(),
+    "firstname": firstname,
+    "lastname": lastname,
+    "email": email,
+    "token": token,
+  });
+  send_event(USER_FORGOT_PASSWORD_TOPIC.to_string(), json)
+}
+
+pub(super) const USER_PASSWORD_RESET_TOPIC: &str = "user.password_reset";
+
+pub(crate) fn send_password_reset_event(
+  object_id: bson::oid::ObjectId,
+  firstname: String,
+  lastname: String,
+  email: String,
+) -> Result<(), Error> {
+  let json: Value = json!({
+    "id": object_id.to_string(),
+    "firstname": firstname,
+    "lastname": lastname,
+    "email": email,
+  });
+  send_event(USER_PASSWORD_RESET_TOPIC.to_string(), json)
+}
