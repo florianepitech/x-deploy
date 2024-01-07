@@ -4,9 +4,9 @@ use rocket::serde::json::Json;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result};
 
-pub(crate) struct ApiError {
-  pub(crate) status: Status,
-  pub(crate) message: String,
+pub struct ApiError {
+  pub status: Status,
+  pub message: String,
 }
 
 impl ApiError {

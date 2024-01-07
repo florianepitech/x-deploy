@@ -1,14 +1,4 @@
 use crate::cipher::password::verify_password;
-use crate::db::organization::{Organization, ORGANIZATION_COLLECTION_NAME};
-use crate::db::organization_member::OrganizationMember;
-use crate::db::query::organization::{
-  delete_organization_by_id, get_all_orgs_of_user, get_org_by_id_with_owner,
-  insert_one_organization, update_organization_info,
-  verify_number_of_created_organization,
-};
-use crate::db::query::organization_member::query_organization_member_insert_one;
-use crate::db::query::user::get_user_from_db;
-use crate::event::organization::send_organization_created_event;
 use crate::guard::token::Token;
 use crate::route::organization::dto::{
   CreateOrganizationRequest, OrganizationInfoResponse,
@@ -18,30 +8,33 @@ use crate::route::organization::dto::{
   DeleteOrganizationRequest, TransferOrganizationRequest,
 };
 use crate::route::{
-  custom_error, custom_message, custom_response, ApiResponse, SuccessMessage,
+  custom_error, custom_message, custom_response, ApiResult, SuccessMessage,
 };
+use crate::CONFIG;
 use bson::oid;
-use mongodb::{Collection, Database};
-use rocket::http::ext::IntoCollection;
-use rocket::http::private::SmallVec;
+use mongodb::Database;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::State;
+use x_deploy_common::db::organization::Organization;
+use x_deploy_common::db::organization_member::OrganizationMember;
+use x_deploy_common::db::user::User;
+use x_deploy_common::event::organization::send_organization_created_event;
 
 pub(crate) async fn all(
   db: &State<Database>,
   token: Token,
-) -> ApiResponse<Vec<OrganizationInfoResponse>> {
+) -> ApiResult<Vec<OrganizationInfoResponse>> {
   let id = token.parse_id()?;
-  let orgs: Vec<Organization> = get_all_orgs_of_user(db, &id).await?;
+  let orgs = OrganizationMember::get_all_org_of_user(db, &id).await?;
   let mut result: Vec<OrganizationInfoResponse> = Vec::new();
   for org in orgs {
     let org_info = OrganizationInfoResponse {
-      id: org.id.to_string(),
-      name: org.name,
-      description: org.description,
-      website: org.website,
-      contact_email: org.contact_email,
+      id: org.organization.id.to_string(),
+      name: org.organization.name,
+      description: org.organization.description,
+      website: org.organization.website,
+      contact_email: org.organization.contact_email,
     };
     result.push(org_info);
   }
@@ -52,9 +45,8 @@ pub(crate) async fn new(
   db: &State<Database>,
   token: Token,
   body: Json<CreateOrganizationRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
-  verify_number_of_created_organization(db, &user_id).await?;
 
   // Insert Organization in database
   let new_organization = Organization::new(
@@ -63,14 +55,18 @@ pub(crate) async fn new(
     body.website.clone(),
     body.contact_email.clone(),
   );
-  insert_one_organization(&db, &new_organization).await?;
+  new_organization.insert(&db).await?;
   let inserted_id = new_organization.id.clone();
 
   // Insert Organization member as owner
   let owner = OrganizationMember::new(inserted_id.clone(), user_id, true, None);
-  query_organization_member_insert_one(&db, &owner).await?;
+  owner.insert(&db).await?;
 
-  let _ = send_organization_created_event(user_id, inserted_id);
+  let _ = send_organization_created_event(
+    CONFIG.kafka_url.clone(),
+    user_id,
+    inserted_id,
+  );
   info!("Inserted new organization with id: {}", inserted_id);
   custom_message(Status::Ok, "Organization created successfully")
 }
@@ -79,7 +75,7 @@ pub(crate) async fn get_by_id(
   db: &State<Database>,
   token: Token,
   id: String,
-) -> ApiResponse<OrganizationInfoResponse> {
+) -> ApiResult<OrganizationInfoResponse> {
   let orgs_id = match oid::ObjectId::parse_str(&id) {
     Ok(id) => id,
     Err(_) => {
@@ -87,15 +83,20 @@ pub(crate) async fn get_by_id(
     }
   };
   let id = token.parse_id()?;
-  let orgs = get_org_by_id_with_owner(db, &id, &orgs_id).await?;
-  let result = OrganizationInfoResponse {
-    id: orgs.id.to_string(),
-    name: orgs.name,
-    description: orgs.description,
-    website: orgs.website,
-    contact_email: orgs.contact_email,
+  let orgs = OrganizationMember::get_user_in_org(db, &orgs_id, &id).await?;
+  return match orgs {
+    None => custom_error(Status::NotFound, "Organization not found"),
+    Some(orgs) => {
+      let result = OrganizationInfoResponse {
+        id: orgs.organization.id.to_string(),
+        name: orgs.organization.name,
+        description: orgs.organization.description,
+        website: orgs.organization.website,
+        contact_email: orgs.organization.contact_email,
+      };
+      custom_response(Status::Ok, result)
+    }
   };
-  return custom_response(Status::Ok, result);
 }
 
 pub(crate) async fn update(
@@ -103,7 +104,7 @@ pub(crate) async fn update(
   token: Token,
   id: String,
   body: Json<UpdateOrganizationRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
   let org_id = match oid::ObjectId::parse_str(&id) {
     Ok(id) => id,
@@ -111,17 +112,26 @@ pub(crate) async fn update(
       return custom_error(Status::BadRequest, "Invalid organization id")
     }
   };
-  let organization = get_org_by_id_with_owner(db, &user_id, &org_id).await?;
-  update_organization_info(
-    db.inner(),
-    &organization.id,
-    body.name.clone(),
-    body.description.clone(),
-    body.website.clone(),
-    body.contact_email.clone(),
-  )
-  .await?;
-  return custom_message(Status::Ok, "Organization updated successfully");
+  let organization =
+    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+  return match organization {
+    None => custom_error(Status::NotFound, "Organization not found"),
+    Some(organization) => {
+      let mut org = organization.organization;
+      org.name = body.name.clone();
+      org.description = body.description.clone();
+      org.website = body.website.clone();
+      org.contact_email = body.contact_email.clone();
+      let update_result = org.update(db).await?;
+      if update_result.modified_count == 0 {
+        return custom_error(
+          Status::InternalServerError,
+          "Failed to update organization",
+        );
+      }
+      custom_message(Status::Ok, "Organization updated successfully")
+    }
+  };
 }
 
 pub(crate) async fn delete(
@@ -129,11 +139,15 @@ pub(crate) async fn delete(
   token: Token,
   id: String,
   body: Json<DeleteOrganizationRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
   let password = body.password.clone();
-  let user = get_user_from_db(db, &user_id).await?;
-  let verify_password = user.verify_password(password.as_str())?;
+  let user = match User::find_with_id(db, &user_id).await? {
+    Some(user) => user,
+    None => return custom_error(Status::NotFound, "User not found"),
+  };
+  let verify_password =
+    verify_password(password.as_str(), user.password.password.as_str())?;
   if !verify_password {
     return custom_error(
       Status::Forbidden,
@@ -146,15 +160,23 @@ pub(crate) async fn delete(
       return custom_error(Status::BadRequest, "Invalid organization id")
     }
   };
-  let organization = get_org_by_id_with_owner(db, &user_id, &org_id).await?;
-  let result = delete_organization_by_id(db.inner(), &organization.id).await?;
-  if result.deleted_count == 0 {
-    return custom_error(
-      Status::InternalServerError,
-      "Failed to delete organization",
-    );
-  }
-  return custom_message(Status::Ok, "Organization deleted successfully");
+  let organization =
+    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+
+  return match organization {
+    None => custom_error(Status::NotFound, "Organization not found"),
+    Some(organization) => {
+      let result = organization.to_organization_member().delete(db).await?;
+      // TODO: Delete member, custom role... etc
+      if result.deleted_count == 0 {
+        return custom_error(
+          Status::InternalServerError,
+          "Failed to delete organization",
+        );
+      }
+      return custom_message(Status::Ok, "Organization deleted successfully");
+    }
+  };
 }
 
 pub(crate) async fn transfer(
@@ -162,7 +184,7 @@ pub(crate) async fn transfer(
   token: Token,
   id: String,
   body: Json<TransferOrganizationRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   // let organization = get_organization_by_id!(db, id).await?;
   return custom_message(Status::NotImplemented, "Not implemented");
 }

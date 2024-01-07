@@ -1,30 +1,42 @@
 use crate::error::ApiError;
 use rocket::response::status::Custom;
+use rocket::response::Responder;
 use rocket::serde::json::Json;
+use rocket::{response, Request, Response};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
+use std::str::FromStr;
 use utoipa::ToSchema;
+use x_deploy_common::CommonError;
 
 pub mod account;
 pub mod auth;
+pub mod cloud_provider;
+pub mod invitation;
 pub mod organization;
-pub mod ovh;
+
+pub type ApiResult<T> = Result<Custom<Json<T>>, ApiError>;
+
+// Success Message
 
 #[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub(crate) struct SuccessMessage {
   #[serde(rename = "message")]
-  pub(crate) message: String,
+  pub message: String,
 }
 
 impl SuccessMessage {
-  pub(crate) fn new(message: String) -> Self {
+  pub fn new(message: String) -> Self {
     Self { message }
   }
 }
 
+// Error message
+
 #[derive(Serialize, Deserialize, Debug, ToSchema)]
 pub(crate) struct ErrorMessage {
   #[serde(rename = "error")]
-  pub(crate) error: String,
+  pub error: String,
 }
 
 impl ErrorMessage {
@@ -33,28 +45,46 @@ impl ErrorMessage {
   }
 }
 
-impl From<ApiError> for Custom<Json<ErrorMessage>> {
-  fn from(error: ApiError) -> Self {
-    let status = error.status;
-    let error = ErrorMessage::new(error.to_string());
-    Custom(status, Json(error))
+impl From<CommonError> for ApiError {
+  fn from(_: CommonError) -> Self {
+    let status = rocket::http::Status::InternalServerError;
+    let error = ApiError::new(
+      status,
+      "An internal error occurred, please try again later".to_string(),
+    );
+    error
   }
 }
 
-pub type ApiResponse<T> = Result<Custom<Json<T>>, Custom<Json<ErrorMessage>>>;
+// Implement Responder for ApiError
+impl<'r> Responder<'r, 'static> for ApiError {
+  fn respond_to(
+    self,
+    _: &'r Request<'_>,
+  ) -> response::Result<'static> {
+    // Convert ApiError to a JSON response
+    let error = ErrorMessage::new(self.message);
+    let body = serde_json::to_string(&error).unwrap();
+    Response::build()
+      .status(self.status)
+      .header(rocket::http::ContentType::JSON)
+      .sized_body(body.len(), std::io::Cursor::new(body))
+      .ok()
+  }
+}
 
 pub fn custom_error<T: Serialize>(
   status: rocket::http::Status,
   error: &str,
-) -> ApiResponse<T> {
+) -> ApiResult<T> {
   let error = ErrorMessage::new(error.to_string());
-  Err(Custom(status, Json::<ErrorMessage>(error)))
+  Err(ApiError::new(status, error.error))
 }
 
 pub fn custom_message(
   status: rocket::http::Status,
   message: &str,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   let message = SuccessMessage::new(message.to_string());
   Ok(Custom(status, Json::<SuccessMessage>(message)))
 }
@@ -62,6 +92,6 @@ pub fn custom_message(
 pub fn custom_response<T: Serialize>(
   status: rocket::http::Status,
   body: T,
-) -> ApiResponse<T> {
+) -> ApiResult<T> {
   Ok(Custom(status, Json(body)))
 }

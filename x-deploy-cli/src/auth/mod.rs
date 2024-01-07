@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use x_deploy_client::XDeployClient;
 
 const AUTH_FILE_PATH: &str = "./auth.json";
 
@@ -20,7 +21,7 @@ impl AuthFile {
     let content = std::fs::read_to_string(AUTH_FILE_PATH)
       .expect("Something went wrong reading the file");
     serde_json::from_str::<AuthFile>(&content)
-      .expect("Error while parsing json")
+      .expect("Error while parsing json file")
   }
 
   pub(crate) fn save_to_file(&self) {
@@ -30,5 +31,11 @@ impl AuthFile {
 
   pub(crate) fn delete_file() {
     std::fs::remove_file(AUTH_FILE_PATH).expect("Unable to delete file");
+  }
+
+  pub(crate) fn new_auth_client(&self) -> XDeployClient {
+    let mut client = XDeployClient::new_without_auth();
+    client.set_api_key(self.token.clone());
+    client
   }
 }

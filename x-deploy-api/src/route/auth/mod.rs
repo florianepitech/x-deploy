@@ -3,7 +3,7 @@ use crate::route::auth::dto::{
   RegisterRequest, ResetPasswordRequest, TwoFactorCode,
   TwoFactorRecoveryRequest,
 };
-use crate::route::{ApiResponse, SuccessMessage};
+use crate::route::{ApiResult, SuccessMessage};
 use bson::doc;
 use mongodb::Database;
 use rocket::serde::json::Json;
@@ -15,6 +15,7 @@ pub mod dto;
 
 #[utoipa::path(
     post,
+    operation_id = "Login",
     path = "/auth/login",
     tag = "Auth",
     responses(
@@ -26,28 +27,31 @@ pub mod dto;
 pub(crate) async fn login(
   db: &State<Database>,
   body: Json<LoginRequest>,
-) -> ApiResponse<LoginResponse> {
+) -> ApiResult<LoginResponse> {
   return controller::login(db, body).await;
 }
 
 #[utoipa::path(
     post,
+    operation_id = "Magic Link",
     path = "/auth/magic-link",
     tag = "Auth",
     responses(
         (status = 200, description = "The magic was sent", body = SuccessMessage),
     ),
+    request_body = MagicLinkRequest,
 )]
 #[post("/auth/magic-link", format = "application/json", data = "<body>")]
 pub(crate) async fn magic_link(
   db: &State<Database>,
   body: Json<MagicLinkRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   return controller::magic_link(db, body).await;
 }
 
 #[utoipa::path(
     post,
+    operation_id = "Register",
     path = "/auth/register",
     tag = "Auth",
     responses(
@@ -59,12 +63,13 @@ pub(crate) async fn magic_link(
 pub(crate) async fn register(
   db: &State<Database>,
   body: Json<RegisterRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   return controller::register(db, body).await;
 }
 
 #[utoipa::path(
     post,
+    operation_id = "Login 2FA",
     path = "/auth/2fa",
     tag = "Auth",
     responses(
@@ -76,12 +81,13 @@ pub(crate) async fn register(
 pub(crate) async fn two_factor(
   db: &State<Database>,
   body: Json<TwoFactorCode>,
-) -> ApiResponse<LoginResponse> {
+) -> ApiResult<LoginResponse> {
   return controller::two_factor(db, body).await;
 }
 
 #[utoipa::path(
     post,
+    operation_id = "Login 2FA Recovery",
     path = "/auth/2fa/recovery",
     tag = "Auth",
     responses(
@@ -93,12 +99,13 @@ pub(crate) async fn two_factor(
 pub(crate) async fn two_factor_recovery(
   db: &State<Database>,
   body: Json<TwoFactorRecoveryRequest>,
-) -> ApiResponse<LoginResponse> {
+) -> ApiResult<LoginResponse> {
   return controller::two_factor_recovery(db, body).await;
 }
 
 #[utoipa::path(
     post,
+    operation_id = "Forgot Password",
     path = "/auth/password/forgot",
     tag = "Auth",
     responses(
@@ -110,22 +117,24 @@ pub(crate) async fn two_factor_recovery(
 pub(crate) async fn forgot_password(
   db: &State<Database>,
   body: Json<ForgotPasswordRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   controller::forgot_password(db, body).await
 }
 
 #[utoipa::path(
     post,
+    operation_id = "Reset Password",
     path = "/auth/password/reset",
     tag = "Auth",
     responses(
         (status = 200, description = "Your password was reset", body = SuccessMessage),
     ),
+    request_body = ResetPasswordRequest,
 )]
 #[post("/auth/password/reset", format = "application/json", data = "<body>")]
 pub(crate) async fn reset_password(
   db: &State<Database>,
   body: Json<ResetPasswordRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   controller::reset_password(db, body).await
 }

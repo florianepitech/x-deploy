@@ -1,39 +1,33 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use utoipa::ToSchema;
 
 #[derive(Serialize, Deserialize, Debug, ToSchema)]
-pub struct NewInvitationRequest {
-  #[serde(rename = "email")]
+#[schema(example = json!({
+  "email": "john@doe.net",
+  "roleId": "5f9b3b3b9b7e4b0001f1e3b0",
+}))]
+#[serde(rename_all = "camelCase")]
+pub struct NewOrganizationInvitationRequest {
   pub email: String,
-
-  #[serde(rename = "role")]
-  pub role: String,
+  pub role_id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, ToSchema)]
-pub struct InvitationInfoResponse {
-  #[serde(rename = "email")]
-  pub sender: InvitationInfoUser,
-
-  #[serde(rename = "receiver")]
-  pub receiver: InvitationInfoUser,
-
-  #[serde(rename = "status")]
+#[serde(rename_all = "camelCase")]
+pub struct OrganizationInvitationInfoResponse {
+  pub sender: OrganizationInvitationInfoUser,
+  pub receiver: OrganizationInvitationInfoUser,
   pub status: String,
-
-  #[serde(rename = "sentAt")]
-  pub sent_at: DateTime<Utc>,
-
-  #[serde(rename = "responseAt")]
-  pub response_at: Option<DateTime<Utc>>,
+  pub sent_at: String,
+  pub response_at: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, ToSchema)]
-pub struct InvitationInfoUser {
-  #[serde(rename = "email")]
+pub struct OrganizationInvitationInfoUser {
+  pub id: String,
   pub firstname: String,
-
-  #[serde(rename = "lastname")]
   pub lastname: String,
+  pub email: String,
 }

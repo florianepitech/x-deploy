@@ -1,0 +1,19 @@
+[package]
+name = "x-deploy-daemon"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = { version = "0.4.20" }
+env_logger = { version = "0.10.1" }
+lazy_static = { version = "1.4.0", features = [] }
+serde = { workspace = true, features = ["derive"] }
+tokio = { workspace = true }
+toml = { version = "0.8.8" }
+x-deploy-common = { path = "../x-deploy-common" }
+aws-config = { version = "1.0.3", features = ["rt-tokio"] }
+aws-credential-types = { version = "1.0.3", features = ["hardcoded-credentials"] }
+aws-sdk-eks = {version = "1.4.0", features = ["rt-tokio"] }
+aws-sdk-iam = "1.9.1"

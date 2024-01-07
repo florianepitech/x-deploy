@@ -3,7 +3,7 @@ pub(crate) mod dto;
 
 use crate::guard::token::Token;
 use crate::route::organization::api_key::dto::CreateApiKeyRequest;
-use crate::route::{ApiResponse, SuccessMessage};
+use crate::route::{ApiResult, SuccessMessage};
 use bson::doc;
 use mongodb::Database;
 use rocket::serde::json::Json;
@@ -13,6 +13,7 @@ use std::str::FromStr;
 #[deprecated]
 #[utoipa::path(
     post,
+    operation_id = "Create ApiKey",
     path = "/organization/{id}/api-key",
     tag = "Organization ApiKey",
     responses(
@@ -30,14 +31,15 @@ pub(crate) async fn new(
   token: Token,
   id: String,
   body: Json<CreateApiKeyRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   controller::new(db, token, id, body).await
 }
 
 #[deprecated]
 #[utoipa::path(
     get,
-    path = "/organization/{id}/api-key",
+    operation_id = "Get ApiKey",
+    path = "/organization/<id>/api-key",
     tag = "Organization ApiKey",
     responses(
         (status = 200, description = "Api key retrieved", body = SuccessMessage),
@@ -48,14 +50,15 @@ pub(crate) async fn get(
   db: &State<Database>,
   token: Token,
   id: String,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   controller::get(db, token, id).await
 }
 
 #[deprecated]
 #[utoipa::path(
     get,
-    path = "/organization/{id}/api-key/{key_id}",
+    operation_id = "Get ApiKey by Id",
+    path = "/organization/<id>/api-key/<key_id>",
     tag = "Organization ApiKey",
     responses(
         (status = 200, description = "Specific api key retrieved", body = SuccessMessage),
@@ -67,14 +70,15 @@ pub(crate) async fn get_by_id(
   token: Token,
   id: String,
   key_id: String,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   controller::get_by_id(db, token, id, key_id).await
 }
 
 #[deprecated]
 #[utoipa::path(
     delete,
-    path = "/organization/{id}/api-key/{key_id}",
+    operation_id = "Delete ApiKey",
+    path = "/organization/<id>/api-key/<key_id>",
     tag = "Organization ApiKey",
     responses(
         (status = 200, description = "Api key deleted", body = SuccessMessage),
@@ -86,6 +90,6 @@ pub(crate) async fn delete(
   token: Token,
   id: String,
   key_id: String,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   controller::delete(db, token, id, key_id).await
 }

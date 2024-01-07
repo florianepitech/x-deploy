@@ -95,6 +95,7 @@ pub(crate) struct ForgotPasswordRequest {
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
 #[schema(example = json!({
     "token": "povshdiobndsolnOIU98YY97FGDIshkbf...",
+    "newPassword": "myAmazingStringPassword123!"
 }))]
 pub(crate) struct ResetPasswordRequest {
   #[serde(rename = "token")]

@@ -12,14 +12,14 @@ extern crate rocket;
 
 mod cipher;
 mod config;
-mod db;
 mod error;
-mod event;
 mod fairing;
 mod guard;
 mod ovh;
+mod permission;
 mod responder;
 mod route;
+pub mod utils;
 
 extern crate ovh_api;
 
@@ -29,7 +29,15 @@ lazy_static! {
 
 #[derive(OpenApi)]
 #[openapi(
-    info(description = "My Api description"),
+    info(
+      title = "X-Deploy API",
+      description = "My Api description",
+      version = "1.0.0",
+      contact(
+        name = "X-Deploy",
+        email = "contact@x-deploy.com"
+      )
+    ),
     paths(
         // Auth
         route::auth::login,
@@ -48,6 +56,9 @@ lazy_static! {
         route::account::setup_2fa,
         route::account::enable_2fa,
         route::account::disable_2fa,
+        // Invitation
+        route::invitation::get_all,
+        route::invitation::response,
         // Organization
         route::organization::all,
         route::organization::new,
@@ -55,6 +66,10 @@ lazy_static! {
         route::organization::update,
         route::organization::delete,
         route::organization::transfer,
+        // Organization Invitiation
+        route::organization::invitation::get_all,
+        route::organization::invitation::new_invitation,
+        route::organization::invitation::delete_invitation,
         // Organization Api Keys
         route::organization::api_key::new,
         route::organization::api_key::get,
@@ -68,6 +83,23 @@ lazy_static! {
         route::organization::project::get_by_id,
         route::organization::project::update,
         route::organization::project::delete,
+        // Organization Credentials Docker Hub
+        route::organization::credentials::docker_hub::new,
+        route::organization::credentials::docker_hub::get,
+        route::organization::credentials::docker_hub::get_all,
+        route::organization::credentials::docker_hub::update,
+        route::organization::credentials::docker_hub::delete,
+        // Organization Credentials Aws
+        route::organization::credentials::aws::new,
+        route::organization::credentials::aws::get,
+        route::organization::credentials::aws::get_all,
+        route::organization::credentials::aws::update,
+        route::organization::credentials::aws::delete,
+        // Cloud Provider
+        route::cloud_provider::all,
+        // Cloud Provider Aws
+        route::cloud_provider::aws::all_region,
+        route::cloud_provider::aws::instance_types,
     ),
     components(schemas(
         // Global
@@ -80,6 +112,8 @@ lazy_static! {
         route::auth::dto::RegisterRequest,
         route::auth::dto::TwoFactorRecoveryRequest,
         route::auth::dto::TwoFactorCode,
+        route::auth::dto::ForgotPasswordRequest,
+        route::auth::dto::ResetPasswordRequest,
         // Account
         route::account::dto::GetAccountInfoResponse,
         route::account::dto::VerifyEmailRequest,
@@ -90,18 +124,42 @@ lazy_static! {
         route::account::dto::TwoFactorInfoRequest,
         route::account::dto::TwoFactorInfoResponse,
         route::account::dto::TwoFactorCodeRequest,
+        // Invitation
+        route::invitation::dto::InvitationInfoResponse,
+        route::invitation::dto::InvitationInfoUser,
+        route::invitation::dto::InvitationInfoOrganization,
+        route::invitation::dto::InvitationResponseRequest,
         // Organization
         route::organization::dto::CreateOrganizationRequest,
         route::organization::dto::TransferOrganizationRequest,
         route::organization::dto::OrganizationInfoResponse,
         route::organization::dto::UpdateOrganizationRequest,
         route::organization::dto::DeleteOrganizationRequest,
+        // Organization Invitiation
+        route::organization::invitation::dto::NewOrganizationInvitationRequest,
+        route::organization::invitation::dto::OrganizationInvitationInfoResponse,
+        route::organization::invitation::dto::OrganizationInvitationInfoUser,
+        // Organization Members
+        route::organization::member::dto::MemberInfoResponse,
         // Organization Api Keys
         route::organization::api_key::dto::CreateApiKeyRequest,
         // Organization Project
         route::organization::project::dto::CreateProjectRequest,
         route::organization::project::dto::ProjectInfoResponse,
         route::organization::project::dto::UpdateProjectInfoRequest,
+        // Organization Credentials Docker Hub
+        route::organization::credentials::docker_hub::dto::DockerHubInfoResponse,
+        route::organization::credentials::docker_hub::dto::NewDockerHubRequest,
+        route::organization::credentials::docker_hub::dto::UpdateDockerHubCredentialsRequest,
+        // Organization Credentials Aws
+        route::organization::credentials::aws::dto::AwsCredentialsInfoResponse,
+        route::organization::credentials::aws::dto::NewAwsCredentialsRequest,
+        route::organization::credentials::aws::dto::UpdateAwsCredentialsRequest,
+        // Cloud Provider
+        route::cloud_provider::dto::CloudProviderResponse,
+        // Cloud Provider Aws
+        route::cloud_provider::aws::dto::CloudProviderAwsRegion,
+        route::cloud_provider::aws::dto::CloudProviderAwsInstance,
     ))
 )]
 struct ApiDoc;
@@ -145,6 +203,9 @@ async fn rocket() -> _ {
     route::account::setup_2fa,
     route::account::enable_2fa,
     route::account::disable_2fa,
+    // Invitation
+    route::invitation::get_all,
+    route::invitation::response,
     // Organization
     route::organization::all,
     route::organization::new,
@@ -168,6 +229,8 @@ async fn rocket() -> _ {
     // Organization Aws Credentials
     route::organization::credentials::aws::new,
     route::organization::credentials::aws::get,
+    route::organization::credentials::aws::get_all,
+    route::organization::credentials::aws::update,
     route::organization::credentials::aws::delete,
     // Organization Azure Credentials
     route::organization::credentials::azure::new,
@@ -181,6 +244,15 @@ async fn rocket() -> _ {
     route::organization::credentials::ovh::new,
     route::organization::credentials::ovh::get,
     route::organization::credentials::ovh::delete,
+    // Organization Credentials Docker Hub
+    route::organization::credentials::docker_hub::new,
+    route::organization::credentials::docker_hub::get,
+    route::organization::credentials::docker_hub::get_all,
+    route::organization::credentials::docker_hub::update,
+    route::organization::credentials::docker_hub::delete,
+    // Cloud Provider Aws
+    route::cloud_provider::aws::all_region,
+    route::cloud_provider::aws::instance_types,
   ];
 
   let doc = ApiDoc::openapi();

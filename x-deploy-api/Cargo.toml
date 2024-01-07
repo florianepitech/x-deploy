@@ -14,9 +14,10 @@ utoipa-swagger-ui = { version = "5.0.0", features = ["rocket"] }
 utoipa-redoc = { version = "2.0.0", features = ["rocket"] }
 totp-rs = { version = "5.4.0", features = ["qr", "otpauth", "gen_secret"] }
 ovh-api = { path = "../ovh-api" }
+x-deploy-common = { path = "../x-deploy-common" }
 serde_yaml = { version = "0.9.27" }
 serde = { workspace = true, features = ["derive"] }
-mongodb = { version = "2.7.1", features = ["tokio-sync"] }
+mongodb = { version = "2.7.1", features = ["tokio-sync", "bson-chrono-0_4"] }
 bson = { version = "2.7.0" }
 redis = { version = "0.24.0" }
 jsonwebtoken = { version = "9.1.0" }
@@ -28,3 +29,5 @@ rand = "0.8.5"
 regex = "1.10.2"
 toml = "0.8.8"
 chrono = { version = "0.4.31", features = ["serde"] }
+aws-region = "0.25.4"
+aws-sdk-ec2 = "1.12.0"

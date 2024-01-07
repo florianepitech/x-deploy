@@ -1,9 +1,6 @@
-use crate::db::organization_apikey::{
-  OrganizationApiKey, ORGANIZATION_APIKEY_COLLECTION_NAME,
-};
 use crate::guard::token::Token;
 use crate::route::organization::api_key::dto::CreateApiKeyRequest;
-use crate::route::{custom_message, ApiResponse, SuccessMessage};
+use crate::route::{custom_message, ApiResult, SuccessMessage};
 use crate::CONFIG;
 use bson::doc;
 use bson::oid::ObjectId;
@@ -13,13 +10,16 @@ use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::State;
 use std::str::FromStr;
+use x_deploy_common::db::organization_apikey::{
+  OrganizationApiKey, ORGANIZATION_APIKEY_COLLECTION_NAME,
+};
 
 pub(crate) async fn new(
   db: &State<Database>,
   token: Token,
   id: String,
   body: Json<CreateApiKeyRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   let objectId = ObjectId::from_str(&id);
   if objectId.is_err() {
     return custom_message(Status::BadRequest, "Invalid organization id");
@@ -32,7 +32,7 @@ pub(crate) async fn get(
   db: &State<Database>,
   token: Token,
   id: String,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   return custom_message(Status::NotImplemented, "Not implemented");
 }
 
@@ -41,7 +41,7 @@ pub(crate) async fn get_by_id(
   token: Token,
   id: String,
   key_id: String,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   return custom_message(Status::NotImplemented, "Not implemented");
 }
 
@@ -50,7 +50,7 @@ pub(crate) async fn delete(
   token: Token,
   id: String,
   key_id: String,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   return custom_message(Status::NotImplemented, "Not implemented");
 }
 

@@ -1,14 +1,18 @@
 mod login;
 mod logout;
+mod organization;
 
 use crate::cmd::{CmdArgs, Commands};
+use crate::error::CliResult;
 use crate::executor::login::login;
 use crate::executor::logout::logout;
+use crate::executor::organization::organization;
 
-pub(crate) fn execute(cmd_args: CmdArgs) {
+pub(crate) async fn execute(cmd_args: CmdArgs) -> CliResult {
   match cmd_args.command {
-    Commands::Login(args) => login(args),
+    Commands::Login(args) => login(args).await,
     Commands::Logout => logout(),
-    _ => println!("Not implemented yet"),
+    Commands::Organization => organization().await,
+    _ => panic!("Unknown command"),
   }
 }

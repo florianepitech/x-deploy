@@ -1,10 +1,10 @@
-use crate::db::user::TwoFactor;
 use crate::error::ApiError;
 use crate::CONFIG;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use rocket::http::Status;
 use totp_rs::{Algorithm, Secret, SecretParseError, TotpUrlError, TOTP};
+use x_deploy_common::db::user::TwoFactor;
 
 const DIGITS: usize = 6;
 const SKEW: u8 = 1;

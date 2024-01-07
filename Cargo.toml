@@ -6,12 +6,11 @@ members = [
     "ovh-api",
     "x-deploy-api",
     "x-deploy-client",
-    "x-deploy-cli",
+    "x-deploy-cli", "x-deploy-daemon", "x-deploy-common",
 ]
 
 [workspace.dependencies]
 futures = { version = "0.3.29" }
-log = { version = "0.4.20" }
 serde = { version = "1.0.147" }
 tokio = { version = "1.32.0" }
 serde_json = { version = "1.0.107" }

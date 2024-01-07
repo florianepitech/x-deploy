@@ -4,7 +4,7 @@ use crate::route::organization::dto::{
   OrganizationInfoResponse, TransferOrganizationRequest,
   UpdateOrganizationRequest,
 };
-use crate::route::{ApiResponse, SuccessMessage};
+use crate::route::{ApiResult, SuccessMessage};
 use mongodb::Database;
 use rocket::serde::json::Json;
 use rocket::State;
@@ -12,14 +12,15 @@ use rocket::State;
 pub(crate) mod api_key;
 mod controller;
 pub(crate) mod credentials;
-pub(crate) mod custom_role;
 pub(crate) mod dto;
 pub(crate) mod invitation;
 pub(crate) mod member;
 pub(crate) mod project;
+pub(crate) mod role;
 
 #[utoipa::path(
     get,
+    operation_id = "Get All Organizations",
     path = "/organization",
     tag = "Organization",
     responses(
@@ -30,12 +31,13 @@ pub(crate) mod project;
 pub(crate) async fn all(
   db: &State<Database>,
   token: Token,
-) -> ApiResponse<Vec<OrganizationInfoResponse>> {
+) -> ApiResult<Vec<OrganizationInfoResponse>> {
   controller::all(db, token).await
 }
 
 #[utoipa::path(
     post,
+    operation_id = "Create Organization",
     path = "/organization",
     tag = "Organization",
     responses(
@@ -48,12 +50,13 @@ pub(crate) async fn new(
   db: &State<Database>,
   token: Token,
   body: Json<CreateOrganizationRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   controller::new(db, token, body).await
 }
 
 #[utoipa::path(
     get,
+    operation_id = "Get Organization by Id",
     path = "/organization/<id>",
     tag = "Organization",
     responses(
@@ -65,12 +68,13 @@ pub(crate) async fn get_by_id(
   db: &State<Database>,
   token: Token,
   id: String,
-) -> ApiResponse<OrganizationInfoResponse> {
+) -> ApiResult<OrganizationInfoResponse> {
   controller::get_by_id(db, token, id).await
 }
 
 #[utoipa::path(
     patch,
+    operation_id = "Update Organization",
     path = "/organization/<id>",
     tag = "Organization",
     responses(
@@ -84,12 +88,13 @@ pub(crate) async fn update(
   token: Token,
   id: String,
   body: Json<UpdateOrganizationRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   controller::update(db, token, id, body).await
 }
 
 #[utoipa::path(
     delete,
+    operation_id = "Delete Organization",
     path = "/organization/<id>",
     tag = "Organization",
     responses(
@@ -103,12 +108,13 @@ pub(crate) async fn delete(
   token: Token,
   id: String,
   body: Json<DeleteOrganizationRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   controller::delete(db, token, id, body).await
 }
 
 #[utoipa::path(
     post,
+    operation_id = "Transfer Organization",
     path = "/organization/<id>/transfer",
     tag = "Organization",
     responses(
@@ -126,6 +132,6 @@ pub(crate) async fn transfer(
   token: Token,
   id: String,
   body: Json<TransferOrganizationRequest>,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   controller::transfer(db, token, id, body).await
 }

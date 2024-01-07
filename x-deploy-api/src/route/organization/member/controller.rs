@@ -1,36 +1,26 @@
-use crate::db::query::organization_member::query_organization_member_get_all_in_org;
 use crate::guard::token::Token;
 use crate::route::organization::member::dto::MemberInfoResponse;
-use crate::route::{
-  custom_error, custom_response, ApiResponse, SuccessMessage,
-};
-use bson::oid::ObjectId;
-use chrono::DateTime;
+use crate::route::{custom_error, custom_response, ApiResult, SuccessMessage};
+use crate::utils::ToObjectId;
+use chrono::{DateTime, Utc};
 use mongodb::Database;
 use rocket::http::Status;
 use rocket::State;
-use std::str::FromStr;
 use std::time::SystemTime;
+use x_deploy_common::db::organization_member::OrganizationMember;
 
 pub(crate) async fn get_all(
   db: &State<Database>,
   token: Token,
   org_id: &str,
-) -> ApiResponse<Vec<MemberInfoResponse>> {
-  let org_id = match ObjectId::from_str(&org_id) {
-    Ok(id) => id,
-    Err(_) => {
-      return custom_error(
-        Status::BadRequest,
-        "Organization id is not a valid id",
-      )
-    }
-  };
-  let members = query_organization_member_get_all_in_org(db, &org_id).await?;
+) -> ApiResult<Vec<MemberInfoResponse>> {
+  let _ = token.parse_id()?;
+  let org_id = org_id.to_object_id()?;
+  let members = OrganizationMember::get_all_user_in_org(db, &org_id).await?;
   let mut result: Vec<MemberInfoResponse> = Vec::new();
   for member in members {
     let timestamp: SystemTime = member.id.timestamp().to_system_time();
-    let since = DateTime::from(timestamp);
+    let since: DateTime<Utc> = DateTime::from(timestamp);
     let role: Option<String> = match member.role {
       Some(role) => Some(role.name),
       None => None,
@@ -42,7 +32,7 @@ pub(crate) async fn get_all(
       is_owner: member.is_owner,
       email: member.user.email.email,
       role,
-      since,
+      since: since.to_string(),
     };
     result.push(member_info);
   }
@@ -54,6 +44,6 @@ pub(crate) async fn delete(
   token: Token,
   org_id: String,
   member_id: String,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   return custom_error(Status::NotImplemented, "Not implemented");
 }

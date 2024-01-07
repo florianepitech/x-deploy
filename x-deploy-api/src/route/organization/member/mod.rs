@@ -1,29 +1,35 @@
 mod controller;
-mod dto;
+pub(crate) mod dto;
 
 use crate::guard::token::Token;
 use crate::route::organization::member::dto::MemberInfoResponse;
-use crate::route::{ApiResponse, SuccessMessage};
+use crate::route::{ApiResult, SuccessMessage};
 use bson::doc;
 use mongodb::Database;
 use rocket::State;
 
 #[utoipa::path(
-  post,
+  get,
+  operation_id = "Get All Members",
   path = "/organization/<org_id>/member",
-  tag = "Organization Members"
+  tag = "Organization Members",
+  responses(
+    (status = 200, description = "The list of member in the organization", body = Vec<MemberInfoResponse>),
+  )
 )]
 #[get("/organization/<org_id>/member", format = "application/json")]
 pub(crate) async fn get_all(
   db: &State<Database>,
   token: Token,
   org_id: &str,
-) -> ApiResponse<Vec<MemberInfoResponse>> {
+) -> ApiResult<Vec<MemberInfoResponse>> {
   controller::get_all(db, token, org_id).await
 }
 
+#[deprecated]
 #[utoipa::path(
-    post,
+    delete,
+    operation_id = "Delete a member from organization",
     path = "/organization/<org_id>/member",
     tag = "Organization Members",
     responses(
@@ -39,6 +45,6 @@ pub(crate) async fn delete(
   token: Token,
   org_id: String,
   member_id: String,
-) -> ApiResponse<SuccessMessage> {
+) -> ApiResult<SuccessMessage> {
   controller::delete(db, token, org_id, member_id).await
 }

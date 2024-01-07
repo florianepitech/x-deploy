@@ -1,18 +1,21 @@
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
-pub(crate) struct CmdArgs {
+pub struct CmdArgs {
   #[clap(subcommand)]
-  pub(crate) command: Commands,
+  pub command: Commands,
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum Commands {
+pub enum Commands {
   /// Manage applications
   Application,
   /// Log in
+  #[clap(subcommand)]
   Login(LoginArgs),
+  /// Organization
+  Organization,
   /// Log out
   Logout,
   /// Generate the autocompletion script for the specified shell
@@ -51,11 +54,28 @@ pub(crate) enum Commands {
   Version,
 }
 
+#[derive(Subcommand, Debug)]
+pub enum LoginArgs {
+  /// Log in using API key
+  ApiKey(LoginApiKeyArgs),
+  /// Log in using credentials
+  Credentials(LoginCredentialsArgs),
+}
+
 #[derive(Parser, Debug)]
-pub(crate) struct LoginArgs {
+pub struct LoginApiKeyArgs {
+  /// API key
   #[clap(short, long)]
-  pub(crate) email: String,
+  pub key: String,
+}
+
+#[derive(Parser, Debug)]
+pub struct LoginCredentialsArgs {
+  /// Email
+  #[clap(short, long)]
+  pub email: String,
 
   #[clap(short, long)]
-  pub(crate) password: String,
+  /// Password
+  pub password: String,
 }

@@ -1,0 +1,11 @@
+pub mod organization;
+pub mod organization_apikey;
+pub mod organization_credential_aws;
+pub mod organization_credential_docker_hub;
+pub mod organization_invitation;
+pub mod organization_member;
+pub mod organization_role;
+pub mod ovh_credentials;
+pub mod project;
+pub mod query;
+pub mod user;
