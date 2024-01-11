@@ -24,15 +24,22 @@ pub(crate) struct CreateProjectRequest {
     "id": "5f9b3b4b9b9b9b9b9b9b9b9b",
     "name": "My Stunning Organization name",
     "description": "My Stunning Organization description",
+    "logoUrl": "https://my-stunning-organization-project.net/logo.png",
     "organizationId": "5f9b3b4b9b9b9b9b9b9b9b9b",
 }))]
 pub(crate) struct ProjectInfoResponse {
   #[serde(rename = "id")]
   pub(crate) id: String,
+
   #[serde(rename = "name")]
   pub(crate) name: String,
+
   #[serde(rename = "description")]
   pub(crate) description: String,
+
+  #[serde(rename = "logoUrl")]
+  pub(crate) logo_url: Option<String>,
+
   #[serde(rename = "organizationId")]
   pub(crate) organization_id: String,
 }

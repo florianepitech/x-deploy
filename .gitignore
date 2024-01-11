@@ -2,3 +2,4 @@
 config.toml
 config.toml
 Cargo.lock
+*-config.toml

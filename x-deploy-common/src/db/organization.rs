@@ -14,6 +14,9 @@ pub struct Organization {
   #[serde(rename = "description")]
   pub description: String,
 
+  #[serde(rename = "logoUrl")]
+  pub logo_url: Option<String>,
+  
   #[serde(rename = "website")]
   pub website: String,
 
@@ -32,6 +35,7 @@ impl Organization {
       id: ObjectId::new(),
       name,
       description,
+      logo_url: None,
       website,
       contact_email,
     }

@@ -4,16 +4,12 @@ use crate::route::account::dto::{
   TwoFactorInfoRequest, TwoFactorInfoResponse, TwoFactorSetupRequest,
   TwoFactorSetupResponse,
 };
-use crate::route::{
-  custom_message, custom_response, ApiResult, SuccessMessage,
-};
+use crate::route::{ApiResult, SuccessMessage};
 use bson::doc;
-use bson::oid::ObjectId;
-use mongodb::{Collection, Database};
-use rocket::http::Status;
+use mongodb::Database;
+use rocket::http::ContentType;
 use rocket::serde::json::Json;
-use rocket::State;
-use x_deploy_common::db::user::{User, USER_COLLECTION_NAME};
+use rocket::{Data, State};
 
 mod controller;
 pub(crate) mod dto;
@@ -180,4 +176,24 @@ pub(crate) async fn disable_2fa(
   body: Json<TwoFactorCodeRequest>,
 ) -> ApiResult<SuccessMessage> {
   return controller::disable_2fa(db, token, body).await;
+}
+
+#[utoipa::path(
+    post,
+    operation_id = "Upload Profile Picture",
+    path = "/account/profile-picture",
+    tag = "Account",
+    responses(
+        (status = 200, description = "Upload profile picture", body = SuccessMessage),
+    ),
+)]
+#[post("/account/profile-picture", format = "image/*", data = "<data>")]
+pub(crate) async fn upload_profile_picture(
+  db: &State<Database>,
+  content_type: &ContentType,
+  token: Token,
+  data: Data<'_>,
+) -> ApiResult<SuccessMessage> {
+  return controller::upload_profile_picture(db, content_type, token, data)
+    .await;
 }

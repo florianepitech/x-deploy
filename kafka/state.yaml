@@ -1,0 +1,33 @@
+topics:
+  # User Topics
+  user.registered:
+    partitions: 1
+    replication: 1
+    configs:
+      cleanup.policy: compact
+  user.forgot_password:
+    partitions: 1
+    replication: 1
+    configs:
+      cleanup.policy: compact
+  user.password_reset:
+    partitions: 1
+    replication: 1
+    configs:
+      cleanup.policy: compact
+  # Organization Topics
+  organization.created:
+    partitions: 1
+    replication: 1
+    configs:
+      cleanup.policy: compact
+  organization.deleted:
+    partitions: 1
+    replication: 1
+    configs:
+      cleanup.policy: compact
+  organization.transfer_ownership:
+    partitions: 1
+    replication: 1
+    configs:
+      cleanup.policy: compact

@@ -1,21 +1,23 @@
 use crate::config::Config;
 use crate::fairing::cors::Cors;
 use lazy_static::lazy_static;
+use rocket::data::{ByteUnit, Limits};
+use rocket::fs::FileServer;
 use rocket::futures::StreamExt;
 use rocket::serde::Deserialize;
 use utoipa::OpenApi;
 use utoipa_redoc::{Redoc, Servable};
 use utoipa_swagger_ui::SwaggerUi;
+use x_deploy_common::s3::bucket::CommonS3Bucket;
+use x_deploy_common::s3::file_type::CommonS3BucketType;
 
 #[macro_use]
 extern crate rocket;
 
-mod cipher;
 mod config;
 mod error;
 mod fairing;
 mod guard;
-mod ovh;
 mod permission;
 mod responder;
 mod route;
@@ -56,6 +58,7 @@ lazy_static! {
         route::account::setup_2fa,
         route::account::enable_2fa,
         route::account::disable_2fa,
+        route::account::upload_profile_picture,
         // Invitation
         route::invitation::get_all,
         route::invitation::response,
@@ -64,6 +67,7 @@ lazy_static! {
         route::organization::new,
         route::organization::get_by_id,
         route::organization::update,
+        route::organization::update_logo,
         route::organization::delete,
         route::organization::transfer,
         // Organization Invitiation
@@ -82,6 +86,7 @@ lazy_static! {
         route::organization::project::new,
         route::organization::project::get_by_id,
         route::organization::project::update,
+        route::organization::project::update_logo,
         route::organization::project::delete,
         // Organization Credentials Docker Hub
         route::organization::credentials::docker_hub::new,
@@ -164,8 +169,8 @@ lazy_static! {
 )]
 struct ApiDoc;
 
-#[rocket::launch]
-async fn rocket() -> _ {
+#[rocket::main]
+async fn main() -> Result<(), rocket::Error> {
   let mongodb_client =
     mongodb::Client::with_uri_str(CONFIG.mongodb_url.as_str())
       .await
@@ -203,6 +208,7 @@ async fn rocket() -> _ {
     route::account::setup_2fa,
     route::account::enable_2fa,
     route::account::disable_2fa,
+    route::account::upload_profile_picture,
     // Invitation
     route::invitation::get_all,
     route::invitation::response,
@@ -211,6 +217,7 @@ async fn rocket() -> _ {
     route::organization::new,
     route::organization::get_by_id,
     route::organization::update,
+    route::organization::update_logo,
     route::organization::delete,
     route::organization::transfer,
     // Organization Api Keys
@@ -225,6 +232,7 @@ async fn rocket() -> _ {
     route::organization::project::new,
     route::organization::project::get_by_id,
     route::organization::project::update,
+    route::organization::project::update_logo,
     route::organization::project::delete,
     // Organization Aws Credentials
     route::organization::credentials::aws::new,
@@ -275,4 +283,9 @@ async fn rocket() -> _ {
       port: 8000,
       ..rocket::Config::default()
     })
+    .ignite()
+    .await?
+    .launch()
+    .await?;
+  Ok(())
 }

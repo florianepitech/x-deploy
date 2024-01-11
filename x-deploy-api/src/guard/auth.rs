@@ -1,9 +1,10 @@
 use crate::guard::token::Token;
 use crate::route::ErrorMessage;
+use request::FromRequest;
 use rocket::{outcome::Outcome, request, Request};
 
 #[rocket::async_trait]
-impl<'r> request::FromRequest<'r> for Token {
+impl<'r> FromRequest<'r> for Token {
   type Error = ErrorMessage;
 
   async fn from_request(

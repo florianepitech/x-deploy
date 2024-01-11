@@ -9,7 +9,7 @@ use crate::route::organization::invitation::dto::{
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResult, SuccessMessage,
 };
-use crate::utils::ToObjectId;
+use crate::utils::object_id::ToObjectId;
 use chrono::{DateTime, Utc};
 use mongodb::Database;
 use rocket::http::Status;

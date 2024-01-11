@@ -1,0 +1,15 @@
+[package]
+name = "x-deploy-ws"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+env_logger = "0.10.1"
+log = "0.4.20"
+rocket = "0.5.0"
+rocket_ws = "0.1.0"
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true

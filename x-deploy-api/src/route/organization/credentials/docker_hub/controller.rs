@@ -8,7 +8,7 @@ use crate::route::organization::credentials::docker_hub::dto::{
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResult, SuccessMessage,
 };
-use crate::utils::ToObjectId;
+use crate::utils::object_id::ToObjectId;
 use mongodb::Database;
 use rocket::http::Status;
 use rocket::serde::json::Json;

@@ -1,7 +1,7 @@
 use crate::guard::token::Token;
 use crate::route::organization::member::dto::MemberInfoResponse;
 use crate::route::{custom_error, custom_response, ApiResult, SuccessMessage};
-use crate::utils::ToObjectId;
+use crate::utils::object_id::ToObjectId;
 use chrono::{DateTime, Utc};
 use mongodb::Database;
 use rocket::http::Status;

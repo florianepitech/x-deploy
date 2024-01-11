@@ -1,8 +1,3 @@
-use crate::cipher::password::{
-  generate_forgot_password_token, hash_password, is_strong_password,
-  verify_password,
-};
-use crate::cipher::two_factor::verify_2fa_code;
 use crate::guard::token::Token;
 use crate::route::auth::dto::{
   ForgotPasswordRequest, LoginRequest, LoginResponse, MagicLinkRequest,
@@ -12,6 +7,11 @@ use crate::route::auth::dto::{
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResult, SuccessMessage,
 };
+use crate::utils::password::{
+  generate_forgot_password_token, hash_password, is_strong_password,
+  verify_password,
+};
+use crate::utils::two_factor::verify_2fa_code;
 use crate::CONFIG;
 use bson::doc;
 use mongodb::{Collection, Database};

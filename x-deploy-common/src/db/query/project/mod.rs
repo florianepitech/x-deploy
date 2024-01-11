@@ -7,8 +7,46 @@ use mongodb::results::{DeleteResult, InsertOneResult, UpdateResult};
 use mongodb::Collection;
 use mongodb::Database;
 
-impl Project {}
+impl Project {
+  pub async fn insert(
+    &self,
+    db: &Database,
+  ) -> CommonResult<InsertOneResult> {
+    let collection: Collection<Self> = db.collection(PROJECT_COLLECTION_NAME);
+    let result = collection.insert_one(self, None).await?;
+    return Ok(result);
+  }
 
+  pub async fn find_with_id(
+    db: &Database,
+    id: &ObjectId,
+  ) -> CommonResult<Option<Self>> {
+    let collection: Collection<Self> = db.collection(PROJECT_COLLECTION_NAME);
+    let user = collection
+      .find_one(
+        doc! {
+          "_id": id
+        },
+        None,
+      )
+      .await?;
+    return Ok(user);
+  }
+
+  pub async fn update(
+    &self,
+    db: &Database,
+  ) -> CommonResult<UpdateResult> {
+    let collection: Collection<Self> = db.collection(PROJECT_COLLECTION_NAME);
+    let filter = doc! {
+      "_id": &self.id,
+    };
+    let result = collection.replace_one(filter, self, None).await?;
+    return Ok(result);
+  }
+}
+
+#[deprecated]
 pub async fn query_project_new(
   db: &Database,
   project: &Project,
@@ -18,6 +56,7 @@ pub async fn query_project_new(
   Ok(result)
 }
 
+#[deprecated]
 pub async fn query_project_get_with_org(
   db: &Database,
   org_id: &ObjectId,
@@ -31,6 +70,7 @@ pub async fn query_project_get_with_org(
   return Ok(result);
 }
 
+#[deprecated]
 pub async fn query_project_get_with_org_and_id(
   db: &Database,
   org_id: &ObjectId,
@@ -45,6 +85,7 @@ pub async fn query_project_get_with_org_and_id(
   Ok(result?)
 }
 
+#[deprecated]
 pub async fn query_project_update(
   db: &Database,
   org_id: &ObjectId,
@@ -67,6 +108,7 @@ pub async fn query_project_update(
   Ok(result)
 }
 
+#[deprecated]
 pub async fn query_project_delete(
   db: &Database,
   org_id: &ObjectId,

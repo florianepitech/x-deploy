@@ -1,8 +1,9 @@
 use crate::error::ApiError;
 use crate::CONFIG;
 use bson::oid::ObjectId;
+use errors::ErrorKind;
 use jsonwebtoken::{
-  decode, encode, DecodingKey, EncodingKey, Header, Validation,
+  decode, encode, errors, DecodingKey, EncodingKey, Header, Validation,
 };
 use rocket::http::Status;
 use serde::{Deserialize, Serialize};
@@ -58,9 +59,18 @@ impl Token {
 
     return match token_data {
       Ok(token_data) => Ok(token_data.claims),
-      Err(_) => {
-        let message = "Error while parsing jwt token".to_string();
-        Err(ApiError::new(Status::InternalServerError, message))
+      Err(e) => {
+        let kind = e.kind();
+        return match kind {
+          ErrorKind::ExpiredSignature => {
+            let message = "Token is expired, please login again".to_string();
+            Err(ApiError::new(Status::Unauthorized, message))
+          }
+          _ => {
+            let message = "Error while parsing jwt token".to_string();
+            Err(ApiError::new(Status::InternalServerError, message))
+          }
+        };
       }
     };
   }

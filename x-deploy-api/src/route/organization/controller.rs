@@ -1,5 +1,7 @@
-use crate::cipher::password::verify_password;
 use crate::guard::token::Token;
+use crate::permission::general::{
+  verify_general_permission, GeneralPermissionType,
+};
 use crate::route::organization::dto::{
   CreateOrganizationRequest, OrganizationInfoResponse,
   UpdateOrganizationRequest,
@@ -10,16 +12,25 @@ use crate::route::organization::dto::{
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResult, SuccessMessage,
 };
+use crate::utils::object_id::ToObjectId;
+use crate::utils::password::verify_password;
+use crate::utils::profile_picture::ProfilePicture;
 use crate::CONFIG;
 use bson::oid;
 use mongodb::Database;
-use rocket::http::Status;
+use rocket::http::{ContentType, Status};
 use rocket::serde::json::Json;
-use rocket::State;
+use rocket::{Data, State};
 use x_deploy_common::db::organization::Organization;
 use x_deploy_common::db::organization_member::OrganizationMember;
+use x_deploy_common::db::organization_role::StandardPermission;
 use x_deploy_common::db::user::User;
 use x_deploy_common::event::organization::send_organization_created_event;
+use x_deploy_common::s3::bucket::CommonS3Bucket;
+use x_deploy_common::s3::config::CommonS3Config;
+use x_deploy_common::s3::file_type::CommonS3BucketType::{
+  OrganizationLogo, UserProfilePicture,
+};
 
 pub(crate) async fn all(
   db: &State<Database>,
@@ -33,6 +44,7 @@ pub(crate) async fn all(
       id: org.organization.id.to_string(),
       name: org.organization.name,
       description: org.organization.description,
+      logo_url: org.organization.logo_url,
       website: org.organization.website,
       contact_email: org.organization.contact_email,
     };
@@ -91,6 +103,7 @@ pub(crate) async fn get_by_id(
         id: orgs.organization.id.to_string(),
         name: orgs.organization.name,
         description: orgs.organization.description,
+        logo_url: orgs.organization.logo_url,
         website: orgs.organization.website,
         contact_email: orgs.organization.contact_email,
       };
@@ -185,6 +198,49 @@ pub(crate) async fn transfer(
   id: String,
   body: Json<TransferOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {
-  // let organization = get_organization_by_id!(db, id).await?;
   return custom_message(Status::NotImplemented, "Not implemented");
+}
+
+pub(crate) async fn update_logo(
+  db: &State<Database>,
+  token: Token,
+  org_id: String,
+  content_type: &ContentType,
+  data: Data<'_>,
+) -> ApiResult<SuccessMessage> {
+  let user_id = token.parse_id()?;
+  let org_id = org_id.to_object_id()?;
+  let org_user =
+    match OrganizationMember::get_user_in_org(db, &org_id, &user_id).await? {
+      Some(org_user) => org_user,
+      None => return custom_error(Status::NotFound, "Organization not found"),
+    };
+  verify_general_permission(
+    org_user.role,
+    &GeneralPermissionType::Organization,
+    &StandardPermission::ReadWrite,
+  )?;
+  let profile_picture = ProfilePicture::from_data(data).await?;
+  let profile_picture = profile_picture.to_square()?;
+  let s3_config = CommonS3Config::new(
+    CONFIG.s3_endpoint.clone(),
+    CONFIG.s3_bucket.clone(),
+    CONFIG.s3_access_key.clone(),
+    CONFIG.s3_secret_key.clone(),
+    CONFIG.s3_region.clone(),
+  );
+  let extension = profile_picture.get_extension()?;
+  let filename = format!("{}.{}", user_id, extension);
+  let bytes = profile_picture.get_image_bytes()?;
+  // Save file in S3
+  let s3 = CommonS3Bucket::new(OrganizationLogo, s3_config);
+  let content_type_str = content_type.to_string();
+  s3.add(&filename, bytes.as_slice(), content_type_str)
+    .await?;
+  // Update profile public url
+  let mut organization = org_user.organization;
+  let url = s3.get_public_url(&filename);
+  organization.logo_url = Some(url);
+  organization.update(db).await?;
+  custom_message(Status::Ok, "Your profile picture is now updated")
 }

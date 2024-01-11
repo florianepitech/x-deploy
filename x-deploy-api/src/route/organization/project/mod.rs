@@ -5,10 +5,10 @@ use crate::route::organization::project::dto::{
 use crate::route::{ApiResult, SuccessMessage};
 use bson::{doc, oid};
 use mongodb::{Collection, Database};
-use rocket::http::Status;
+use rocket::http::{ContentType, Status};
 use rocket::response::status::Custom;
 use rocket::serde::json::Json;
-use rocket::State;
+use rocket::{Data, State};
 use x_deploy_common::db::organization::{
   Organization, ORGANIZATION_COLLECTION_NAME,
 };
@@ -98,6 +98,29 @@ pub(crate) async fn update(
   body: Json<UpdateProjectInfoRequest>,
 ) -> ApiResult<SuccessMessage> {
   controller::update(db, token, org_id, project_id, body).await
+}
+
+#[utoipa::path(
+  post,
+  operation_id = "Update Project Logo",
+  path = "/organization/<org_id>/project/<project_id>/logo",
+  tag = "Organization Projects"
+)]
+#[post(
+  "/organization/<org_id>/project/<project_id>/logo",
+  format = "image/*",
+  data = "<body>"
+)]
+pub async fn update_logo(
+  db: &State<Database>,
+  token: Token,
+  org_id: &str,
+  project_id: &str,
+  content_type: &ContentType,
+  body: Data<'_>,
+) -> ApiResult<SuccessMessage> {
+  controller::update_logo(db, token, org_id, project_id, content_type, body)
+    .await
 }
 
 #[utoipa::path(

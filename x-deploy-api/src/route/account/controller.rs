@@ -1,9 +1,3 @@
-use crate::cipher::password::{
-  hash_password, is_strong_password, verify_password,
-};
-use crate::cipher::two_factor::{
-  generate_recovery_code, new_2fa, verify_2fa_code,
-};
 use crate::guard::token::Token;
 use crate::route::account::dto::{
   ChangePasswordRequest, ChangePhoneRequest, GetAccountInfoResponse,
@@ -13,13 +7,28 @@ use crate::route::account::dto::{
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResult, SuccessMessage,
 };
+use crate::utils::password::{
+  hash_password, is_strong_password, verify_password,
+};
+use crate::utils::profile_picture::ProfilePicture;
+use crate::utils::two_factor::{
+  generate_recovery_code, new_2fa, verify_2fa_code,
+};
+use crate::CONFIG;
 use mongodb::Database;
-use rocket::http::Status;
+use rocket::data::{ByteUnit, ToByteUnit};
+use rocket::http::{ContentType, MediaType, Status};
 use rocket::serde::json::Json;
-use rocket::State;
+use rocket::{Data, State};
+use std::fs::File;
+use std::io::Write;
 use x_deploy_common::db::query::user::email::confirm_email;
 use x_deploy_common::db::query::user::password::query_user_password_update_hash;
 use x_deploy_common::db::user::{TwoFactor, User};
+use x_deploy_common::s3::bucket::CommonS3Bucket;
+use x_deploy_common::s3::config::CommonS3Config;
+use x_deploy_common::s3::file_type::CommonS3BucketType;
+use CommonS3BucketType::UserProfilePicture;
 
 pub(crate) async fn get_info(
   token: Token,
@@ -33,6 +42,7 @@ pub(crate) async fn get_info(
   let response = GetAccountInfoResponse {
     firstname: user.firstname,
     lastname: user.lastname,
+    profile_picture_url: user.profile_picture_url,
     email: user.email.email,
     email_verified: user.email.verified,
     phone: user.phone.phone,
@@ -152,7 +162,7 @@ pub(crate) async fn info_2fa(
     );
   }
   let two_factor = user.two_factor.clone().unwrap();
-  let totp = crate::cipher::two_factor::from_two_factor(
+  let totp = crate::utils::two_factor::from_two_factor(
     &two_factor,
     user.email.email.clone(),
   )?;
@@ -191,7 +201,7 @@ pub(crate) async fn setup_2fa(
       ),
       false => {
         // 2FA is already generated, return the secret
-        let totp = crate::cipher::two_factor::from_two_factor(
+        let totp = crate::utils::two_factor::from_two_factor(
           &two_factor,
           user.email.email.clone(),
         )?;
@@ -310,4 +320,39 @@ pub(crate) async fn disable_2fa(
     );
   }
   custom_message(Status::Ok, "Your 2FA is now disabled")
+}
+
+pub(crate) async fn upload_profile_picture(
+  db: &State<Database>,
+  content_type: &ContentType,
+  token: Token,
+  data: Data<'_>,
+) -> ApiResult<SuccessMessage> {
+  let user_id = token.parse_id()?;
+  let mut user = match User::find_with_id(db, &user_id).await? {
+    Some(user) => user,
+    None => return custom_error(Status::NotFound, "User not found"),
+  };
+  let profile_picture = ProfilePicture::from_data(data).await?;
+  let profile_picture = profile_picture.to_square()?;
+  let s3_config = CommonS3Config::new(
+    CONFIG.s3_endpoint.clone(),
+    CONFIG.s3_bucket.clone(),
+    CONFIG.s3_access_key.clone(),
+    CONFIG.s3_secret_key.clone(),
+    CONFIG.s3_region.clone(),
+  );
+  let extension = profile_picture.get_extension()?;
+  let filename = format!("{}.{}", user_id, extension);
+  let bytes = profile_picture.get_image_bytes()?;
+  // Save file in S3
+  let s3 = CommonS3Bucket::new(UserProfilePicture, s3_config);
+  let content_type_str = content_type.to_string();
+  s3.add(&filename, bytes.as_slice(), content_type_str)
+    .await?;
+  // Update profile public url
+  let url = s3.get_public_url(&filename);
+  user.profile_picture_url = Some(url);
+  user.update(db).await?;
+  custom_message(Status::Ok, "Your profile picture is now updated")
 }

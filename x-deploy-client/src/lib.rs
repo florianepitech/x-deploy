@@ -1,5 +1,5 @@
 use crate::error::{ClientError, ClientResult};
-use reqwest::header::{HeaderMap, HeaderName, CONTENT_TYPE};
+use reqwest::header::CONTENT_TYPE;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
@@ -12,6 +12,7 @@ const API_URL: &str = "http://localhost:8000";
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 struct ErrorMessage {
+  #[serde(rename = "error")]
   error: String,
 }
 

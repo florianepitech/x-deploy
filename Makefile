@@ -11,7 +11,9 @@
 	run-dev-cli \
 	run-prod-cli \
 	run-dev-daemon \
-	run-prod-daemon
+	run-prod-daemon \
+	run-dev-ws \
+	run-prod-ws
 
 # Variables
 
@@ -20,6 +22,8 @@ API_NAME = x-deploy-api
 CLI_NAME = x-deploy-cli
 
 DAEMON_NAME = x-deploy-daemon
+
+WS_NAME = x-deploy-ws
 
 # Targets
 
@@ -54,3 +58,11 @@ run-dev-daemon:
 
 run-prod-daemon:
 	cargo run --release --bin $(DAEMON_NAME)
+
+# Ws
+
+run-dev-ws:
+	export RUST_BACKTRACE=1 && cargo watch -x "run --bin $(WS_NAME)"
+
+run-prod-ws:
+	cargo run --release --bin $(WS_NAME)

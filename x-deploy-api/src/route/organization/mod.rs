@@ -6,8 +6,9 @@ use crate::route::organization::dto::{
 };
 use crate::route::{ApiResult, SuccessMessage};
 use mongodb::Database;
+use rocket::http::ContentType;
 use rocket::serde::json::Json;
-use rocket::State;
+use rocket::{Data, State};
 
 pub(crate) mod api_key;
 mod controller;
@@ -90,6 +91,26 @@ pub(crate) async fn update(
   body: Json<UpdateOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {
   controller::update(db, token, id, body).await
+}
+
+#[utoipa::path(
+    post,
+    operation_id = "Upload Organization Logo",
+    path = "/organization/<org_id>/logo",
+    tag = "Organization",
+    responses(
+        (status = 200, description = "Upload organization logo by id", body = SuccessMessage),
+    ),
+)]
+#[post("/organization/<org_id>/logo", format = "image/*", data = "<body>")]
+pub(crate) async fn update_logo(
+  db: &State<Database>,
+  token: Token,
+  org_id: String,
+  content_type: &ContentType,
+  body: Data<'_>,
+) -> ApiResult<SuccessMessage> {
+  controller::update_logo(db, token, org_id, content_type, body).await
 }
 
 #[utoipa::path(

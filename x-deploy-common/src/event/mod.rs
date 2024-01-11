@@ -8,7 +8,6 @@ use serde_json::from_slice;
 use std::time::Duration;
 
 pub mod organization;
-pub mod project;
 pub mod user;
 
 pub(crate) fn send_event<T>(

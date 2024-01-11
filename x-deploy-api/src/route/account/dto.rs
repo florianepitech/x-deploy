@@ -6,6 +6,7 @@ use utoipa::ToSchema;
 #[schema(example = json!({
     "firstname": "John",
     "lastname": "Doe",
+    "profilePictureUrl": "https://s3-custom-bucket.com/user/1234567890/profile_picture.png",
     "email": "john@doe.net",
     "emailVerified": true,
     "phone": "+34612345678",
@@ -16,6 +17,9 @@ pub(crate) struct GetAccountInfoResponse {
 
   #[serde(rename = "lastname")]
   pub(crate) lastname: String,
+
+  #[serde(rename = "profilePictureUrl")]
+  pub(crate) profile_picture_url: Option<String>,
 
   #[serde(rename = "email")]
   pub(crate) email: String,

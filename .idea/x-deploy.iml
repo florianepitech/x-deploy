@@ -9,6 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/x-deploy-client/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/x-deploy-common/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/x-deploy-daemon/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/x-deploy-ws/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

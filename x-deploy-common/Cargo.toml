@@ -11,6 +11,8 @@ kafka = { version = "0.10.0" }
 mongodb = { version = "2.7.1", features = ["tokio-sync", "bson-chrono-0_4"] }
 bson = { version = "2.7.0" }
 chrono = { version = "0.4.31", features = ["serde"] }
+rusoto_core = { version = "0.48.0" }
+rusoto_s3 = { version = "0.48.0" }
 serde_json.workspace = true
 log = "0.4.20"
 redis = "0.24.0"

@@ -13,6 +13,9 @@ pub struct User {
 
   #[serde(rename = "lastname")]
   pub lastname: String,
+  
+  #[serde(rename = "profilePictureUrl")]
+  pub profile_picture_url: Option<String>,
 
   #[serde(rename = "password")]
   pub password: Password,
@@ -96,6 +99,7 @@ impl User {
       id: ObjectId::new(),
       firstname,
       lastname,
+      profile_picture_url: None,
       password: Password {
         password,
         last_changed: None,

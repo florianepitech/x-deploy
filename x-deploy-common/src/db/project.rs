@@ -14,6 +14,9 @@ pub struct Project {
   #[serde(rename = "description")]
   pub description: String,
 
+  #[serde(rename = "logoUrl")]
+  pub logo_url: Option<String>,
+
   #[serde(rename = "organizationId")]
   pub organization_id: ObjectId,
 }
@@ -28,6 +31,7 @@ impl Project {
       id: ObjectId::new(),
       name,
       description,
+      logo_url: None,
       organization_id,
     }
   }

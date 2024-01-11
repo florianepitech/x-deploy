@@ -3,10 +3,10 @@ use env_logger::filter::Filter;
 use lazy_static::lazy_static;
 use x_deploy_common::event::user::UserEvent;
 
+mod cluster;
 mod config;
 mod error;
 mod event;
-mod cluster;
 
 lazy_static! {
   pub(crate) static ref CONFIG: Config = Config::from_config_file();

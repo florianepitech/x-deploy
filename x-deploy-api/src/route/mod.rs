@@ -34,7 +34,7 @@ impl SuccessMessage {
 // Error message
 
 #[derive(Serialize, Deserialize, Debug, ToSchema)]
-pub(crate) struct ErrorMessage {
+pub struct ErrorMessage {
   #[serde(rename = "error")]
   pub error: String,
 }

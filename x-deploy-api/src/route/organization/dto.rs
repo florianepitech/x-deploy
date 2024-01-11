@@ -76,6 +76,7 @@ pub(crate) struct DeleteOrganizationRequest {
     "id": "5f9b3b3b3b3b3b3b3b3b3b3b",
     "name": "My Stunning Organization",
     "description": "A new amazing organization !",
+    "logoUrl": "https://s3-url-to-my-stunning-organization-logo.net",
     "website": "https://my-stunning-organization.net",
     "contact_email": "contact@my-stunning-organization.net",
 }))]
@@ -88,6 +89,9 @@ pub(crate) struct OrganizationInfoResponse {
 
   #[serde(rename = "description")]
   pub(crate) description: String,
+  
+  #[serde(rename = "logoUrl")]
+  pub(crate) logo_url: Option<String>,
 
   #[serde(rename = "website")]
   pub(crate) website: String,

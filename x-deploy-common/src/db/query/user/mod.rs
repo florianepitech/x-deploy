@@ -1,8 +1,9 @@
+use crate::db::organization::ORGANIZATION_COLLECTION_NAME;
 use crate::db::user::{User, USER_COLLECTION_NAME};
 use crate::CommonResult;
 use bson::doc;
 use bson::oid::ObjectId;
-use mongodb::results::InsertOneResult;
+use mongodb::results::{InsertOneResult, UpdateResult};
 use mongodb::{Collection, Database};
 
 pub mod email;
@@ -50,5 +51,17 @@ impl User {
       )
       .await?;
     return Ok(user);
+  }
+
+  pub async fn update(
+    &self,
+    db: &Database,
+  ) -> CommonResult<UpdateResult> {
+    let collection: Collection<Self> = db.collection(USER_COLLECTION_NAME);
+    let filter = doc! {
+      "_id": &self.id,
+    };
+    let result = collection.replace_one(filter, self, None).await?;
+    return Ok(result);
   }
 }
