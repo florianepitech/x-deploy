@@ -186,7 +186,7 @@ async fn main() -> Result<(), rocket::Error> {
     responder::not_found,
     responder::unauthorized,
     responder::forbidden,
-    responder::internal_server_error,
+    // responder::internal_server_error,
     responder::unprocessable_entity
   ];
 
