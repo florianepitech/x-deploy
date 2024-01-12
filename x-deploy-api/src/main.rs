@@ -14,12 +14,12 @@ use x_deploy_common::s3::file_type::CommonS3BucketType;
 #[macro_use]
 extern crate rocket;
 
+mod catcher;
 mod config;
 mod error;
 mod fairing;
 mod guard;
 mod permission;
-mod responder;
 mod route;
 pub mod utils;
 
@@ -183,11 +183,11 @@ async fn main() -> Result<(), rocket::Error> {
   // Catchers
 
   let catcher_list = catchers![
-    // responder::not_found,
-    // responder::unauthorized,
-    // responder::forbidden,
-    // responder::internal_server_error,
-    // responder::unprocessable_entity
+    // catcher::not_found,
+    // catcher::unauthorized,
+    // catcher::forbidden,
+    // catcher::internal_server_error,
+    // catcher::unprocessable_entity
   ];
 
   // Routes

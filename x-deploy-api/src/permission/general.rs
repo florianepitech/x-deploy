@@ -31,10 +31,7 @@ pub fn verify_general_permission(
   ask: &StandardPermission,
 ) -> Result<(), ApiError> {
   return match role {
-    None => Err(ApiError::new(
-      Status::Forbidden,
-      "You don't have the permission to do this".to_string(),
-    )),
+    None => Ok(()),
     Some(role) => {
       let result = has_general_permission(&role, permission, ask);
       if result {

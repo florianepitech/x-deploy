@@ -1,8 +1,7 @@
-use crate::route::{ErrorMessage, SuccessMessage};
-use rocket::http::Status;
+use crate::route::ErrorMessage;
 use rocket::response::Responder;
 use rocket::serde::json::Json;
-use rocket::{response, Request, Response};
+use rocket::Request;
 
 #[catch(401)]
 pub fn unauthorized(req: &Request) -> Json<ErrorMessage> {
