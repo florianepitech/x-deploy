@@ -6,7 +6,6 @@ use utoipa::ToSchema;
 #[schema(example = json!({
     "name": "My Stunning Organization name",
     "description": "My Stunning Organization description",
-    "organizationId": "5f9b3b4b9b9b9b9b9b9b9b9b",
 }))]
 pub(crate) struct CreateProjectRequest {
   #[serde(rename = "name")]
@@ -14,9 +13,6 @@ pub(crate) struct CreateProjectRequest {
 
   #[serde(rename = "description")]
   pub(crate) description: Option<String>,
-
-  #[serde(rename = "organizationId")]
-  pub(crate) organization_id: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]

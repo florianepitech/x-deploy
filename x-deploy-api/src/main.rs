@@ -84,6 +84,7 @@ lazy_static! {
         route::organization::member::delete,
         // Organization Project
         route::organization::project::new,
+        route::organization::project::get_all,
         route::organization::project::get_by_id,
         route::organization::project::update,
         route::organization::project::update_logo,
@@ -231,6 +232,7 @@ async fn main() -> Result<(), rocket::Error> {
     // Organization Project
     route::organization::project::new,
     route::organization::project::get_by_id,
+    route::organization::project::get_all,
     route::organization::project::update,
     route::organization::project::update_logo,
     route::organization::project::delete,
