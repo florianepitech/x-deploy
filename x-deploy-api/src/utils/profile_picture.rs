@@ -1,6 +1,6 @@
 use crate::error::ApiError;
 use image::{load_from_memory, DynamicImage, GenericImageView, ImageFormat};
-use rocket::data::{ByteUnit, ToByteUnit};
+use rocket::data::ToByteUnit;
 use rocket::http::Status;
 use rocket::Data;
 use std::io::Cursor;
