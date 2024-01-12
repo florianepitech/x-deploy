@@ -13,7 +13,7 @@ pub(crate) struct CreateProjectRequest {
   pub(crate) name: String,
 
   #[serde(rename = "description")]
-  pub(crate) description: String,
+  pub(crate) description: Option<String>,
 
   #[serde(rename = "organizationId")]
   pub(crate) organization_id: String,
@@ -35,7 +35,7 @@ pub(crate) struct ProjectInfoResponse {
   pub(crate) name: String,
 
   #[serde(rename = "description")]
-  pub(crate) description: String,
+  pub(crate) description: Option<String>,
 
   #[serde(rename = "logoUrl")]
   pub(crate) logo_url: Option<String>,
@@ -53,5 +53,5 @@ pub(crate) struct UpdateProjectInfoRequest {
   #[serde(rename = "name")]
   pub(crate) name: String,
   #[serde(rename = "description")]
-  pub(crate) description: String,
+  pub(crate) description: Option<String>,
 }

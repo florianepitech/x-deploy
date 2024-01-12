@@ -1,10 +1,15 @@
+use crate::db::query::organization_invitation::OrganizationInvitationQuery;
+use crate::db::{CommonCollection, ToCollectionName};
+use crate::CommonResult;
 use bson::oid::ObjectId;
+use bson::{doc, Bson};
 use chrono::{DateTime, Utc};
+use mongodb::results::UpdateResult;
+use mongodb::{Collection, Database};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
-pub const ORGANIZATION_INVITATION_COLLECTION_NAME: &str =
-  "organizationInvitations";
+const ORGANIZATION_INVITATION_COLLECTION_NAME: &str = "organizationInvitations";
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct OrganizationInvitation {
@@ -75,5 +80,46 @@ impl OrganizationInvitation {
       response_at,
       role,
     }
+  }
+}
+
+impl ToCollectionName for OrganizationInvitation {
+  fn collection_name() -> String {
+    String::from(ORGANIZATION_INVITATION_COLLECTION_NAME)
+  }
+}
+
+impl CommonCollection<OrganizationInvitation> {
+  pub async fn get_of_user_of_org(
+    &self,
+    user_id: &ObjectId,
+    org_id: &ObjectId,
+  ) -> CommonResult<Option<OrganizationInvitation>> {
+    let filter = doc! {
+      "receiverId": user_id,
+      "organizationId": org_id,
+    };
+    let result = self.collection.find_one(filter, None).await?;
+    return Ok(result);
+  }
+
+  pub async fn update_status(
+    &self,
+    invitation_id: &ObjectId,
+    status: &InvitationStatus,
+  ) -> CommonResult<UpdateResult> {
+    let response_at: Bson = Bson::DateTime(bson::DateTime::now());
+    let status_str = status.to_string();
+    let filter = doc! {
+      "_id": invitation_id,
+    };
+    let update = doc! {
+      "$set": {
+        "status": status_str,
+        "responseAt": response_at,
+      },
+    };
+    let result = self.collection.update_one(filter, update, None).await?;
+    return Ok(result);
   }
 }

@@ -16,15 +16,11 @@ use crate::utils::two_factor::{
 };
 use crate::CONFIG;
 use mongodb::Database;
-use rocket::data::{ByteUnit, ToByteUnit};
-use rocket::http::{ContentType, MediaType, Status};
+use rocket::http::{ContentType, Status};
 use rocket::serde::json::Json;
 use rocket::{Data, State};
-use std::fs::File;
-use std::io::Write;
-use x_deploy_common::db::query::user::email::confirm_email;
-use x_deploy_common::db::query::user::password::query_user_password_update_hash;
 use x_deploy_common::db::user::{TwoFactor, User};
+use x_deploy_common::db::CommonCollection;
 use x_deploy_common::s3::bucket::CommonS3Bucket;
 use x_deploy_common::s3::config::CommonS3Config;
 use x_deploy_common::s3::file_type::CommonS3BucketType;
@@ -35,7 +31,8 @@ pub(crate) async fn get_info(
   db: &State<Database>,
 ) -> ApiResult<GetAccountInfoResponse> {
   let user_id = token.parse_id()?;
-  let user = match User::find_with_id(db, &user_id).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  let user = match user_collection.get_by_id(&user_id).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
@@ -56,7 +53,8 @@ pub(crate) async fn verify_email(
   body: Json<VerifyEmailRequest>,
 ) -> ApiResult<SuccessMessage> {
   let id = token.parse_id()?;
-  let user = match User::find_with_id(db, &id).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  let user = match user_collection.get_by_id(&id).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
@@ -81,7 +79,7 @@ pub(crate) async fn verify_email(
       "Code for verify email is invalid",
     );
   }
-  confirm_email(&db.inner(), &id).await?;
+  user_collection.email_confirm(&id).await?;
   custom_message(Status::Ok, "Your email is now verified")
 }
 
@@ -91,7 +89,8 @@ pub(crate) async fn change_password(
   body: Json<ChangePasswordRequest>,
 ) -> ApiResult<SuccessMessage> {
   let id = token.parse_id()?;
-  let user = match User::find_with_id(db, &id).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  let user = match user_collection.get_by_id(&id).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
@@ -114,8 +113,9 @@ pub(crate) async fn change_password(
   }
   let hash_new_password = hash_password(body.new_password.clone().as_str())?;
   // Update password in database
-  let result =
-    query_user_password_update_hash(db, &id, &hash_new_password).await?;
+  let result = user_collection
+    .password_update_hash(&id, &hash_new_password)
+    .await?;
   if result.modified_count == 0 {
     return custom_error(
       Status::InternalServerError,
@@ -141,7 +141,8 @@ pub(crate) async fn info_2fa(
   body: Json<TwoFactorInfoRequest>,
 ) -> ApiResult<TwoFactorInfoResponse> {
   let user_id = token.parse_id()?;
-  let user = match User::find_with_id(db, &user_id).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  let user = match user_collection.get_by_id(&user_id).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
@@ -180,7 +181,8 @@ pub(crate) async fn setup_2fa(
   body: Json<TwoFactorSetupRequest>,
 ) -> ApiResult<TwoFactorSetupResponse> {
   let user_id = token.parse_id()?;
-  let mut user = match User::find_with_id(db, &user_id).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  let mut user = match user_collection.get_by_id(&user_id).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
@@ -221,7 +223,9 @@ pub(crate) async fn setup_2fa(
     recovery_code: recovery_code.clone(),
     secret_base32: new_two_factor.get_secret_base32(),
   });
-  let update = user.two_factor_update(db).await?;
+  let update = user_collection
+    .two_factor_update(&user_id, &user.two_factor)
+    .await?;
   if update.modified_count == 0 {
     return custom_error(
       Status::InternalServerError,
@@ -242,7 +246,8 @@ pub(crate) async fn enable_2fa(
   body: Json<TwoFactorCodeRequest>,
 ) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
-  let mut user = match User::find_with_id(db, &user_id).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  let mut user = match user_collection.get_by_id(&user_id).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
@@ -273,7 +278,9 @@ pub(crate) async fn enable_2fa(
   // Update 2FA state in database
   two_factor.setup = Some(bson::DateTime::now());
   user.two_factor = Some(two_factor);
-  let update = user.two_factor_update(db).await?;
+  let update = user_collection
+    .two_factor_update(&user_id, &user.two_factor)
+    .await?;
   if update.modified_count == 0 {
     return custom_error(
       Status::InternalServerError,
@@ -289,7 +296,8 @@ pub(crate) async fn disable_2fa(
   body: Json<TwoFactorCodeRequest>,
 ) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
-  let mut user = match User::find_with_id(db, &user_id).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  let mut user = match user_collection.get_by_id(&user_id).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
@@ -312,7 +320,9 @@ pub(crate) async fn disable_2fa(
   verify_2fa_code(user.email.email.clone(), &two_factor, body.code.clone())?;
   // Update 2FA state in database
   user.two_factor = None;
-  let update = user.two_factor_update(db).await?;
+  let update = user_collection
+    .two_factor_update(&user_id, &user.two_factor)
+    .await?;
   if update.modified_count == 0 {
     return custom_error(
       Status::InternalServerError,
@@ -329,7 +339,8 @@ pub(crate) async fn upload_profile_picture(
   data: Data<'_>,
 ) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
-  let mut user = match User::find_with_id(db, &user_id).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  match user_collection.get_by_id(&user_id).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
@@ -352,7 +363,8 @@ pub(crate) async fn upload_profile_picture(
     .await?;
   // Update profile public url
   let url = s3.get_public_url(&filename);
-  user.profile_picture_url = Some(url);
-  user.update(db).await?;
+  user_collection
+    .update_profile_picture_url(&user_id, &url)
+    .await?;
   custom_message(Status::Ok, "Your profile picture is now updated")
 }

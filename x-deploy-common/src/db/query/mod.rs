@@ -3,16 +3,11 @@ use bson::Document;
 use futures::StreamExt;
 use serde::de::DeserializeOwned;
 
-pub mod organisation_credential_docker_hub;
-pub mod organization;
-pub mod organization_credential_aws;
+mod organization;
 pub mod organization_invitation;
 pub mod organization_member;
-pub mod organization_role;
-pub mod project;
-pub mod user;
 
-pub async fn cursor_doc_to_vec<T>(
+pub(crate) async fn cursor_doc_to_vec<T>(
   mut cursor: mongodb::Cursor<Document>
 ) -> Result<Vec<T>, CommonError>
 where
@@ -27,7 +22,7 @@ where
   return Ok(result);
 }
 
-pub async fn cursor_to_vec<T>(
+pub(crate) async fn cursor_to_vec<T>(
   mut cursor: mongodb::Cursor<T>
 ) -> Result<Vec<T>, CommonError>
 where

@@ -25,19 +25,20 @@ use x_deploy_common::db::organization::Organization;
 use x_deploy_common::db::organization_member::OrganizationMember;
 use x_deploy_common::db::organization_role::StandardPermission;
 use x_deploy_common::db::user::User;
-use x_deploy_common::event::organization::send_organization_created_event;
+use x_deploy_common::db::CommonCollection;
+use x_deploy_common::event::organization::OrganizationCreatedEvent;
+use x_deploy_common::event::CommonEvent;
 use x_deploy_common::s3::bucket::CommonS3Bucket;
 use x_deploy_common::s3::config::CommonS3Config;
-use x_deploy_common::s3::file_type::CommonS3BucketType::{
-  OrganizationLogo, UserProfilePicture,
-};
+use x_deploy_common::s3::file_type::CommonS3BucketType::OrganizationLogo;
 
 pub(crate) async fn all(
   db: &State<Database>,
   token: Token,
 ) -> ApiResult<Vec<OrganizationInfoResponse>> {
   let id = token.parse_id()?;
-  let orgs = OrganizationMember::get_all_org_of_user(db, &id).await?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let orgs = org_member_coll.get_all_org_of_user(&id).await?;
   let mut result: Vec<OrganizationInfoResponse> = Vec::new();
   for org in orgs {
     let org_info = OrganizationInfoResponse {
@@ -59,26 +60,38 @@ pub(crate) async fn new(
   body: Json<CreateOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
-
+  let user_collection = CommonCollection::<User>::new(db);
+  let user = match user_collection.get_by_id(&user_id).await? {
+    Some(user) => user,
+    None => return custom_error(Status::NotFound, "User not found"),
+  };
   // Insert Organization in database
+  let org_collection = CommonCollection::<Organization>::new(db);
   let new_organization = Organization::new(
     body.name.clone(),
     body.description.clone(),
     body.website.clone(),
     body.contact_email.clone(),
   );
-  new_organization.insert(&db).await?;
+  org_collection.insert_one(&new_organization).await?;
   let inserted_id = new_organization.id.clone();
-
   // Insert Organization member as owner
+  let org_member_collection = CommonCollection::<OrganizationMember>::new(db);
   let owner = OrganizationMember::new(inserted_id.clone(), user_id, true, None);
-  owner.insert(&db).await?;
+  org_member_collection.insert_one(&owner).await?;
 
-  let _ = send_organization_created_event(
-    CONFIG.kafka_url.clone(),
-    user_id,
-    inserted_id,
-  );
+  CommonEvent::new(CONFIG.kafka_url.clone()).send(
+    OrganizationCreatedEvent {
+      id: inserted_id.clone().to_string(),
+      name: body.name.clone(),
+      description: body.description.clone(),
+      creator_id: user.id.to_string(),
+      creator_firstname: user.firstname.clone(),
+      creator_lastname: user.lastname.clone(),
+      creator_email: user.email.email.clone(),
+    },
+  )?;
+
   info!("Inserted new organization with id: {}", inserted_id);
   custom_message(Status::Ok, "Organization created successfully")
 }
@@ -86,16 +99,12 @@ pub(crate) async fn new(
 pub(crate) async fn get_by_id(
   db: &State<Database>,
   token: Token,
-  id: String,
+  org_id: String,
 ) -> ApiResult<OrganizationInfoResponse> {
-  let orgs_id = match oid::ObjectId::parse_str(&id) {
-    Ok(id) => id,
-    Err(_) => {
-      return custom_error(Status::BadRequest, "Invalid organization id")
-    }
-  };
   let id = token.parse_id()?;
-  let orgs = OrganizationMember::get_user_in_org(db, &orgs_id, &id).await?;
+  let orgs_id = org_id.to_object_id()?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let orgs = org_member_coll.get_user_in_org(&orgs_id, &id).await?;
   return match orgs {
     None => custom_error(Status::NotFound, "Organization not found"),
     Some(orgs) => {
@@ -115,27 +124,26 @@ pub(crate) async fn get_by_id(
 pub(crate) async fn update(
   db: &State<Database>,
   token: Token,
-  id: String,
+  org_id: String,
   body: Json<UpdateOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
-  let org_id = match oid::ObjectId::parse_str(&id) {
-    Ok(id) => id,
-    Err(_) => {
-      return custom_error(Status::BadRequest, "Invalid organization id")
-    }
-  };
-  let organization =
-    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+  let org_id = org_id.to_object_id()?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let organization = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
   return match organization {
     None => custom_error(Status::NotFound, "Organization not found"),
     Some(organization) => {
-      let mut org = organization.organization;
-      org.name = body.name.clone();
-      org.description = body.description.clone();
-      org.website = body.website.clone();
-      org.contact_email = body.contact_email.clone();
-      let update_result = org.update(db).await?;
+      let org_collection = CommonCollection::<Organization>::new(db);
+      let update_result = org_collection
+        .update_info(
+          &organization.id,
+          body.name.clone(),
+          body.description.clone(),
+          body.website.clone(),
+          body.contact_email.clone(),
+        )
+        .await?;
       if update_result.modified_count == 0 {
         return custom_error(
           Status::InternalServerError,
@@ -155,7 +163,8 @@ pub(crate) async fn delete(
 ) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
   let password = body.password.clone();
-  let user = match User::find_with_id(db, &user_id).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  let user = match user_collection.get_by_id(&user_id).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
@@ -173,20 +182,21 @@ pub(crate) async fn delete(
       return custom_error(Status::BadRequest, "Invalid organization id")
     }
   };
-  let organization =
-    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let organization = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
 
   return match organization {
     None => custom_error(Status::NotFound, "Organization not found"),
     Some(organization) => {
-      let result = organization.to_organization_member().delete(db).await?;
-      // TODO: Delete member, custom role... etc
+      let org_collection = CommonCollection::<Organization>::new(db);
+      let result = org_collection.delete_by_id(&organization.id).await?;
       if result.deleted_count == 0 {
         return custom_error(
           Status::InternalServerError,
           "Failed to delete organization",
         );
       }
+      // TODO: Delete member, custom role... etc
       return custom_message(Status::Ok, "Organization deleted successfully");
     }
   };
@@ -210,10 +220,11 @@ pub(crate) async fn update_logo(
 ) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
   let org_id = org_id.to_object_id()?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
   let org_user =
-    match OrganizationMember::get_user_in_org(db, &org_id, &user_id).await? {
-      Some(org_user) => org_user,
+    match org_member_coll.get_user_in_org(&org_id, &user_id).await? {
       None => return custom_error(Status::NotFound, "Organization not found"),
+      Some(org_user) => org_user,
     };
   verify_general_permission(
     org_user.role,
@@ -238,9 +249,8 @@ pub(crate) async fn update_logo(
   s3.add(&filename, bytes.as_slice(), content_type_str)
     .await?;
   // Update profile public url
-  let mut organization = org_user.organization;
+  let org_collection = CommonCollection::<Organization>::new(db);
   let url = s3.get_public_url(&filename);
-  organization.logo_url = Some(url);
-  organization.update(db).await?;
+  org_collection.update_logo_url(&org_id, &Some(url)).await?;
   custom_message(Status::Ok, "Your profile picture is now updated")
 }

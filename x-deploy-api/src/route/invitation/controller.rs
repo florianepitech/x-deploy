@@ -12,20 +12,19 @@ use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::State;
 use std::str::FromStr;
-use x_deploy_common::db::organization_invitation::InvitationStatus;
-use x_deploy_common::db::organization_member::OrganizationMember;
-use x_deploy_common::db::query::organization_invitation::{
-  query_organization_invitation_by_id, query_organization_invitation_of_user,
-  query_organization_invitation_update,
+use x_deploy_common::db::organization_invitation::{
+  InvitationStatus, OrganizationInvitation,
 };
+use x_deploy_common::db::organization_member::OrganizationMember;
+use x_deploy_common::db::CommonCollection;
 
 pub(crate) async fn get_all(
   db: &State<Database>,
   token: Token,
 ) -> ApiResult<Vec<InvitationInfoResponse>> {
   let user_id = token.parse_id()?;
-  let invitation_db =
-    query_organization_invitation_of_user(db, &user_id).await?;
+  let org_invitation_coll = CommonCollection::<OrganizationInvitation>::new(db);
+  let invitation_db = org_invitation_coll.get_of_user(&user_id).await?;
   let mut result: Vec<InvitationInfoResponse> = Vec::new();
   for invitation in invitation_db {
     let to_add = InvitationInfoResponse {
@@ -64,8 +63,10 @@ pub(crate) async fn response(
       )
     }
   };
-  let invitation =
-    query_organization_invitation_by_id(db, &invitation_id, &user_id).await?;
+  let org_invitation_coll = CommonCollection::<OrganizationInvitation>::new(db);
+  let invitation = org_invitation_coll
+    .get_of_user_with_invitation_id(&user_id, &invitation_id)
+    .await?;
   return match invitation {
     Some(invitation) => {
       if invitation.status != InvitationStatus::Pending {
@@ -75,6 +76,7 @@ pub(crate) async fn response(
         true => InvitationStatus::Accepted,
         false => InvitationStatus::Pending,
       };
+      let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
       let new_org_user = OrganizationMember {
         id: ObjectId::new(),
         user_id: invitation.receiver.id,
@@ -82,14 +84,14 @@ pub(crate) async fn response(
         is_owner: false,
         organization_id: invitation.organization.id,
       };
-      let _ = new_org_user.insert(db).await?;
-      let result =
-        query_organization_invitation_update(db, &invitation_id, &new_status)
-          .await?;
+      org_member_coll.insert_one(&new_org_user).await?;
+      let result = org_invitation_coll
+        .update_status(&invitation_id, &new_status)
+        .await?;
       if result.modified_count == 0 {
         return custom_error(
           Status::InternalServerError,
-          "Failed to update invitation",
+          "Failed to update invitation status",
         );
       }
       custom_message(

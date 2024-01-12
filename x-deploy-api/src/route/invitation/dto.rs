@@ -74,8 +74,8 @@ pub struct InvitationInfoOrganization {
   pub name: String,
 
   #[serde(rename = "description")]
-  pub description: String,
+  pub description: Option<String>,
 
   #[serde(rename = "website")]
-  pub website: String,
+  pub website: Option<String>,
 }

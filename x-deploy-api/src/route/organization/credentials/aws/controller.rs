@@ -17,6 +17,7 @@ use rocket::State;
 use x_deploy_common::db::organization_credential_aws::OrganizationCredentialAws;
 use x_deploy_common::db::organization_member::OrganizationMember;
 use x_deploy_common::db::organization_role::StandardPermission;
+use x_deploy_common::db::CommonCollection;
 
 pub(crate) async fn new(
   db: &State<Database>,
@@ -26,8 +27,8 @@ pub(crate) async fn new(
 ) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
   let org_id = org_id.to_object_id()?;
-  let org_user =
-    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let org_user = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
   return match org_user {
     Some(org_user) => {
       // Verify permission
@@ -37,6 +38,7 @@ pub(crate) async fn new(
         &StandardPermission::ReadWrite,
       )?;
       // Insert credential in database
+      let org_cred_aws = CommonCollection::<OrganizationCredentialAws>::new(db);
       let to_insert = OrganizationCredentialAws::new(
         org_id,
         body.name.clone(),
@@ -44,7 +46,7 @@ pub(crate) async fn new(
         body.access_key.clone(),
         body.secret_key.clone(),
       );
-      to_insert.insert(db).await?;
+      org_cred_aws.insert_one(&to_insert).await?;
       // Return success
       return custom_message(
         Status::Created,
@@ -67,8 +69,8 @@ pub(crate) async fn get(
   let user_id = token.parse_id()?;
   let org_id = org_id.to_object_id()?;
   let cred_id = cred_id.to_object_id()?;
-  let org_user =
-    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let org_user = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
   return match org_user {
     Some(org_user) => {
       // Verify permission
@@ -78,9 +80,10 @@ pub(crate) async fn get(
         &StandardPermission::Read,
       )?;
       // Get credential from database
-      let credential_db =
-        OrganizationCredentialAws::find_by_id(db, &org_id, &cred_id).await?;
-      return match credential_db {
+      let org_cred_aws = CommonCollection::<OrganizationCredentialAws>::new(db);
+      let cred_db =
+        org_cred_aws.get_by_id_and_org_id(&cred_id, &org_id).await?;
+      return match cred_db {
         Some(credential_db) => {
           // Convert to response
           let credential_info = AwsCredentialsInfoResponse {
@@ -109,8 +112,8 @@ pub(crate) async fn get_all(
 ) -> ApiResult<Vec<AwsCredentialsInfoResponse>> {
   let user_id = token.parse_id()?;
   let org_id = org_id.to_object_id()?;
-  let org_user =
-    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let org_user = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
   return match org_user {
     Some(org_user) => {
       // Verify permission
@@ -120,8 +123,8 @@ pub(crate) async fn get_all(
         &StandardPermission::Read,
       )?;
       // Get credentials from database
-      let credentials_db =
-        OrganizationCredentialAws::find_all_for_org(db, &org_id).await?;
+      let org_cred_aws = CommonCollection::<OrganizationCredentialAws>::new(db);
+      let credentials_db = org_cred_aws.get_all_of_org(&org_id).await?;
       // Convert to response
       let mut result: Vec<AwsCredentialsInfoResponse> = Vec::new();
       for credential in credentials_db {
@@ -153,8 +156,8 @@ pub(crate) async fn delete(
   let org_id = org_id.to_object_id()?;
   let cred_id = cred_id.to_object_id()?;
 
-  let org_user =
-    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let org_user = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
   return match org_user {
     Some(org_user) => {
       // Verify permission
@@ -163,8 +166,10 @@ pub(crate) async fn delete(
         &GeneralPermissionType::Credentials,
         &StandardPermission::ReadWrite,
       )?;
-      let deleted =
-        OrganizationCredentialAws::delete_by_id(db, &org_id, &cred_id).await?;
+      let org_cred_aws = CommonCollection::<OrganizationCredentialAws>::new(db);
+      let deleted = org_cred_aws
+        .delete_by_id_and_org_id(&cred_id, &org_id)
+        .await?;
       return if deleted.deleted_count >= 0 {
         custom_message(Status::Ok, "Successfully deleted Aws credential")
       } else {
@@ -189,8 +194,8 @@ pub(crate) async fn update(
   let org_id = org_id.to_object_id()?;
   let cred_id = cred_id.to_object_id()?;
 
-  let org_user =
-    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let org_user = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
   return match org_user {
     Some(org_user) => {
       // Verify permission
@@ -200,17 +205,15 @@ pub(crate) async fn update(
         &StandardPermission::ReadWrite,
       )?;
       // Get credential from database
-      let mut credential_db =
-        OrganizationCredentialAws::find_by_id(db, &org_id, &cred_id).await?;
+      let org_cred_aws = CommonCollection::<OrganizationCredentialAws>::new(db);
+      let credential_db =
+        org_cred_aws.get_by_id_and_org_id(&cred_id, &org_id).await?;
       return match credential_db {
-        Some(mut credential_db) => {
+        Some(_) => {
           // Update credential
-          credential_db.name = body.name.clone();
-          credential_db.description = body.description.clone();
-          let result = credential_db.update(db).await?;
-          if result.matched_count == 0 {
-            return custom_error(Status::NotFound, "Aws credential not found");
-          }
+          org_cred_aws
+            .update_info(&cred_id, &org_id, &body.name, &body.description)
+            .await?;
           // Return success
           custom_message(Status::Ok, "Successfully updated Aws credential")
         }

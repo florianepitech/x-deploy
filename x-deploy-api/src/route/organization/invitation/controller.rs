@@ -23,6 +23,7 @@ use x_deploy_common::db::organization_role::{
   OrganizationRole, StandardPermission,
 };
 use x_deploy_common::db::user::User;
+use x_deploy_common::db::CommonCollection;
 
 pub(crate) async fn get_all(
   db: &State<Database>,
@@ -31,7 +32,8 @@ pub(crate) async fn get_all(
 ) -> ApiResult<Vec<OrganizationInvitationInfoResponse>> {
   let user_id = token.parse_id()?;
   let org_id = org_id.to_object_id()?;
-  match OrganizationMember::get_user_in_org(db, &user_id, &org_id).await? {
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  match org_member_coll.get_user_in_org(&user_id, &org_id).await? {
     Some(org) => {
       verify_general_permission(
         org.role,
@@ -46,9 +48,8 @@ pub(crate) async fn get_all(
       );
     }
   };
-
-  let org_invitation =
-    OrganizationInvitation::get_all_of_org(db, &org_id).await?;
+  let org_invitation_coll = CommonCollection::<OrganizationInvitation>::new(db);
+  let org_invitation = org_invitation_coll.get_all_of_org(&org_id).await?;
   let mut result = Vec::new();
   for invitation in org_invitation {
     let send_at = invitation.id.timestamp().to_chrono().to_string();
@@ -87,7 +88,8 @@ pub(crate) async fn invite_user(
   let user_id = token.parse_id()?;
   let org_id = org_id.to_object_id()?;
   let role_id = body.role_id.to_object_id()?;
-  match OrganizationMember::get_user_in_org(db, &user_id, &org_id).await? {
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  match org_member_coll.get_user_in_org(&user_id, &org_id).await? {
     Some(org) => {
       verify_general_permission(
         org.role,
@@ -104,7 +106,8 @@ pub(crate) async fn invite_user(
   }
 
   // Verify if the user to invite exists
-  let user_target = match User::find_with_email(db, &body.email).await? {
+  let user_coll = CommonCollection::<User>::new(db);
+  let user_target = match user_coll.find_with_email(&body.email).await? {
     Some(user) => user,
     None => {
       return custom_error(
@@ -115,8 +118,9 @@ pub(crate) async fn invite_user(
   };
 
   // Check if the target user is not already in the organization
-  let target =
-    OrganizationMember::get_user_in_org(db, &user_target.id, &org_id).await?;
+  let target = org_member_coll
+    .get_user_in_org(&user_target.id, &org_id)
+    .await?;
   if let Some(_) = target {
     return custom_error(
       Status::BadRequest,
@@ -125,8 +129,9 @@ pub(crate) async fn invite_user(
   }
 
   // Check if role exist in organization
+  let org_role_coll = CommonCollection::<OrganizationRole>::new(db);
   let org_role =
-    match OrganizationRole::get_of_org(db, &org_id, &role_id).await? {
+    match org_role_coll.get_with_id_of_org(&role_id, &org_id).await? {
       Some(role) => role,
       None => {
         return custom_error(
@@ -137,9 +142,10 @@ pub(crate) async fn invite_user(
     };
 
   // Verify if the use was not already invited
-  let invitation =
-    OrganizationInvitation::get_of_user_of_org(db, &org_id, &user_target.id)
-      .await?;
+  let org_invitation_coll = CommonCollection::<OrganizationInvitation>::new(db);
+  let invitation = org_invitation_coll
+    .get_of_user_of_org(&org_id, &user_target.id)
+    .await?;
   if let Some(_) = invitation {
     return custom_error(
       Status::BadRequest,
@@ -150,7 +156,7 @@ pub(crate) async fn invite_user(
   // Add invitation to database
   let org_invitation =
     OrganizationInvitation::new(org_id, user_id, user_target.id, org_role.id);
-  org_invitation.insert(db).await?;
+  org_invitation_coll.insert_one(&org_invitation).await?;
   custom_message(Status::Created, "Invitation sent")
 }
 
@@ -163,7 +169,8 @@ pub(crate) async fn delete_invitation(
   let user_id = token.parse_id()?;
   let org_id = org_id.to_object_id()?;
   let invitation_id = invitation_id.to_object_id()?;
-  match OrganizationMember::get_user_in_org(db, &user_id, &org_id).await? {
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  match org_member_coll.get_user_in_org(&org_id, &user_id).await? {
     Some(org_user) => {
       verify_general_permission(
         org_user.role,
@@ -179,8 +186,9 @@ pub(crate) async fn delete_invitation(
     }
   };
   // Retrieve the organization invitation
+  let org_invitation_coll = CommonCollection::<OrganizationInvitation>::new(db);
   let org_invitation =
-    match OrganizationInvitation::find_by_id(db, &invitation_id).await? {
+    match org_invitation_coll.get_by_id(&invitation_id).await? {
       Some(org_invitation) => org_invitation,
       None => {
         return custom_error(Status::NotFound, "The invitation does not exist");
@@ -189,7 +197,8 @@ pub(crate) async fn delete_invitation(
   if org_invitation.status != InvitationStatus::Pending {
     return custom_error(Status::BadRequest, "The invitation is not pending");
   }
-  let delete_result = org_invitation.delete(db).await?;
+  let delete_result =
+    org_invitation_coll.delete_by_id(&org_invitation.id).await?;
   if delete_result.deleted_count == 0 {
     return custom_error(
       Status::InternalServerError,

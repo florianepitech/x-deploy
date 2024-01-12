@@ -3,16 +3,11 @@ use crate::route::organization::project::dto::{
   CreateProjectRequest, ProjectInfoResponse, UpdateProjectInfoRequest,
 };
 use crate::route::{ApiResult, SuccessMessage};
-use bson::{doc, oid};
-use mongodb::{Collection, Database};
-use rocket::http::{ContentType, Status};
-use rocket::response::status::Custom;
+use bson::doc;
+use mongodb::Database;
+use rocket::http::ContentType;
 use rocket::serde::json::Json;
 use rocket::{Data, State};
-use x_deploy_common::db::organization::{
-  Organization, ORGANIZATION_COLLECTION_NAME,
-};
-use x_deploy_common::db::project::Project;
 
 mod controller;
 pub(crate) mod dto;

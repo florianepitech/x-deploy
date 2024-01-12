@@ -16,6 +16,7 @@ use rocket::State;
 use x_deploy_common::db::organization_credential_docker_hub::OrganizationCredentialDockerHub;
 use x_deploy_common::db::organization_member::OrganizationMember;
 use x_deploy_common::db::organization_role::StandardPermission;
+use x_deploy_common::db::CommonCollection;
 
 pub(crate) async fn new(
   db: &State<Database>,
@@ -25,8 +26,8 @@ pub(crate) async fn new(
 ) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
   let org_id = org_id.to_object_id()?;
-  let org_user =
-    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let org_user = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
   return match org_user {
     Some(org_user) => {
       // Verify permission
@@ -36,13 +37,15 @@ pub(crate) async fn new(
         &StandardPermission::ReadWrite,
       )?;
       // Insert credential in database
+      let docker_hub_coll =
+        CommonCollection::<OrganizationCredentialDockerHub>::new(db);
       let to_insert = OrganizationCredentialDockerHub::new(
         org_id,
         body.name.clone(),
         body.description.clone(),
         body.access_token.clone(),
       );
-      to_insert.insert(db).await?;
+      docker_hub_coll.insert_one(&to_insert).await?;
       // Return success
       return custom_message(
         Status::Created,
@@ -65,8 +68,8 @@ pub(crate) async fn get(
   let user_id = token.parse_id()?;
   let org_id = org_id.to_object_id()?;
   let cred_id = cred_id.to_object_id()?;
-  let org_user =
-    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let org_user = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
   return match org_user {
     Some(org_user) => {
       // Verify permission
@@ -76,9 +79,11 @@ pub(crate) async fn get(
         &StandardPermission::Read,
       )?;
       // Get credential from database
-      let credential_db =
-        OrganizationCredentialDockerHub::find_by_id(db, &org_id, &cred_id)
-          .await?;
+      let docker_hub_coll =
+        CommonCollection::<OrganizationCredentialDockerHub>::new(db);
+      let credential_db = docker_hub_coll
+        .get_by_id_and_org_id(&cred_id, &org_id)
+        .await?;
       return match credential_db {
         Some(credential_db) => {
           // Convert to response
@@ -109,8 +114,8 @@ pub(crate) async fn get_all(
 ) -> ApiResult<Vec<DockerHubInfoResponse>> {
   let user_id = token.parse_id()?;
   let org_id = org_id.to_object_id()?;
-  let org_user =
-    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let org_user = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
   return match org_user {
     Some(org_user) => {
       // Verify permission
@@ -120,8 +125,9 @@ pub(crate) async fn get_all(
         &StandardPermission::Read,
       )?;
       // Get credentials from database
-      let credentials_db =
-        OrganizationCredentialDockerHub::find_all_for_org(db, &org_id).await?;
+      let docker_hub_coll =
+        CommonCollection::<OrganizationCredentialDockerHub>::new(db);
+      let credentials_db = docker_hub_coll.get_all_of_org(&org_id).await?;
       // Convert to response
       let mut result: Vec<DockerHubInfoResponse> = Vec::new();
       for credential in credentials_db {
@@ -152,8 +158,8 @@ pub(crate) async fn delete(
   let org_id = org_id.to_object_id()?;
   let cred_id = cred_id.to_object_id()?;
 
-  let org_user =
-    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let org_user = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
   return match org_user {
     Some(org_user) => {
       // Verify permission
@@ -162,9 +168,11 @@ pub(crate) async fn delete(
         &GeneralPermissionType::Credentials,
         &StandardPermission::ReadWrite,
       )?;
-      let deleted =
-        OrganizationCredentialDockerHub::delete_by_id(db, &org_id, &cred_id)
-          .await?;
+      let docker_hub_coll =
+        CommonCollection::<OrganizationCredentialDockerHub>::new(db);
+      let deleted = docker_hub_coll
+        .delete_by_id_and_org_id(&cred_id, &org_id)
+        .await?;
       return if deleted.deleted_count >= 0 {
         custom_message(Status::Ok, "Successfully deleted Docker Hub credential")
       } else {
@@ -189,8 +197,8 @@ pub(crate) async fn update(
   let org_id = org_id.to_object_id()?;
   let cred_id = cred_id.to_object_id()?;
 
-  let org_user =
-    OrganizationMember::get_user_in_org(db, &user_id, &org_id).await?;
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let org_user = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
   return match org_user {
     Some(org_user) => {
       // Verify permission
@@ -200,15 +208,17 @@ pub(crate) async fn update(
         &StandardPermission::ReadWrite,
       )?;
       // Get credential from database
-      let mut credential_db =
-        OrganizationCredentialDockerHub::find_by_id(db, &org_id, &cred_id)
-          .await?;
+      let docker_hub_coll =
+        CommonCollection::<OrganizationCredentialDockerHub>::new(db);
+      let credential_db = docker_hub_coll
+        .get_by_id_and_org_id(&cred_id, &org_id)
+        .await?;
       return match credential_db {
-        Some(mut credential_db) => {
+        Some(_) => {
           // Update credential
-          credential_db.name = body.name.clone();
-          credential_db.description = body.description.clone();
-          let result = credential_db.update(db).await?;
+          let result = docker_hub_coll
+            .update_info(&cred_id, &org_id, &body.name, &body.description)
+            .await?;
           if result.matched_count == 0 {
             return custom_error(
               Status::NotFound,

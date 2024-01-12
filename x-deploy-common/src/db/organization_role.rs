@@ -1,7 +1,11 @@
+use crate::db::query::cursor_to_vec;
+use crate::db::{CommonCollection, ToCollectionName};
+use crate::CommonResult;
+use bson::doc;
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
-pub const ORGANIZATION_ROLE_COLLECTION_NAME: &str = "organizationRoles";
+const ORGANIZATION_ROLE_COLLECTION_NAME: &str = "organizationRoles";
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct OrganizationRole {
@@ -106,5 +110,38 @@ impl Default for GeneralPermission {
       api_keys: Default::default(),
       credentials: Default::default(),
     }
+  }
+}
+
+impl ToCollectionName for OrganizationRole {
+  fn collection_name() -> String {
+    String::from(ORGANIZATION_ROLE_COLLECTION_NAME)
+  }
+}
+
+impl CommonCollection<OrganizationRole> {
+  pub async fn get_of_org(
+    &self,
+    org_id: &ObjectId,
+  ) -> CommonResult<Vec<OrganizationRole>> {
+    let filter = doc! {
+      "organizationId": org_id,
+    };
+    let cursor = self.collection.find(filter, None).await?;
+    let roles = cursor_to_vec(cursor).await?;
+    Ok(roles)
+  }
+
+  pub async fn get_with_id_of_org(
+    &self,
+    org_id: &ObjectId,
+    role_id: &ObjectId,
+  ) -> CommonResult<Option<OrganizationRole>> {
+    let filter = doc! {
+      "_id": role_id,
+      "organizationId": org_id,
+    };
+    let result = self.collection.find_one(filter, None).await?;
+    Ok(result)
   }
 }

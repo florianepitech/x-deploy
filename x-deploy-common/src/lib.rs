@@ -1,5 +1,3 @@
-use crate::s3::bucket::CommonS3Bucket;
-use crate::s3::file_type::CommonS3BucketType;
 use rusoto_core::RusotoError;
 use rusoto_s3::{DeleteObjectError, PutObjectError};
 

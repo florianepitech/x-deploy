@@ -1,7 +1,12 @@
+use crate::db::{CommonCollection, ToCollectionName};
+use crate::CommonResult;
+use bson::{doc, Bson};
 use mongodb::bson::oid::ObjectId;
+use mongodb::results::UpdateResult;
+use mongodb::{Collection, Database};
 use serde::{Deserialize, Serialize};
 
-pub const USER_COLLECTION_NAME: &str = "users";
+const USER_COLLECTION_NAME: &str = "users";
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct User {
@@ -13,7 +18,7 @@ pub struct User {
 
   #[serde(rename = "lastname")]
   pub lastname: String,
-  
+
   #[serde(rename = "profilePictureUrl")]
   pub profile_picture_url: Option<String>,
 
@@ -117,5 +122,150 @@ impl User {
         code: None,
       },
     }
+  }
+}
+
+impl ToCollectionName for User {
+  fn collection_name() -> String {
+    return USER_COLLECTION_NAME.to_string();
+  }
+}
+
+impl CommonCollection<User> {
+  pub async fn find_with_email(
+    &self,
+    email: &String,
+  ) -> CommonResult<Option<User>> {
+    let user = self
+      .collection
+      .find_one(
+        doc! {
+          "email.email": email
+        },
+        None,
+      )
+      .await?;
+    return Ok(user);
+  }
+
+  pub async fn email_confirm(
+    &self,
+    id: &ObjectId,
+  ) -> CommonResult<UpdateResult> {
+    let filter = doc! {
+      "_id": id
+    };
+    let update = doc! {
+      "$set": {
+        "email.verified": true,
+        "email.code": Bson::Null
+      }
+    };
+    let result = self.collection.update_one(filter, update, None).await?;
+    return Ok(result);
+  }
+
+  pub async fn password_update_hash(
+    &self,
+    id: &ObjectId,
+    hash: &str,
+  ) -> CommonResult<UpdateResult> {
+    let filter = doc! {
+      "_id": id
+    };
+    let update = doc! {
+      "$set": {
+        "password": hash
+      }
+    };
+    let result = self.collection.update_one(filter, update, None).await?;
+    return Ok(result);
+  }
+
+  pub async fn password_update_forgot_token(
+    &self,
+    id: &ObjectId,
+    token: Option<&str>,
+  ) -> CommonResult<UpdateResult> {
+    let new_token = match token {
+      None => Bson::Null,
+      Some(token) => Bson::String(token.to_string()),
+    };
+    let filter = doc! {
+      "_id": id
+    };
+    let update = doc! {
+      "$set": {
+        "password.tokenReset": new_token
+      }
+    };
+    let result = self.collection.update_one(filter, update, None).await?;
+    return Ok(result);
+  }
+
+  pub async fn find_from_password_forgot_token(
+    &self,
+    token_reset: &str,
+  ) -> CommonResult<Option<User>> {
+    let filter = doc! {
+      "password.tokenReset": token_reset
+    };
+    let result = self.collection.find_one(filter, None).await?;
+    return Ok(result);
+  }
+
+  pub async fn change_phone(
+    &self,
+    id: &ObjectId,
+    new_phone: &String,
+  ) -> CommonResult<UpdateResult> {
+    let filter = doc! {
+      "_id": id
+    };
+    let update = doc! {
+      "$set": {
+        "phone.phone": new_phone
+      }
+    };
+    let result = self.collection.update_one(filter, update, None).await?;
+    return Ok(result);
+  }
+
+  pub async fn update_profile_picture_url(
+    &self,
+    id: &ObjectId,
+    url: &String,
+  ) -> CommonResult<UpdateResult> {
+    let filter = doc! {
+      "_id": id
+    };
+    let update = doc! {
+      "$set": {
+        "profilePictureUrl": url
+      }
+    };
+    let result = self.collection.update_one(filter, update, None).await?;
+    return Ok(result);
+  }
+
+  pub async fn two_factor_update(
+    &self,
+    id: &ObjectId,
+    two_factor: &Option<TwoFactor>,
+  ) -> CommonResult<UpdateResult> {
+    let new_value = match two_factor {
+      Some(two_factor) => bson::to_bson(two_factor)?,
+      None => Bson::Null,
+    };
+    let filter = doc! {
+      "_id": id
+    };
+    let update = doc! {
+      "$set": {
+        "twoFactor": new_value
+      }
+    };
+    let result = self.collection.update_one(filter, update, None).await?;
+    return Ok(result);
   }
 }

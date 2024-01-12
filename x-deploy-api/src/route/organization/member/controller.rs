@@ -8,15 +8,18 @@ use rocket::http::Status;
 use rocket::State;
 use std::time::SystemTime;
 use x_deploy_common::db::organization_member::OrganizationMember;
+use x_deploy_common::db::CommonCollection;
 
 pub(crate) async fn get_all(
   db: &State<Database>,
   token: Token,
   org_id: &str,
 ) -> ApiResult<Vec<MemberInfoResponse>> {
-  let _ = token.parse_id()?;
+  let user_id = token.parse_id()?;
   let org_id = org_id.to_object_id()?;
-  let members = OrganizationMember::get_all_user_in_org(db, &org_id).await?;
+  // TODO: Verify if the user is a member of the organization and has permission
+  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
+  let members = org_member_coll.get_all_user_in_org(&org_id).await?;
   let mut result: Vec<MemberInfoResponse> = Vec::new();
   for member in members {
     let timestamp: SystemTime = member.id.timestamp().to_system_time();

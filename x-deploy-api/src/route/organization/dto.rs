@@ -19,13 +19,13 @@ pub(crate) struct CreateOrganizationRequest {
   pub(crate) name: String,
 
   #[serde(rename = "description")]
-  pub(crate) description: String,
+  pub(crate) description: Option<String>,
 
   #[serde(rename = "website")]
-  pub(crate) website: String,
+  pub(crate) website: Option<String>,
 
   #[serde(rename = "contactEmail")]
-  pub(crate) contact_email: String,
+  pub(crate) contact_email: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, ToSchema)]
@@ -40,13 +40,13 @@ pub(crate) struct UpdateOrganizationRequest {
   pub(crate) name: String,
 
   #[serde(rename = "description")]
-  pub(crate) description: String,
+  pub(crate) description: Option<String>,
 
   #[serde(rename = "website")]
-  pub(crate) website: String,
+  pub(crate) website: Option<String>,
 
   #[serde(rename = "contactEmail")]
-  pub(crate) contact_email: String,
+  pub(crate) contact_email: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, ToSchema)]
@@ -88,14 +88,14 @@ pub(crate) struct OrganizationInfoResponse {
   pub(crate) name: String,
 
   #[serde(rename = "description")]
-  pub(crate) description: String,
-  
+  pub(crate) description: Option<String>,
+
   #[serde(rename = "logoUrl")]
   pub(crate) logo_url: Option<String>,
 
   #[serde(rename = "website")]
-  pub(crate) website: String,
+  pub(crate) website: Option<String>,
 
   #[serde(rename = "contactEmail")]
-  pub(crate) contact_email: String,
+  pub(crate) contact_email: Option<String>,
 }

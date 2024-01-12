@@ -1,7 +1,8 @@
+use crate::db::{CommonCollection, ToCollectionName};
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
-pub const ORGANIZATION_MEMBER_COLLECTION_NAME: &str = "organizationMembers";
+const ORGANIZATION_MEMBER_COLLECTION_NAME: &str = "organizationMembers";
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct OrganizationMember {
@@ -37,4 +38,14 @@ impl OrganizationMember {
       role,
     }
   }
+}
+
+impl ToCollectionName for OrganizationMember {
+  fn collection_name() -> String {
+    String::from(ORGANIZATION_MEMBER_COLLECTION_NAME)
+  }
+}
+
+impl CommonCollection<OrganizationMember> {
+  // Nothing to do here
 }

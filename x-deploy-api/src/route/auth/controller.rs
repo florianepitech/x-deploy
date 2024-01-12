@@ -13,20 +13,17 @@ use crate::utils::password::{
 };
 use crate::utils::two_factor::verify_2fa_code;
 use crate::CONFIG;
-use bson::doc;
-use mongodb::{Collection, Database};
+use mongodb::Database;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::{tokio, State};
-use x_deploy_common::db::query::user::password::{
-  query_user_password_from_token, query_user_password_update_hash,
-  query_user_password_update_token,
-};
-use x_deploy_common::db::user::{User, USER_COLLECTION_NAME};
+use x_deploy_common::db::user::User;
+use x_deploy_common::db::CommonCollection;
 use x_deploy_common::event::user::{
-  send_forgot_password_event, send_magic_link_event, send_password_reset_event,
-  send_user_registered_event,
+  UserForgotPasswordEvent, UserMagicLinkEvent, UserPasswordResetEvent,
+  UserRegisteredEvent,
 };
+use x_deploy_common::event::CommonEvent;
 
 pub(crate) async fn login(
   db: &State<Database>,
@@ -35,7 +32,8 @@ pub(crate) async fn login(
   tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
   let login_body = body.into_inner();
   // Verify if email exists for an user
-  let user = match User::find_with_email(db, &login_body.email).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  let user = match user_collection.find_with_email(&login_body.email).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
@@ -64,7 +62,8 @@ pub(crate) async fn magic_link(
   body: Json<MagicLinkRequest>,
 ) -> ApiResult<SuccessMessage> {
   let email = body.email.clone();
-  let user = match User::find_with_email(db, &email).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  let user = match user_collection.find_with_email(&email).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
@@ -75,7 +74,14 @@ pub(crate) async fn magic_link(
   };
   let token = Token::new(user.id.clone(), two_factor)?;
   let jwt = token.to_jwt()?;
-  let _ = send_magic_link_event(CONFIG.kafka_url.clone(), user.id, email, jwt);
+
+  CommonEvent::new(CONFIG.kafka_url.clone()).send(UserMagicLinkEvent {
+    id: user.id.clone(),
+    firstname: user.firstname.clone(),
+    lastname: user.lastname.clone(),
+    email: user.email.email.clone(),
+    jwt: jwt.clone(),
+  })?;
   custom_message(Status::Ok, "You will receive a magic link in your email")
 }
 
@@ -84,22 +90,11 @@ pub(crate) async fn register(
   body: Json<RegisterRequest>,
 ) -> ApiResult<SuccessMessage> {
   let body = body.into_inner();
-  let mongodb_client = db.inner();
-  let collection: Collection<User> =
-    mongodb_client.collection(USER_COLLECTION_NAME);
+  let user_collection = CommonCollection::<User>::new(db);
   // Verify if email exists for an user
-  let user = collection
-    .find_one(
-      doc! {
-          "email.email": body.email.clone()
-      },
-      None,
-    )
-    .await
-    .unwrap();
-  if user.is_some() {
-    return custom_error(Status::Conflict, "Email already exists for an user");
-  }
+  if let Some(_) = user_collection.find_with_email(&body.email).await? {
+    return custom_error(Status::Conflict, "Email already exists");
+  };
   // Verify if password is strong
   let strong = is_strong_password(&body.password.clone())?;
   if !strong {
@@ -117,14 +112,13 @@ pub(crate) async fn register(
     body.password.clone(),
   );
   let id = new_user.id.clone();
-  collection.insert_one(new_user, None).await.unwrap();
-  let _ = send_user_registered_event(
-    CONFIG.kafka_url.clone(),
-    id,
-    body.firstname,
-    body.lastname,
-    body.email,
-  );
+  user_collection.insert_one(&new_user).await?;
+  CommonEvent::new(CONFIG.kafka_url.clone()).send(UserRegisteredEvent {
+    id: id.clone(),
+    firstname: body.firstname.clone(),
+    lastname: body.lastname.clone(),
+    email: body.email.clone(),
+  })?;
   return custom_message(Status::Created, "You are now registered");
 }
 
@@ -137,7 +131,8 @@ pub(crate) async fn two_factor(
     return custom_error(Status::Unauthorized, "Token is expired");
   }
   let user_id = token.parse_id()?;
-  let user = match User::find_with_id(db, &user_id).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  let user = match user_collection.get_by_id(&user_id).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
@@ -173,7 +168,8 @@ pub(crate) async fn two_factor_recovery(
     return custom_error(Status::Unauthorized, "Token is expired");
   }
   let user_id = token.parse_id()?;
-  let mut user = match User::find_with_id(db, &user_id).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  let user = match user_collection.get_by_id(&user_id).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
@@ -197,8 +193,7 @@ pub(crate) async fn two_factor_recovery(
         );
       }
       // Disable 2 factor
-      user.two_factor = None;
-      let update = user.two_factor_update(db).await?;
+      let update = user_collection.two_factor_update(&user_id, &None).await?;
       if update.modified_count == 0 {
         return custom_error(
           Status::InternalServerError,
@@ -223,20 +218,24 @@ pub(crate) async fn forgot_password(
   body: Json<ForgotPasswordRequest>,
 ) -> ApiResult<SuccessMessage> {
   let email = body.email.clone();
-  let user = match User::find_with_email(db, &email).await? {
+  let user_collection = CommonCollection::<User>::new(db);
+  let user = match user_collection.find_with_email(&email).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
+  // Update forgot token in database
   let token = generate_forgot_password_token();
-  query_user_password_update_token(db, &user.id, Some(&token)).await?;
-  let _ = send_forgot_password_event(
-    CONFIG.kafka_url.clone(),
-    user.id,
-    user.firstname,
-    user.lastname,
-    user.email.email,
-    token,
-  );
+  user_collection
+    .password_update_forgot_token(&user.id, Some(&token))
+    .await?;
+  // Send event to kafka
+  CommonEvent::new(CONFIG.kafka_url.clone()).send(UserForgotPasswordEvent {
+    id: user.id.clone(),
+    firstname: user.firstname.clone(),
+    lastname: user.lastname.clone(),
+    email: user.email.email.clone(),
+    token: token.clone(),
+  })?;
   custom_message(
     Status::Ok,
     "You will receive a link to reset your password in your email",
@@ -247,29 +246,37 @@ pub(crate) async fn reset_password(
   db: &State<Database>,
   body: Json<ResetPasswordRequest>,
 ) -> ApiResult<SuccessMessage> {
-  let user = query_user_password_from_token(db, &body.token).await?;
-  return match user {
-    Some(user) => {
-      let strong = is_strong_password(&body.new_password)?;
-      if !strong {
-        return custom_error(
-          Status::BadRequest,
-          "Password is not strong enough, please use a stronger password",
-        );
-      }
-      let password_hash = hash_password(body.new_password.as_str())?;
-      let _ = query_user_password_update_token(db, &user.id, None).await?;
-      let _ =
-        query_user_password_update_hash(db, &user.id, &password_hash).await?;
-      let _ = send_password_reset_event(
-        CONFIG.kafka_url.clone(),
-        user.id,
-        user.firstname,
-        user.lastname,
-        user.email.email,
-      );
-      custom_message(Status::Ok, "Your password was reset")
-    }
-    None => custom_error(Status::Unauthorized, "Token is invalid"),
+  // Retrieve user from database with forgot password token
+  let user_collection = CommonCollection::<User>::new(db);
+  let user = match user_collection
+    .find_from_password_forgot_token(&body.token)
+    .await?
+  {
+    Some(user) => user,
+    None => return custom_error(Status::Unauthorized, "Token is invalid"),
   };
+  // Verify if password is strong
+  let strong = is_strong_password(&body.new_password)?;
+  if !strong {
+    return custom_error(
+      Status::BadRequest,
+      "Password is not strong enough, please use a stronger password",
+    );
+  }
+  let password_hash = hash_password(body.new_password.as_str())?;
+  // Update data in database
+  user_collection
+    .password_update_forgot_token(&user.id, None)
+    .await?;
+  user_collection
+    .password_update_hash(&user.id, &password_hash)
+    .await?;
+  // Send event to kafka
+  CommonEvent::new(CONFIG.kafka_url.clone()).send(UserPasswordResetEvent {
+    id: user.id.clone(),
+    firstname: user.firstname.clone(),
+    lastname: user.lastname.clone(),
+    email: user.email.email.clone(),
+  })?;
+  custom_message(Status::Ok, "Your password was reset")
 }
