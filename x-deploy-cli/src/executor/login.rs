@@ -7,9 +7,9 @@ use x_deploy_client::auth::dto::LoginRequest;
 use x_deploy_client::error::ClientResult;
 use x_deploy_client::XDeployClient;
 
-pub async fn login(args: LoginArgs) -> CliResult {
-  if AuthFile::is_authenticated() {
-    error!("Already authenticated, please logout first");
+pub async fn login(args: LoginArgs) -> CliResult<String> {
+  if let Ok(_) = AuthFile::load() {
+    error!("You are already logged in, please logout first");
     exit(1);
   }
   return match args {
@@ -18,12 +18,12 @@ pub async fn login(args: LoginArgs) -> CliResult {
   };
 }
 
-async fn login_api_key(args: LoginApiKeyArgs) -> CliResult {
+async fn login_api_key(args: LoginApiKeyArgs) -> CliResult<String> {
   info!("Login with api key...");
   Ok("Login successful".to_string())
 }
 
-async fn login_credentials(args: LoginCredentialsArgs) -> CliResult {
+async fn login_credentials(args: LoginCredentialsArgs) -> CliResult<String> {
   info!("Login with credentials...");
   let client = XDeployClient::new_without_auth();
   let login_request = LoginRequest {
@@ -31,8 +31,7 @@ async fn login_credentials(args: LoginCredentialsArgs) -> CliResult {
     password: args.password.clone(),
   };
   let result = client.login(login_request).await?;
-  debug!("{:?}", result);
   let token = format!("Bearer {}", result.token);
-  AuthFile::new(token).save_to_file();
+  AuthFile::new(token).save()?;
   Ok("Login successful".to_string())
 }

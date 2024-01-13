@@ -186,13 +186,7 @@ async fn main() -> Result<(), rocket::Error> {
 
   // Catchers
 
-  let catcher_list = catchers![
-    catcher::not_found,
-    catcher::unauthorized,
-    catcher::forbidden,
-    catcher::internal_server_error,
-    catcher::unprocessable_entity
-  ];
+  let catcher_list = catchers![catcher::default];
 
   // Routes
 

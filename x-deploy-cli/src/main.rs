@@ -8,6 +8,7 @@ use crate::executor::execute;
 use clap::Parser;
 use log::{error, info};
 use std::io::Write;
+use crate::error::CliResult;
 
 #[macro_export]
 macro_rules! panic {
@@ -28,7 +29,7 @@ async fn main() {
     })
     .init();
   let cmd_args = CmdArgs::parse();
-  let result = execute(cmd_args).await;
+  let result: CliResult<String> = execute(cmd_args).await;
   match result {
     Ok(message) => {
       info!("{}", message)

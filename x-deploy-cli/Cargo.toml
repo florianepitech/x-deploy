@@ -6,12 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-base64 = "0.21.5"
 clap = { version = "4.4.8", features = ["derive"] }
-serde = { workspace = true, features = ["derive"] }
-serde_json.workspace = true
 x-deploy-client = { path = "../x-deploy-client" }
 tokio = { workspace = true, features = ["full"] }
 futures = { workspace = true }
 log = { version = "0.4.20" }
 env_logger = { version = "0.10.1" }
+keyring = { version = "2.3.1", features = ["linux-default-keyutils"] }

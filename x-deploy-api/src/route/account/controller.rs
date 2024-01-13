@@ -36,6 +36,11 @@ pub(crate) async fn get_info(
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
+  let register_date = user
+    .id
+    .timestamp()
+    .to_chrono()
+    .to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
   let response = GetAccountInfoResponse {
     firstname: user.firstname,
     lastname: user.lastname,
@@ -43,6 +48,8 @@ pub(crate) async fn get_info(
     email: user.email.email,
     email_verified: user.email.verified,
     phone: user.phone.phone,
+    phone_verified: user.phone.verified,
+    registered_at: register_date,
   };
   custom_response(Status::Ok, response)
 }

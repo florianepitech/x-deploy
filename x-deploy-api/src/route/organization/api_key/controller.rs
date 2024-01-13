@@ -112,14 +112,22 @@ pub(crate) async fn get(
       None => None,
     };
     let expires_at: Option<String> = match api_key.expires_at {
-      Some(expires_at) => Some(expires_at.to_chrono().to_rfc3339()),
+      Some(expires_at) => Some(
+        expires_at
+          .to_chrono()
+          .to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+      ),
       None => None,
     };
     let api_key_info = ApiKeyInfoResponse {
       id: api_key.id.to_string(),
       name: api_key.name,
       description: api_key.description,
-      created_at: api_key.id.timestamp().to_chrono().to_rfc3339(),
+      created_at: api_key
+        .id
+        .timestamp()
+        .to_chrono()
+        .to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
       expires_at,
       role,
       organization_id: org_id.to_string(),

@@ -30,13 +30,15 @@ pub(crate) async fn login(
   db: &State<Database>,
   body: Json<LoginRequest>,
 ) -> ApiResult<LoginResponse> {
-  tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
   body.validate()?;
+  tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
   // Verify if email exists for an user
   let user_collection = CommonCollection::<User>::new(db);
   let user = match user_collection.find_with_email(&body.email).await? {
     Some(user) => user,
-    None => return custom_error(Status::NotFound, "User not found"),
+    None => {
+      return custom_error(Status::NotFound, "User not found with this email")
+    }
   };
   // Verify if password is correct
   let valid_password =
@@ -44,7 +46,7 @@ pub(crate) async fn login(
   if !valid_password {
     return custom_error(
       Status::Unauthorized,
-      "Email or password is incorrect",
+      "Email or password is incorrect for this email",
     );
   }
   let two_factor: Option<bool> = if let None = user.two_factor.clone() {
@@ -67,7 +69,9 @@ pub(crate) async fn magic_link(
   let user_collection = CommonCollection::<User>::new(db);
   let user = match user_collection.find_with_email(&email).await? {
     Some(user) => user,
-    None => return custom_error(Status::NotFound, "User not found"),
+    None => {
+      return custom_error(Status::NotFound, "User not found with this email")
+    }
   };
   let two_factor: Option<bool> = if let None = user.two_factor.clone() {
     None

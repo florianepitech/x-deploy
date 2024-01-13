@@ -1,41 +1,38 @@
-use serde::{Deserialize, Serialize};
-use x_deploy_client::XDeployClient;
+use crate::error::CliResult;
+use keyring::Entry;
 
-const AUTH_FILE_PATH: &str = "./auth.json";
+const KEYRING_SERVICE: &str = "x-deploy-cli";
+const KEYRING_USER: &str = "x-deploy-cli";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub(crate) struct AuthFile {
   pub token: String,
 }
 
 impl AuthFile {
-  pub(crate) fn new(token: String) -> Self {
+  pub fn new(token: String) -> Self {
     Self { token }
   }
 
-  pub(crate) fn is_authenticated() -> bool {
-    std::path::Path::new(AUTH_FILE_PATH).exists()
+  pub fn save(&self) -> CliResult<()> {
+    let entry = Self::get_keyring_entry()?;
+    entry.set_password(&self.token)?;
+    Ok(())
   }
 
-  pub(crate) fn from_file() -> Self {
-    let content = std::fs::read_to_string(AUTH_FILE_PATH)
-      .expect("Something went wrong reading the file");
-    serde_json::from_str::<AuthFile>(&content)
-      .expect("Error while parsing json file")
+  pub fn delete(&self) -> CliResult<()> {
+    let entry = Self::get_keyring_entry()?;
+    entry.delete_password()?;
+    Ok(())
   }
 
-  pub(crate) fn save_to_file(&self) {
-    let json = serde_json::to_string_pretty(&self).unwrap();
-    std::fs::write(AUTH_FILE_PATH, json).expect("Unable to write file");
+  pub fn load() -> CliResult<Self> {
+    let entry = Self::get_keyring_entry()?;
+    let token = entry.get_password()?;
+    Ok(Self::new(token))
   }
 
-  pub(crate) fn delete_file() {
-    std::fs::remove_file(AUTH_FILE_PATH).expect("Unable to delete file");
-  }
-
-  pub(crate) fn new_auth_client(&self) -> XDeployClient {
-    let mut client = XDeployClient::new_without_auth();
-    client.set_api_key(self.token.clone());
-    client
+  fn get_keyring_entry() -> CliResult<Entry> {
+    Ok(Entry::new(KEYRING_SERVICE.clone(), KEYRING_USER.clone())?)
   }
 }

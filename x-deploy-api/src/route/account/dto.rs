@@ -10,25 +10,18 @@ use utoipa::ToSchema;
     "email": "john@doe.net",
     "emailVerified": true,
     "phone": "+34612345678",
+    "registeredAt": "2024-01-01T00:00:00Z",
 }))]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct GetAccountInfoResponse {
-  #[serde(rename = "firstname")]
   pub(crate) firstname: String,
-
-  #[serde(rename = "lastname")]
   pub(crate) lastname: String,
-
-  #[serde(rename = "profilePictureUrl")]
   pub(crate) profile_picture_url: Option<String>,
-
-  #[serde(rename = "email")]
   pub(crate) email: String,
-
-  #[serde(rename = "emailVerified")]
   pub(crate) email_verified: bool,
-
-  #[serde(rename = "phone")]
   pub(crate) phone: String,
+  pub(crate) phone_verified: bool,
+  pub(crate) registered_at: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
