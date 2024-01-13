@@ -13,6 +13,5 @@ pub(crate) async fn execute(cmd_args: CmdArgs) -> CliResult<String> {
     Commands::Login(args) => login(args).await,
     Commands::Logout => logout(),
     Commands::Organization => organization().await,
-    _ => panic!("Unknown command"),
   }
 }

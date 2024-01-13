@@ -20,6 +20,7 @@ pub async fn login(args: LoginArgs) -> CliResult<String> {
 
 async fn login_api_key(args: LoginApiKeyArgs) -> CliResult<String> {
   info!("Login with api key...");
+  // TODO: Add support for api key login
   Ok("Login successful".to_string())
 }
 

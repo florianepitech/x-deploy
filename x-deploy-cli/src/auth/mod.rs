@@ -1,4 +1,4 @@
-use crate::error::{CliError, CliResult};
+use crate::error::CliResult;
 use keyring::Entry;
 use x_deploy_client::XDeployClient;
 
@@ -28,6 +28,10 @@ impl Auth {
   }
 
   pub fn load() -> CliResult<Self> {
+    let env = std::env::var("XDEPLOY_APIKEY");
+    if let Ok(token) = env {
+      return Ok(Self::new(token));
+    }
     let entry = Self::get_keyring_entry()?;
     let token = entry.get_password()?;
     Ok(Self::new(token))
