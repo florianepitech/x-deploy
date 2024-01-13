@@ -1,15 +1,16 @@
-use crate::error::CliResult;
+use crate::error::{CliError, CliResult};
 use keyring::Entry;
+use x_deploy_client::XDeployClient;
 
 const KEYRING_SERVICE: &str = "x-deploy-cli";
 const KEYRING_USER: &str = "x-deploy-cli";
 
 #[derive(Debug)]
-pub(crate) struct AuthFile {
+pub(crate) struct Auth {
   pub token: String,
 }
 
-impl AuthFile {
+impl Auth {
   pub fn new(token: String) -> Self {
     Self { token }
   }
@@ -34,5 +35,11 @@ impl AuthFile {
 
   fn get_keyring_entry() -> CliResult<Entry> {
     Ok(Entry::new(KEYRING_SERVICE.clone(), KEYRING_USER.clone())?)
+  }
+}
+
+impl Into<XDeployClient> for Auth {
+  fn into(self) -> XDeployClient {
+    XDeployClient::new(self.token)
   }
 }

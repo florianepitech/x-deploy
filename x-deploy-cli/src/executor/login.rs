@@ -1,4 +1,4 @@
-use crate::auth::AuthFile;
+use crate::auth::Auth;
 use crate::cmd::{LoginApiKeyArgs, LoginArgs, LoginCredentialsArgs};
 use crate::error::CliResult;
 use log::{debug, error, info};
@@ -8,7 +8,7 @@ use x_deploy_client::error::ClientResult;
 use x_deploy_client::XDeployClient;
 
 pub async fn login(args: LoginArgs) -> CliResult<String> {
-  if let Ok(_) = AuthFile::load() {
+  if let Ok(_) = Auth::load() {
     error!("You are already logged in, please logout first");
     exit(1);
   }
@@ -32,6 +32,6 @@ async fn login_credentials(args: LoginCredentialsArgs) -> CliResult<String> {
   };
   let result = client.login(login_request).await?;
   let token = format!("Bearer {}", result.token);
-  AuthFile::new(token).save()?;
+  Auth::new(token).save()?;
   Ok("Login successful".to_string())
 }
