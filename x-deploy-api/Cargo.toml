@@ -9,11 +9,12 @@ edition = "2021"
 kafka = { version = "0.10.0" }
 env_logger = { version = "0.10.0" }
 rocket = { version = "0.5.0", features = ["json"] }
+validator = { version = "0.16.1", features = ["derive"] }
 utoipa = { version = "4.2.0", features = ["rocket_extras"] }
 utoipa-swagger-ui = { version = "6.0.0", features = ["rocket"] }
 utoipa-redoc = { version = "3.0.0", features = ["rocket"] }
 totp-rs = { version = "5.4.0", features = ["qr", "otpauth", "gen_secret"] }
-ovh-api = { path = "../ovh-api" }
+ovh-client = { git = "https://github.com/x-deploy/ovh-client", branch = "master" }
 x-deploy-common = { path = "../x-deploy-common" }
 serde_yaml = { version = "0.9.27" }
 serde = { workspace = true, features = ["derive"] }
@@ -27,8 +28,6 @@ log = { version = "0.4.20" }
 serde_json = { workspace = true }
 rand = "0.8.5"
 regex = "1.10.2"
-toml = "0.8.8"
 chrono = { version = "0.4.31", features = ["serde"] }
 aws-region = "0.25.4"
-aws-sdk-ec2 = "1.12.0"
 image = "0.24.7"

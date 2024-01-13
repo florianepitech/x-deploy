@@ -3,9 +3,11 @@ use bson::Document;
 use futures::StreamExt;
 use serde::de::DeserializeOwned;
 
-mod organization;
+pub mod organization;
 pub mod organization_invitation;
 pub mod organization_member;
+pub mod organization_project_cluster;
+pub mod organization_api_key;
 
 pub(crate) async fn cursor_doc_to_vec<T>(
   mut cursor: mongodb::Cursor<Document>

@@ -1,4 +1,4 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::cloud_provider::aws::dto::{
   CloudProviderAwsInstance, CloudProviderAwsRegion,
 };
@@ -18,11 +18,12 @@ pub mod dto;
 )]
 #[get("/cloud-provider/aws/region", format = "application/json")]
 pub async fn all_region(
-  token: Token
+  token: BearerToken
 ) -> ApiResult<Vec<CloudProviderAwsRegion>> {
   controller::all_region().await
 }
 
+#[deprecated]
 #[utoipa::path(
     get,
     operation_id = "Get All Instance",
@@ -34,7 +35,7 @@ pub async fn all_region(
 )]
 #[get("/cloud-provider/aws/instance", format = "application/json")]
 pub async fn instance_types(
-  token: Token
+  token: BearerToken
 ) -> ApiResult<Vec<CloudProviderAwsInstance>> {
   controller::instance_types().await
 }

@@ -1,6 +1,6 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::permission::general::{
-  verify_general_permission, GeneralPermissionType,
+  verify_general_permission, GeneralPermission,
 };
 use crate::route::organization::credentials::aws::dto::{
   AwsCredentialsInfoResponse, NewAwsCredentialsRequest,
@@ -21,7 +21,7 @@ use x_deploy_common::db::CommonCollection;
 
 pub(crate) async fn new(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   body: Json<NewAwsCredentialsRequest>,
 ) -> ApiResult<SuccessMessage> {
@@ -34,7 +34,7 @@ pub(crate) async fn new(
       // Verify permission
       verify_general_permission(
         org_user.role,
-        &GeneralPermissionType::Credentials,
+        &GeneralPermission::Credentials,
         &StandardPermission::ReadWrite,
       )?;
       // Insert credential in database
@@ -62,7 +62,7 @@ pub(crate) async fn new(
 
 pub(crate) async fn get(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<AwsCredentialsInfoResponse> {
@@ -76,7 +76,7 @@ pub(crate) async fn get(
       // Verify permission
       verify_general_permission(
         org_user.role,
-        &GeneralPermissionType::Credentials,
+        &GeneralPermission::Credentials,
         &StandardPermission::Read,
       )?;
       // Get credential from database
@@ -86,12 +86,12 @@ pub(crate) async fn get(
       return match cred_db {
         Some(credential_db) => {
           // Convert to response
+          let created_at = credential_db.id.timestamp().to_chrono().to_string();
           let credential_info = AwsCredentialsInfoResponse {
             id: credential_db.id.to_string(),
             name: credential_db.name,
             description: credential_db.description,
-            access_key: credential_db.access_key,
-            secret_key: credential_db.secret_key,
+            created_at,
           };
           custom_response(Status::Ok, credential_info)
         }
@@ -107,7 +107,7 @@ pub(crate) async fn get(
 
 pub(crate) async fn get_all(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
 ) -> ApiResult<Vec<AwsCredentialsInfoResponse>> {
   let user_id = token.parse_id()?;
@@ -119,7 +119,7 @@ pub(crate) async fn get_all(
       // Verify permission
       verify_general_permission(
         org_user.role,
-        &GeneralPermissionType::Credentials,
+        &GeneralPermission::Credentials,
         &StandardPermission::Read,
       )?;
       // Get credentials from database
@@ -128,12 +128,12 @@ pub(crate) async fn get_all(
       // Convert to response
       let mut result: Vec<AwsCredentialsInfoResponse> = Vec::new();
       for credential in credentials_db {
+        let created_at = credential.id.timestamp().to_chrono().to_string();
         let credential_info = AwsCredentialsInfoResponse {
           id: credential.id.to_string(),
           name: credential.name,
           description: credential.description,
-          access_key: credential.access_key,
-          secret_key: credential.secret_key,
+          created_at,
         };
         result.push(credential_info);
       }
@@ -148,7 +148,7 @@ pub(crate) async fn get_all(
 
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<SuccessMessage> {
@@ -163,7 +163,7 @@ pub(crate) async fn delete(
       // Verify permission
       verify_general_permission(
         org_user.role,
-        &GeneralPermissionType::Credentials,
+        &GeneralPermission::Credentials,
         &StandardPermission::ReadWrite,
       )?;
       let org_cred_aws = CommonCollection::<OrganizationCredentialAws>::new(db);
@@ -185,7 +185,7 @@ pub(crate) async fn delete(
 
 pub(crate) async fn update(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   cred_id: &str,
   body: Json<UpdateAwsCredentialsRequest>,
@@ -201,7 +201,7 @@ pub(crate) async fn update(
       // Verify permission
       verify_general_permission(
         org_user.role,
-        &GeneralPermissionType::Credentials,
+        &GeneralPermission::Credentials,
         &StandardPermission::ReadWrite,
       )?;
       // Get credential from database

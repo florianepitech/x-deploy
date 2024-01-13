@@ -1,4 +1,4 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::invitation::dto::{
   InvitationInfoOrganization, InvitationInfoResponse, InvitationInfoUser,
   InvitationResponseRequest,
@@ -20,7 +20,7 @@ use x_deploy_common::db::CommonCollection;
 
 pub(crate) async fn get_all(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
 ) -> ApiResult<Vec<InvitationInfoResponse>> {
   let user_id = token.parse_id()?;
   let org_invitation_coll = CommonCollection::<OrganizationInvitation>::new(db);
@@ -49,7 +49,7 @@ pub(crate) async fn get_all(
 
 pub(crate) async fn response(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   invitation_id: String,
   body: Json<InvitationResponseRequest>,
 ) -> ApiResult<SuccessMessage> {

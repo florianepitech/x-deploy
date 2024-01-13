@@ -1,6 +1,6 @@
 use crate::route::auth::dto::{
   ForgotPasswordRequest, LoginRequest, LoginResponse, MagicLinkRequest,
-  RegisterRequest, ResetPasswordRequest, TwoFactorCode,
+  RegisterRequest, ResetPasswordRequest, TwoFactorCodeRequest,
   TwoFactorRecoveryRequest,
 };
 use crate::route::{ApiResult, SuccessMessage};
@@ -80,7 +80,7 @@ pub(crate) async fn register(
 #[post("/auth/2fa", format = "application/json", data = "<body>")]
 pub(crate) async fn two_factor(
   db: &State<Database>,
-  body: Json<TwoFactorCode>,
+  body: Json<TwoFactorCodeRequest>,
 ) -> ApiResult<LoginResponse> {
   return controller::two_factor(db, body).await;
 }

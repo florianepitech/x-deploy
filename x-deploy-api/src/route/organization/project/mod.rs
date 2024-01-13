@@ -1,4 +1,5 @@
-use crate::guard::token::Token;
+use crate::guard::auth::Auth;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::organization::project::dto::{
   CreateProjectRequest, ProjectInfoResponse, UpdateProjectInfoRequest,
 };
@@ -24,10 +25,10 @@ pub(crate) mod dto;
 #[get("/organization/<org_id>/project", format = "application/json")]
 pub(crate) async fn get_all(
   db: &State<Database>,
-  token: Token,
+  auth: Auth,
   org_id: &str,
 ) -> ApiResult<Vec<ProjectInfoResponse>> {
-  controller::get_all(db, token, org_id).await
+  controller::get_all(db, auth, org_id).await
 }
 
 #[utoipa::path(
@@ -45,7 +46,7 @@ pub(crate) async fn get_all(
 )]
 pub(crate) async fn get_by_id(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   project_id: &str,
 ) -> ApiResult<ProjectInfoResponse> {
@@ -66,11 +67,11 @@ pub(crate) async fn get_by_id(
 )]
 pub(crate) async fn new(
   db: &State<Database>,
-  token: Token,
+  auth: Auth,
   org_id: &str,
   body: Json<CreateProjectRequest>,
 ) -> ApiResult<SuccessMessage> {
-  controller::new(db, token, org_id, body).await
+  controller::new(db, auth, org_id, body).await
 }
 
 #[utoipa::path(
@@ -87,7 +88,7 @@ pub(crate) async fn new(
 )]
 pub(crate) async fn update(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   project_id: &str,
   body: Json<UpdateProjectInfoRequest>,
@@ -108,7 +109,7 @@ pub(crate) async fn update(
 )]
 pub async fn update_logo(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   project_id: &str,
   content_type: &ContentType,
@@ -130,7 +131,7 @@ pub async fn update_logo(
 )]
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   project_id: &str,
 ) -> ApiResult<SuccessMessage> {

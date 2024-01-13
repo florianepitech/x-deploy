@@ -1,46 +1,35 @@
-use crate::guard::token::Token;
+use crate::guard::api_key::ApiKey;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::ErrorMessage;
 use request::FromRequest;
 use rocket::{outcome::Outcome, request, Request};
 
+pub enum Auth {
+  Bearer(BearerToken),
+  ApiKey(ApiKey),
+}
+
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for Token {
+impl<'r> FromRequest<'r> for Auth {
   type Error = ErrorMessage;
 
   async fn from_request(
-    req: &'r Request<'_>
+    request: &'r Request<'_>
   ) -> request::Outcome<Self, Self::Error> {
-    let keys: Vec<_> = req.headers().get("Authorization").collect();
-
-    if keys.len() != 1 {
-      let message =
-        ErrorMessage::new("Authorization header must be present".to_string());
-      return Outcome::Error((rocket::http::Status::Unauthorized, message));
+    let bearer_token: request::Outcome<BearerToken, ErrorMessage> =
+      BearerToken::from_request(request).await;
+    if let Outcome::Success(token) = bearer_token {
+      return Outcome::Success(Auth::Bearer(token));
     }
-
-    let header = keys[0];
-    let parse_header = Token::parse_authorization_header(&header.to_string());
-    return match parse_header {
-      Ok(token) => {
-        // Verify if token is expired
-        if (token.is_expired()) {
-          return Outcome::Error((
-            rocket::http::Status::Unauthorized,
-            ErrorMessage::new("Token expired, please login again.".to_string()),
-          ));
-        }
-        // Verify if 2FA is validated
-        if let Some(otp) = token.otp {
-          if !otp {
-            return Outcome::Error((
-              rocket::http::Status::Unauthorized,
-              ErrorMessage::new("2FA not validated".to_string()),
-            ));
-          }
-        }
-        Outcome::Success(token)
-      }
-      Err(e) => Outcome::Error((e.status, ErrorMessage::new(e.message))),
-    };
+    let api_key: request::Outcome<ApiKey, ErrorMessage> =
+      ApiKey::from_request(request).await;
+    if let Outcome::Success(api_key) = api_key {
+      return Outcome::Success(Auth::ApiKey(api_key));
+    }
+    let message = ErrorMessage::new(
+      "Please provide a valid Bearer Token or Api Key to access this route"
+        .to_string(),
+    );
+    return Outcome::Error((rocket::http::Status::Unauthorized, message));
   }
 }

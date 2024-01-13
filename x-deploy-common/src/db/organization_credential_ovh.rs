@@ -1,16 +1,16 @@
 use crate::db::query::cursor_to_vec;
 use crate::db::{CommonCollection, ToCollectionName};
 use crate::CommonResult;
-use bson::{Bson, doc};
+use bson::doc;
 use bson::oid::ObjectId;
 use mongodb::results::{DeleteResult, UpdateResult};
 use serde::{Deserialize, Serialize};
 
-const ORGANIZATION_CREDENTIAL_DOCKER_HUB_COLLECTION_NAME: &str =
-  "organizationsCredentialsDockerHub";
+const ORGANIZATION_CREDENTIAL_OVH_COLLECTION_NAME: &str =
+  "organizationsCredentialsOvh";
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
-pub struct OrganizationCredentialDockerHub {
+pub struct OrganizationCredentialOvh {
   #[serde(rename = "_id")]
   pub id: ObjectId,
 
@@ -23,38 +23,48 @@ pub struct OrganizationCredentialDockerHub {
   #[serde(rename = "description")]
   pub description: Option<String>,
 
-  #[serde(rename = "accessToken")]
-  pub access_token: String,
+  #[serde(rename = "applicationKey")]
+  pub application_key: String,
+
+  #[serde(rename = "applicationSecret")]
+  pub application_secret: String,
+
+  #[serde(rename = "consumerKey")]
+  pub consumer_key: String,
 }
 
-impl OrganizationCredentialDockerHub {
+impl OrganizationCredentialOvh {
   pub fn new(
     organization_id: ObjectId,
     name: String,
     description: Option<String>,
-    access_token: String,
+    application_key: String,
+    application_secret: String,
+    consumer_key: String,
   ) -> Self {
     Self {
       id: ObjectId::new(),
       organization_id,
       name,
       description,
-      access_token,
+      application_key,
+      application_secret,
+      consumer_key,
     }
   }
 }
 
-impl ToCollectionName for OrganizationCredentialDockerHub {
+impl ToCollectionName for OrganizationCredentialOvh {
   fn collection_name() -> String {
-    String::from(ORGANIZATION_CREDENTIAL_DOCKER_HUB_COLLECTION_NAME)
+    String::from(ORGANIZATION_CREDENTIAL_OVH_COLLECTION_NAME)
   }
 }
 
-impl CommonCollection<OrganizationCredentialDockerHub> {
+impl CommonCollection<OrganizationCredentialOvh> {
   pub async fn get_all_of_org(
     &self,
     organization_id: &ObjectId,
-  ) -> CommonResult<Vec<OrganizationCredentialDockerHub>> {
+  ) -> CommonResult<Vec<OrganizationCredentialOvh>> {
     let filter = doc! {
       "organizationId": organization_id
     };
@@ -67,7 +77,7 @@ impl CommonCollection<OrganizationCredentialDockerHub> {
     &self,
     id: &ObjectId,
     organization_id: &ObjectId,
-  ) -> CommonResult<Option<OrganizationCredentialDockerHub>> {
+  ) -> CommonResult<Option<OrganizationCredentialOvh>> {
     let filter = doc! {
       "_id": id,
       "organizationId": organization_id
@@ -101,8 +111,8 @@ impl CommonCollection<OrganizationCredentialDockerHub> {
       "organizationId": organization_id
     };
     let bson_description = match description {
-      Some(description) => Bson::String(description.clone()),
-      None => Bson::Null,
+      Some(description) => bson::Bson::String(description.clone()),
+      None => bson::Bson::Null,
     };
     let update = doc! {
       "$set": {

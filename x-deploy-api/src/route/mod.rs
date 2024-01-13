@@ -45,17 +45,6 @@ impl ErrorMessage {
   }
 }
 
-impl From<CommonError> for ApiError {
-  fn from(_: CommonError) -> Self {
-    let status = rocket::http::Status::InternalServerError;
-    let error = ApiError::new(
-      status,
-      "An internal error occurred, please try again later".to_string(),
-    );
-    error
-  }
-}
-
 // Implement Responder for ApiError
 impl<'r> Responder<'r, 'static> for ApiError {
   fn respond_to(

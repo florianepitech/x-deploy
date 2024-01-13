@@ -9,12 +9,23 @@ pub mod organization;
 pub mod organization_apikey;
 pub mod organization_credential_aws;
 pub mod organization_credential_docker_hub;
+pub mod organization_credential_ovh;
 pub mod organization_invitation;
 pub mod organization_member;
 pub mod organization_project;
+pub mod organization_project_cluster;
+pub mod organization_project_environment;
 pub mod organization_role;
 pub mod query;
 pub mod user;
+
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub enum CloudProvider {
+  #[serde(rename = "AWS")]
+  AWS,
+  #[serde(rename = "OVH")]
+  OVH,
+}
 
 pub trait ToCollectionName {
   fn collection_name() -> String;

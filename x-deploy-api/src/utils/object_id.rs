@@ -1,7 +1,9 @@
 use crate::error::ApiError;
 use bson::oid::ObjectId;
 
+#[deprecated]
 pub trait ToObjectId {
+  #[deprecated]
   fn to_object_id(&self) -> Result<ObjectId, ApiError>;
 }
 

@@ -1,4 +1,5 @@
 use crate::error::ApiError;
+use crate::route::ErrorMessage;
 use crate::CONFIG;
 use bson::oid::ObjectId;
 use errors::ErrorKind;
@@ -6,18 +7,21 @@ use jsonwebtoken::{
   decode, encode, errors, DecodingKey, EncodingKey, Header, Validation,
 };
 use rocket::http::Status;
+use rocket::outcome::Outcome;
+use rocket::request::FromRequest;
+use rocket::{request, Request};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use utoipa::ToSchema;
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub(crate) struct Token {
-  pub(crate) id: String,
-  pub(crate) exp: i64,
-  pub(crate) otp: Option<bool>,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BearerToken {
+  pub id: String,
+  pub exp: i64,
+  pub otp: Option<bool>,
 }
 
-impl Token {
+impl BearerToken {
   pub(crate) fn new(
     id: ObjectId,
     otp: Option<bool>,
@@ -40,7 +44,7 @@ impl Token {
 
   pub(crate) fn parse_authorization_header(
     header: &String
-  ) -> Result<Token, ApiError> {
+  ) -> Result<BearerToken, ApiError> {
     if !header.starts_with("Bearer ") {
       return Err(ApiError::new(
         Status::Unauthorized,
@@ -48,14 +52,14 @@ impl Token {
       ));
     }
     let token = &header[7..]; // Remove "Bearer " prefix
-    Token::parse_jwt(&token.to_string())
+    BearerToken::parse_jwt(&token.to_string())
   }
 
-  pub(crate) fn parse_jwt(token: &String) -> Result<Token, ApiError> {
+  pub(crate) fn parse_jwt(token: &String) -> Result<BearerToken, ApiError> {
     let jwt_secret = CONFIG.jwt_secret.clone();
     let decoding_key = DecodingKey::from_secret(jwt_secret.as_ref());
     let token_data =
-      decode::<Token>(token, &decoding_key, &Validation::default());
+      decode::<BearerToken>(token, &decoding_key, &Validation::default());
 
     return match token_data {
       Ok(token_data) => Ok(token_data.claims),
@@ -123,5 +127,48 @@ impl Token {
     exp: i64,
   ) {
     self.exp = exp;
+  }
+}
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for BearerToken {
+  type Error = ErrorMessage;
+
+  async fn from_request(
+    req: &'r Request<'_>
+  ) -> request::Outcome<Self, Self::Error> {
+    let keys: Vec<_> = req.headers().get("Authorization").collect();
+
+    if keys.len() != 1 {
+      let message =
+        ErrorMessage::new("Authorization header must be present".to_string());
+      return Outcome::Error((rocket::http::Status::Unauthorized, message));
+    }
+
+    let header = keys[0];
+    let parse_header =
+      BearerToken::parse_authorization_header(&header.to_string());
+    return match parse_header {
+      Ok(token) => {
+        // Verify if token is expired
+        if (token.is_expired()) {
+          return Outcome::Error((
+            rocket::http::Status::Unauthorized,
+            ErrorMessage::new("Token expired, please login again.".to_string()),
+          ));
+        }
+        // Verify if 2FA is validated
+        if let Some(otp) = token.otp {
+          if !otp {
+            return Outcome::Error((
+              rocket::http::Status::Unauthorized,
+              ErrorMessage::new("2FA not validated".to_string()),
+            ));
+          }
+        }
+        Outcome::Success(token)
+      }
+      Err(e) => Outcome::Error((e.status, ErrorMessage::new(e.message))),
+    };
   }
 }

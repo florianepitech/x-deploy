@@ -1,7 +1,7 @@
 mod controller;
 pub mod dto;
 
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::{ApiResult, SuccessMessage};
 use dto::{
   AwsCredentialsInfoResponse, NewAwsCredentialsRequest,
@@ -27,7 +27,7 @@ use rocket::State;
 )]
 pub(crate) async fn new(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   body: Json<NewAwsCredentialsRequest>,
 ) -> ApiResult<SuccessMessage> {
@@ -49,7 +49,7 @@ pub(crate) async fn new(
 )]
 pub(crate) async fn get(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<AwsCredentialsInfoResponse> {
@@ -68,7 +68,7 @@ pub(crate) async fn get(
 #[get("/organization/<org_id>/credentials/aws", format = "application/json")]
 pub async fn get_all(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
 ) -> ApiResult<Vec<AwsCredentialsInfoResponse>> {
   controller::get_all(db, token, org_id).await
@@ -91,7 +91,7 @@ pub async fn get_all(
 )]
 pub async fn update(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   cred_id: &str,
   body: Json<UpdateAwsCredentialsRequest>,
@@ -114,7 +114,7 @@ pub async fn update(
 )]
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<SuccessMessage> {

@@ -1,41 +1,122 @@
-use crate::guard::token::Token;
-use crate::route::{custom_message, ApiResult, SuccessMessage};
-use bson::oid;
-use mongodb::{Collection, Database};
-use rocket::http::Status;
-use rocket::response::status::Custom;
+mod controller;
+pub mod dto;
+
+use crate::guard::bearer_token::BearerToken;
+use crate::route::{ApiResult, SuccessMessage};
+use dto::{
+  NewOvhCredentialsRequest, OvhCredentialsInfoResponse,
+  UpdateOvhCredentialsRequest,
+};
+use mongodb::Database;
 use rocket::serde::json::Json;
 use rocket::State;
 
-#[deprecated]
-#[post("/organization/<id>/credentials/ovh", format = "application/json")]
+#[utoipa::path(
+  post,
+  operation_id = "Create Ovh Credential",
+  path = "/organization/<org_id>/credentials/ovh",
+  tag = "Organization Credentials Ovh",
+  responses(
+    (status = 201, description = "Successfully created new Ovh credential", body = SuccessMessage),
+  ),
+)]
+#[post(
+  "/organization/<org_id>/credentials/ovh",
+  format = "application/json",
+  data = "<body>"
+)]
 pub(crate) async fn new(
   db: &State<Database>,
-  token: Token,
-  id: String,
+  token: BearerToken,
+  org_id: &str,
+  body: Json<NewOvhCredentialsRequest>,
 ) -> ApiResult<SuccessMessage> {
-  // let organization = get_organization_by_id!(db, id).await?;
-  return custom_message(Status::NotImplemented, "Not implemented");
+  controller::new(db, token, org_id, body).await
 }
 
-#[deprecated]
-#[get("/organization/<id>/credentials/ovh", format = "application/json")]
+#[utoipa::path(
+  get,
+  operation_id = "Get Ovh Credentials",
+  path = "/organization/<org_id>/credentials/ovh/<cred_id>",
+  tag = "Organization Credentials Ovh",
+  responses(
+    (status = 200, description = "Get Ovh credential", body = OvhCredentialsInfoResponse),
+  ),
+)]
+#[get(
+  "/organization/<org_id>/credentials/ovh/<cred_id>",
+  format = "application/json"
+)]
 pub(crate) async fn get(
   db: &State<Database>,
-  token: Token,
-  id: String,
-) -> ApiResult<SuccessMessage> {
-  // let organization = get_organization_by_id!(db, id).await?;
-  return custom_message(Status::NotImplemented, "Not implemented");
+  token: BearerToken,
+  org_id: &str,
+  cred_id: &str,
+) -> ApiResult<OvhCredentialsInfoResponse> {
+  controller::get(db, token, org_id, cred_id).await
 }
 
-#[deprecated]
-#[delete("/organization/<id>/credentials/ovh", format = "application/json")]
+#[utoipa::path(
+  get,
+  operation_id = "Get All Ovh Credentials",
+  path = "/organization/<org_id>/credentials/ovh",
+  tag = "Organization Credentials Ovh",
+  responses(
+    (status = 200, description = "Get all Ovh credentials", body = Vec<OvhCredentialsInfoResponse>),
+  ),
+)]
+#[get("/organization/<org_id>/credentials/ovh", format = "application/json")]
+pub async fn get_all(
+  db: &State<Database>,
+  token: BearerToken,
+  org_id: &str,
+) -> ApiResult<Vec<OvhCredentialsInfoResponse>> {
+  controller::get_all(db, token, org_id).await
+}
+
+#[utoipa::path(
+  patch,
+  operation_id = "Update Ovh Credential",
+  path = "/organization/<org_id>/credentials/ovh/<cred_id>",
+  tag = "Organization Credentials Ovh",
+  responses(
+    (status = 200, description = "Successfully updated Ovh credential", body = SuccessMessage),
+  ),
+  request_body = UpdateOvhCredentialsRequest,
+)]
+#[patch(
+  "/organization/<org_id>/credentials/ovh/<cred_id>",
+  format = "application/json",
+  data = "<body>"
+)]
+pub async fn update(
+  db: &State<Database>,
+  token: BearerToken,
+  org_id: &str,
+  cred_id: &str,
+  body: Json<UpdateOvhCredentialsRequest>,
+) -> ApiResult<SuccessMessage> {
+  controller::update(db, token, org_id, cred_id, body).await
+}
+
+#[utoipa::path(
+  delete,
+  operation_id = "Delete Ovh Credential",
+  path = "/organization/<org_id>/credentials/ovh/<cred_id>",
+  tag = "Organization Credentials Ovh",
+  responses(
+    (status = 200, description = "Successfully deleted Ovh credential", body = SuccessMessage),
+  ),
+)]
+#[delete(
+  "/organization/<org_id>/credentials/ovh/<cred_id>",
+  format = "application/json"
+)]
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: Token,
-  id: String,
+  token: BearerToken,
+  org_id: &str,
+  cred_id: &str,
 ) -> ApiResult<SuccessMessage> {
-  // let organization = get_organization_by_id!(db, id).await?;
-  return custom_message(Status::NotImplemented, "Not implemented");
+  controller::delete(db, token, org_id, cred_id).await
 }

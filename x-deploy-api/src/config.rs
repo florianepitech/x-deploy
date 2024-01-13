@@ -1,8 +1,6 @@
 use serde::Deserialize;
 use std::fs;
 
-pub(crate) const CONFIG_FILE_NAME: &str = "api-config.toml";
-
 #[derive(Deserialize, Debug)]
 pub(crate) struct Config {
   pub(crate) mongodb_url: String,
@@ -26,14 +24,12 @@ pub(crate) struct Config {
 }
 
 impl Config {
-  pub(crate) fn from_config_file() -> Self {
-    let contents = fs::read_to_string(CONFIG_FILE_NAME).expect(
-      format!("Error while reading file: {}", CONFIG_FILE_NAME).as_str(),
-    );
-    let config = toml::from_str::<Config>(contents.as_str());
-    match config {
+  pub(crate) fn from_rocket_config() -> Self {
+    let figment = rocket::Config::figment();
+    let config = figment.extract::<Config>();
+    return match config {
       Ok(config) => config,
       Err(err) => panic!("Error while parsing config file: {}", err),
-    }
+    };
   }
 }

@@ -1,7 +1,7 @@
 use crate::db::query::cursor_to_vec;
 use crate::db::{CommonCollection, ToCollectionName};
 use crate::CommonResult;
-use bson::doc;
+use bson::{Bson, doc};
 use bson::oid::ObjectId;
 use mongodb::results::{DeleteResult, UpdateResult};
 use serde::{Deserialize, Serialize};
@@ -21,12 +21,12 @@ pub struct OrganizationCredentialAws {
   pub name: String,
 
   #[serde(rename = "description")]
-  pub description: String,
+  pub description: Option<String>,
 
-  #[serde(rename = "access_key")]
+  #[serde(rename = "accessKey")]
   pub access_key: String,
 
-  #[serde(rename = "secret_key")]
+  #[serde(rename = "secretKey")]
   pub secret_key: String,
 }
 
@@ -34,7 +34,7 @@ impl OrganizationCredentialAws {
   pub fn new(
     organization_id: ObjectId,
     name: String,
-    description: String,
+    description: Option<String>,
     access_key: String,
     secret_key: String,
   ) -> Self {
@@ -99,16 +99,20 @@ impl CommonCollection<OrganizationCredentialAws> {
     id: &ObjectId,
     organization_id: &ObjectId,
     name: &String,
-    description: &String,
+    description: &Option<String>,
   ) -> CommonResult<UpdateResult> {
     let filter = doc! {
       "_id": id,
       "organizationId": organization_id
     };
+    let bson_description = match description { 
+      Some(description) => Bson::String(description.clone()),
+      None => Bson::Null,
+    };
     let update = doc! {
       "$set": {
         "name": name,
-        "description": description,
+        "description": bson_description,
       }
     };
     let result = self.collection.update_one(filter, update, None).await?;

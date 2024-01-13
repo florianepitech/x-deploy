@@ -1,4 +1,4 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::cloud_provider::dto::CloudProviderResponse;
 use crate::route::ApiResult;
 use mongodb::Database;
@@ -19,6 +19,6 @@ mod ovh;
     ),
 )]
 #[get("/cloud-provider", format = "application/json")]
-pub async fn all(token: Token) -> ApiResult<Vec<CloudProviderResponse>> {
+pub async fn all(token: BearerToken) -> ApiResult<Vec<CloudProviderResponse>> {
   controller::all(token).await
 }

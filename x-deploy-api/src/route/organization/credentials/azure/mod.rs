@@ -1,4 +1,4 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::{custom_message, ApiResult, SuccessMessage};
 use bson::oid;
 use mongodb::{Collection, Database};
@@ -11,7 +11,7 @@ use rocket::State;
 #[post("/organization/<id>/credentials/azure", format = "application/json")]
 pub(crate) async fn new(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   id: String,
 ) -> ApiResult<SuccessMessage> {
   // let organization = get_organization_by_id!(db, id).await?;
@@ -22,7 +22,7 @@ pub(crate) async fn new(
 #[get("/organization/<id>/credentials/azure", format = "application/json")]
 pub(crate) async fn get(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   id: String,
 ) -> ApiResult<SuccessMessage> {
   // let organization = get_organization_by_id!(db, id).await?;
@@ -33,7 +33,7 @@ pub(crate) async fn get(
 #[delete("/organization/<id>/credentials/azure", format = "application/json")]
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   id: String,
 ) -> ApiResult<SuccessMessage> {
   // let organization = get_organization_by_id!(db, id).await?;

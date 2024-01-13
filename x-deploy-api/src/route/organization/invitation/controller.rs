@@ -1,6 +1,6 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::permission::general::{
-  verify_general_permission, GeneralPermissionType,
+  verify_general_permission, GeneralPermission,
 };
 use crate::route::organization::invitation::dto::{
   NewOrganizationInvitationRequest, OrganizationInvitationInfoResponse,
@@ -27,7 +27,7 @@ use x_deploy_common::db::CommonCollection;
 
 pub(crate) async fn get_all(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
 ) -> ApiResult<Vec<OrganizationInvitationInfoResponse>> {
   let user_id = token.parse_id()?;
@@ -37,7 +37,7 @@ pub(crate) async fn get_all(
     Some(org) => {
       verify_general_permission(
         org.role,
-        &GeneralPermissionType::Members,
+        &GeneralPermission::Members,
         &StandardPermission::Read,
       )?;
     }
@@ -81,7 +81,7 @@ pub(crate) async fn get_all(
 
 pub(crate) async fn invite_user(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   body: Json<NewOrganizationInvitationRequest>,
 ) -> ApiResult<SuccessMessage> {
@@ -93,7 +93,7 @@ pub(crate) async fn invite_user(
     Some(org) => {
       verify_general_permission(
         org.role,
-        &GeneralPermissionType::Members,
+        &GeneralPermission::Members,
         &StandardPermission::ReadWrite,
       )?;
     }
@@ -162,7 +162,7 @@ pub(crate) async fn invite_user(
 
 pub(crate) async fn delete_invitation(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   invitation_id: &str,
 ) -> ApiResult<SuccessMessage> {
@@ -174,7 +174,7 @@ pub(crate) async fn delete_invitation(
     Some(org_user) => {
       verify_general_permission(
         org_user.role,
-        &GeneralPermissionType::Members,
+        &GeneralPermission::Members,
         &StandardPermission::ReadWrite,
       )?;
     }

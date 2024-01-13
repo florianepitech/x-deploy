@@ -1,13 +1,15 @@
 use rocket::serde::json::serde_json::json;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use validator::Validate;
 
-#[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[derive(Deserialize, Serialize, Debug, ToSchema, Validate)]
 #[schema(example = json!({
     "email": "john@doe.net",
     "password": "myAmazingStringPassword123!"
 }))]
 pub(crate) struct LoginRequest {
+  #[validate(email(message = "Your email is in a wrong format"))]
   #[serde(rename = "email")]
   pub(crate) email: String,
 
@@ -15,20 +17,22 @@ pub(crate) struct LoginRequest {
   pub(crate) password: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[derive(Deserialize, Serialize, Debug, ToSchema, Validate)]
 #[schema(example = json!({
     "email": "john@doe.net"
 }))]
 pub(crate) struct MagicLinkRequest {
+  #[validate(email(message = "Your email is in a wrong format"))]
+  #[serde(rename = "email")]
   pub(crate) email: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[derive(Deserialize, Serialize, Debug, ToSchema, Validate)]
 #[schema(example = json!({
     "token": "ey6b0pm7hk87bJB...",
     "code": "123678"
 }))]
-pub(crate) struct TwoFactorCode {
+pub(crate) struct TwoFactorCodeRequest {
   #[serde(rename = "token")]
   pub(crate) token: String,
 
@@ -36,7 +40,7 @@ pub(crate) struct TwoFactorCode {
   pub(crate) code: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[derive(Deserialize, Serialize, Debug, ToSchema, Validate)]
 #[schema(example = json!({
     "token": "ey6b0pm7hk87bJB...",
     "recoveryCode": "123678JFDF86FDSF786Y..."
@@ -58,7 +62,7 @@ pub(crate) struct LoginResponse {
   pub(crate) token: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[derive(Deserialize, Serialize, Debug, ToSchema, Validate)]
 #[schema(example = json!({
     "firstname": "John",
     "lastname": "DOE",
@@ -67,15 +71,27 @@ pub(crate) struct LoginResponse {
     "password": "myAmazingStringPassword123!"
 }))]
 pub(crate) struct RegisterRequest {
+  #[validate(length(
+    min = 2,
+    max = 50,
+    message = "Your firstname is too short"
+  ))]
   #[serde(rename = "firstname")]
   pub(crate) firstname: String,
 
+  #[validate(length(
+    min = 2,
+    max = 50,
+    message = "Your lastname is too short"
+  ))]
   #[serde(rename = "lastname")]
   pub(crate) lastname: String,
 
+  #[validate(email(message = "Your email is in a wrong format"))]
   #[serde(rename = "email")]
   pub(crate) email: String,
 
+  #[validate(phone(message = "Your phone is in a wrong format"))]
   #[serde(rename = "phone")]
   pub(crate) phone: String,
 
@@ -83,16 +99,17 @@ pub(crate) struct RegisterRequest {
   pub(crate) password: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[derive(Deserialize, Serialize, Debug, ToSchema, Validate)]
 #[schema(example = json!({
     "email": "john@doe.net",
 }))]
 pub(crate) struct ForgotPasswordRequest {
+  #[validate(email(message = "Your email is in a wrong format"))]
   #[serde(rename = "email")]
   pub(crate) email: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, ToSchema)]
+#[derive(Deserialize, Serialize, Debug, ToSchema, Validate)]
 #[schema(example = json!({
     "token": "povshdiobndsolnOIU98YY97FGDIshkbf...",
     "newPassword": "myAmazingStringPassword123!"

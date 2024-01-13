@@ -16,7 +16,7 @@ pub struct OrganizationRole {
   pub name: String,
 
   #[serde(rename = "description")]
-  pub description: String,
+  pub description: Option<String>,
 
   #[serde(rename = "organizationId")]
   pub organization_id: ObjectId,
@@ -26,13 +26,24 @@ pub struct OrganizationRole {
 
   #[serde(rename = "generalPermission")]
   pub general_permission: GeneralPermission,
+  // #[serde(rename = "environmentPermissions")]
+  // pub environment_permissions: Vec<OrganizationRoleEnvironmentPermission>,
 }
+
+// #[derive(Deserialize, Serialize, Clone, Debug)]
+// pub struct OrganizationRoleEnvironmentPermission {
+//   #[serde(rename = "environmentId")]
+//   pub environment_id: ObjectId,
+//
+//   #[serde(rename = "permission")]
+//   pub permission: EnvironmentPermission,
+// }
 
 impl OrganizationRole {
   pub fn new(
     organization_id: ObjectId,
     name: String,
-    description: String,
+    description: Option<String>,
   ) -> Self {
     let cluster_permission = Default::default();
     let general_permission = Default::default();
@@ -71,6 +82,24 @@ pub enum StandardPermission {
   ReadWrite,
 }
 
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub enum EnvironmentPermission {
+  #[serde(rename = "NO_ACCESS")]
+  NoAccess,
+
+  #[serde(rename = "READ")]
+  Read,
+
+  #[serde(rename = "DEPLOY")]
+  Deploy,
+
+  #[serde(rename = "Manage")]
+  Manage,
+
+  #[serde(rename = "FULL_ACCESS")]
+  FullAccess,
+}
+
 impl Default for ClusterPermission {
   fn default() -> Self {
     ClusterPermission::ReadEnvironment
@@ -94,6 +123,9 @@ pub struct GeneralPermission {
   #[serde(rename = "members")]
   pub members: StandardPermission,
 
+  #[serde(rename = "project")]
+  pub project: StandardPermission,
+
   #[serde(rename = "apiKeys")]
   pub api_keys: StandardPermission,
 
@@ -107,6 +139,7 @@ impl Default for GeneralPermission {
       organization: Default::default(),
       billing: Default::default(),
       members: Default::default(),
+      project: Default::default(),
       api_keys: Default::default(),
       credentials: Default::default(),
     }

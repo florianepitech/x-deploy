@@ -2,8 +2,7 @@ use crate::route::cloud_provider::aws::controller;
 use crate::route::cloud_provider::aws::dto::{
   CloudProviderAwsInstance, CloudProviderAwsRegion,
 };
-use crate::route::{custom_response, ApiResult};
-use aws_sdk_ec2::types::InstanceType;
+use crate::route::{custom_error, custom_response, ApiResult};
 use awsregion::Region;
 use rocket::http::Status;
 
@@ -44,22 +43,23 @@ pub async fn all_region() -> ApiResult<Vec<CloudProviderAwsRegion>> {
 }
 
 pub async fn instance_types() -> ApiResult<Vec<CloudProviderAwsInstance>> {
-  let instance = vec![
-    InstanceType::A1Large,
-    InstanceType::A1Medium,
-    InstanceType::A1Xlarge,
-    InstanceType::A12xlarge,
-    InstanceType::A14xlarge,
-    InstanceType::A1Metal,
-    InstanceType::C1Medium,
-    InstanceType::C1Xlarge,
-  ];
-  let mut result: Vec<CloudProviderAwsInstance> = Vec::new();
-  for instance in instance {
-    let new_instance = CloudProviderAwsInstance {
-      name: instance.as_str().to_string(),
-    };
-    result.push(new_instance);
-  }
-  custom_response(Status::Ok, result)
+  custom_error(Status::NotImplemented, "Not implemented")
+  // let instance = vec![
+  //   InstanceType::A1Large,
+  //   InstanceType::A1Medium,
+  //   InstanceType::A1Xlarge,
+  //   InstanceType::A12xlarge,
+  //   InstanceType::A14xlarge,
+  //   InstanceType::A1Metal,
+  //   InstanceType::C1Medium,
+  //   InstanceType::C1Xlarge,
+  // ];
+  // let mut result: Vec<CloudProviderAwsInstance> = Vec::new();
+  // for instance in instance {
+  //   let new_instance = CloudProviderAwsInstance {
+  //     name: instance.as_str().to_string(),
+  //   };
+  //   result.push(new_instance);
+  // }
+  // custom_response(Status::Ok, result)
 }

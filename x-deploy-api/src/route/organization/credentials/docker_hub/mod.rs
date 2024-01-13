@@ -1,4 +1,4 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::organization::credentials::docker_hub::dto::{
   DockerHubInfoResponse, NewDockerHubRequest, UpdateDockerHubCredentialsRequest,
 };
@@ -27,7 +27,7 @@ pub(crate) mod dto;
 )]
 pub(crate) async fn new(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   body: Json<NewDockerHubRequest>,
 ) -> ApiResult<SuccessMessage> {
@@ -49,7 +49,7 @@ pub(crate) async fn new(
 )]
 pub(crate) async fn get(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<DockerHubInfoResponse> {
@@ -71,7 +71,7 @@ pub(crate) async fn get(
 )]
 pub async fn get_all(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
 ) -> ApiResult<Vec<DockerHubInfoResponse>> {
   controller::get_all(db, token, org_id).await
@@ -94,7 +94,7 @@ pub async fn get_all(
 )]
 pub async fn update(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   cred_id: &str,
   body: Json<UpdateDockerHubCredentialsRequest>,
@@ -117,7 +117,7 @@ pub async fn update(
 )]
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<SuccessMessage> {

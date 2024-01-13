@@ -13,7 +13,7 @@ use utoipa::ToSchema;
 }))]
 pub struct NewAwsCredentialsRequest {
   pub name: String,
-  pub description: String,
+  pub description: Option<String>,
   pub access_key: String,
   pub secret_key: String,
 }
@@ -24,15 +24,13 @@ pub struct NewAwsCredentialsRequest {
   "id": "5f9b3b2b9d3f6c0007f7e7b1",
   "name": "My Aws Credentials",
   "description": "My Aws Credentials description",
-  "accessKey": "AKIAIOSFODNN7EXAMPLE",
-  "secretKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+  "created_at": "2020-10-30T14:30:51.000Z"
 }))]
 pub struct AwsCredentialsInfoResponse {
   pub id: String,
   pub name: String,
-  pub description: String,
-  pub access_key: String,
-  pub secret_key: String,
+  pub description: Option<String>,
+  pub created_at: String,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug, ToSchema)]
@@ -43,5 +41,5 @@ pub struct AwsCredentialsInfoResponse {
 }))]
 pub struct UpdateAwsCredentialsRequest {
   pub name: String,
-  pub description: String,
+  pub description: Option<String>,
 }

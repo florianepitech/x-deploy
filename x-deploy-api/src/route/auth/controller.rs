@@ -1,7 +1,7 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::auth::dto::{
   ForgotPasswordRequest, LoginRequest, LoginResponse, MagicLinkRequest,
-  RegisterRequest, ResetPasswordRequest, TwoFactorCode,
+  RegisterRequest, ResetPasswordRequest, TwoFactorCodeRequest,
   TwoFactorRecoveryRequest,
 };
 use crate::route::{
@@ -17,6 +17,7 @@ use mongodb::Database;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::{tokio, State};
+use validator::Validate;
 use x_deploy_common::db::user::User;
 use x_deploy_common::db::CommonCollection;
 use x_deploy_common::event::user::{
@@ -30,16 +31,16 @@ pub(crate) async fn login(
   body: Json<LoginRequest>,
 ) -> ApiResult<LoginResponse> {
   tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-  let login_body = body.into_inner();
+  body.validate()?;
   // Verify if email exists for an user
   let user_collection = CommonCollection::<User>::new(db);
-  let user = match user_collection.find_with_email(&login_body.email).await? {
+  let user = match user_collection.find_with_email(&body.email).await? {
     Some(user) => user,
     None => return custom_error(Status::NotFound, "User not found"),
   };
   // Verify if password is correct
   let valid_password =
-    verify_password(&login_body.password, user.password.password.as_str())?;
+    verify_password(&body.password, user.password.password.as_str())?;
   if !valid_password {
     return custom_error(
       Status::Unauthorized,
@@ -51,7 +52,7 @@ pub(crate) async fn login(
   } else {
     Some(false)
   };
-  let token = Token::new(user.id.clone(), two_factor)?;
+  let token = BearerToken::new(user.id.clone(), two_factor)?;
   let jwt = token.to_jwt()?;
   let response = LoginResponse { token: jwt };
   custom_response(Status::Ok, response)
@@ -61,6 +62,7 @@ pub(crate) async fn magic_link(
   db: &State<Database>,
   body: Json<MagicLinkRequest>,
 ) -> ApiResult<SuccessMessage> {
+  body.validate()?;
   let email = body.email.clone();
   let user_collection = CommonCollection::<User>::new(db);
   let user = match user_collection.find_with_email(&email).await? {
@@ -72,7 +74,7 @@ pub(crate) async fn magic_link(
   } else {
     Some(false)
   };
-  let token = Token::new(user.id.clone(), two_factor)?;
+  let token = BearerToken::new(user.id.clone(), two_factor)?;
   let jwt = token.to_jwt()?;
 
   CommonEvent::new(CONFIG.kafka_url.clone()).send(UserMagicLinkEvent {
@@ -89,6 +91,7 @@ pub(crate) async fn register(
   db: &State<Database>,
   body: Json<RegisterRequest>,
 ) -> ApiResult<SuccessMessage> {
+  body.validate()?;
   let body = body.into_inner();
   let user_collection = CommonCollection::<User>::new(db);
   // Verify if email exists for an user
@@ -124,9 +127,10 @@ pub(crate) async fn register(
 
 pub(crate) async fn two_factor(
   db: &State<Database>,
-  body: Json<TwoFactorCode>,
+  body: Json<TwoFactorCodeRequest>,
 ) -> ApiResult<LoginResponse> {
-  let mut token = Token::parse_jwt(&body.token)?;
+  body.validate()?;
+  let mut token = BearerToken::parse_jwt(&body.token)?;
   if token.is_expired() {
     return custom_error(Status::Unauthorized, "Token is expired");
   }
@@ -163,7 +167,8 @@ pub(crate) async fn two_factor_recovery(
   db: &State<Database>,
   body: Json<TwoFactorRecoveryRequest>,
 ) -> ApiResult<LoginResponse> {
-  let mut token = Token::parse_jwt(&body.token)?;
+  body.validate()?;
+  let mut token = BearerToken::parse_jwt(&body.token)?;
   if token.is_expired() {
     return custom_error(Status::Unauthorized, "Token is expired");
   }
@@ -201,7 +206,7 @@ pub(crate) async fn two_factor_recovery(
         );
       }
       // Generate a new token with jwt ans send the jwt
-      let token = Token::new(user_id, None)?;
+      let token = BearerToken::new(user_id, None)?;
       let jwt = token.to_jwt()?;
       let response = LoginResponse { token: jwt };
       custom_response(Status::Ok, response)
@@ -217,6 +222,7 @@ pub(crate) async fn forgot_password(
   db: &State<Database>,
   body: Json<ForgotPasswordRequest>,
 ) -> ApiResult<SuccessMessage> {
+  body.validate()?;
   let email = body.email.clone();
   let user_collection = CommonCollection::<User>::new(db);
   let user = match user_collection.find_with_email(&email).await? {
@@ -246,6 +252,7 @@ pub(crate) async fn reset_password(
   db: &State<Database>,
   body: Json<ResetPasswordRequest>,
 ) -> ApiResult<SuccessMessage> {
+  body.validate()?;
   // Retrieve user from database with forgot password token
   let user_collection = CommonCollection::<User>::new(db);
   let user = match user_collection

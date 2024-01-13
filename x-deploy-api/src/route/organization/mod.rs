@@ -1,4 +1,4 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::organization::dto::{
   CreateOrganizationRequest, DeleteOrganizationRequest,
   OrganizationInfoResponse, TransferOrganizationRequest,
@@ -31,7 +31,7 @@ pub(crate) mod role;
 #[get("/organization", format = "application/json")]
 pub(crate) async fn all(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
 ) -> ApiResult<Vec<OrganizationInfoResponse>> {
   controller::all(db, token).await
 }
@@ -49,7 +49,7 @@ pub(crate) async fn all(
 #[post("/organization", format = "application/json", data = "<body>")]
 pub(crate) async fn new(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<CreateOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {
   controller::new(db, token, body).await
@@ -67,7 +67,7 @@ pub(crate) async fn new(
 #[get("/organization/<id>", format = "application/json")]
 pub(crate) async fn get_by_id(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   id: String,
 ) -> ApiResult<OrganizationInfoResponse> {
   controller::get_by_id(db, token, id).await
@@ -86,7 +86,7 @@ pub(crate) async fn get_by_id(
 #[patch("/organization/<id>", format = "application/json", data = "<body>")]
 pub(crate) async fn update(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   id: String,
   body: Json<UpdateOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {
@@ -105,7 +105,7 @@ pub(crate) async fn update(
 #[post("/organization/<org_id>/logo", format = "image/*", data = "<body>")]
 pub(crate) async fn update_logo(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: String,
   content_type: &ContentType,
   body: Data<'_>,
@@ -126,7 +126,7 @@ pub(crate) async fn update_logo(
 #[delete("/organization/<id>", format = "application/json", data = "<body>")]
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   id: String,
   body: Json<DeleteOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {
@@ -150,7 +150,7 @@ pub(crate) async fn delete(
 )]
 pub(crate) async fn transfer(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   id: String,
   body: Json<TransferOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {

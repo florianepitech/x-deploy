@@ -1,4 +1,4 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::cloud_provider::controller;
 use crate::route::cloud_provider::dto::{
   CloudProviderResponse, CloudProviderType,
@@ -11,7 +11,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa::ToSchema;
 
-pub(crate) async fn all(token: Token) -> ApiResult<Vec<CloudProviderResponse>> {
+pub(crate) async fn all(
+  token: BearerToken
+) -> ApiResult<Vec<CloudProviderResponse>> {
   let vec = vec![
     CloudProviderType::Aws,
     CloudProviderType::GoogleCloud,

@@ -3,10 +3,12 @@
 resolver = "2"
 
 members = [
-    "ovh-api",
     "x-deploy-api",
     "x-deploy-client",
-    "x-deploy-cli", "x-deploy-daemon", "x-deploy-common", "x-deploy-ws",
+    "x-deploy-cli",
+    "x-deploy-daemon",
+    "x-deploy-common",
+    "x-deploy-ws",
 ]
 
 [workspace.dependencies]

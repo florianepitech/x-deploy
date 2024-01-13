@@ -1,15 +1,11 @@
 use crate::config::Config;
 use crate::fairing::cors::Cors;
 use lazy_static::lazy_static;
-use rocket::data::{ByteUnit, Limits};
-use rocket::fs::FileServer;
 use rocket::futures::StreamExt;
 use rocket::serde::Deserialize;
 use utoipa::OpenApi;
 use utoipa_redoc::{Redoc, Servable};
 use utoipa_swagger_ui::SwaggerUi;
-use x_deploy_common::s3::bucket::CommonS3Bucket;
-use x_deploy_common::s3::file_type::CommonS3BucketType;
 
 #[macro_use]
 extern crate rocket;
@@ -23,10 +19,8 @@ mod permission;
 mod route;
 pub mod utils;
 
-extern crate ovh_api;
-
 lazy_static! {
-  pub(crate) static ref CONFIG: Config = Config::from_config_file();
+  pub(crate) static ref CONFIG: Config = Config::from_rocket_config();
 }
 
 #[derive(OpenApi)]
@@ -101,6 +95,12 @@ lazy_static! {
         route::organization::credentials::aws::get_all,
         route::organization::credentials::aws::update,
         route::organization::credentials::aws::delete,
+        // Organization Credentials Ovh
+        route::organization::credentials::ovh::new,
+        route::organization::credentials::ovh::get,
+        route::organization::credentials::ovh::get_all,
+        route::organization::credentials::ovh::update,
+        route::organization::credentials::ovh::delete,
         // Cloud Provider
         route::cloud_provider::all,
         // Cloud Provider Aws
@@ -117,7 +117,7 @@ lazy_static! {
         route::auth::dto::MagicLinkRequest,
         route::auth::dto::RegisterRequest,
         route::auth::dto::TwoFactorRecoveryRequest,
-        route::auth::dto::TwoFactorCode,
+        route::auth::dto::TwoFactorCodeRequest,
         route::auth::dto::ForgotPasswordRequest,
         route::auth::dto::ResetPasswordRequest,
         // Account
@@ -141,7 +141,7 @@ lazy_static! {
         route::organization::dto::OrganizationInfoResponse,
         route::organization::dto::UpdateOrganizationRequest,
         route::organization::dto::DeleteOrganizationRequest,
-        // Organization Invitiation
+        // Organization Invitation
         route::organization::invitation::dto::NewOrganizationInvitationRequest,
         route::organization::invitation::dto::OrganizationInvitationInfoResponse,
         route::organization::invitation::dto::OrganizationInvitationInfoUser,
@@ -161,6 +161,10 @@ lazy_static! {
         route::organization::credentials::aws::dto::AwsCredentialsInfoResponse,
         route::organization::credentials::aws::dto::NewAwsCredentialsRequest,
         route::organization::credentials::aws::dto::UpdateAwsCredentialsRequest,
+        // Organization Credentials Ovh
+        route::organization::credentials::ovh::dto::OvhCredentialsInfoResponse,
+        route::organization::credentials::ovh::dto::NewOvhCredentialsRequest,
+        route::organization::credentials::ovh::dto::UpdateOvhCredentialsRequest,
         // Cloud Provider
         route::cloud_provider::dto::CloudProviderResponse,
         // Cloud Provider Aws
@@ -183,11 +187,11 @@ async fn main() -> Result<(), rocket::Error> {
   // Catchers
 
   let catcher_list = catchers![
-    // catcher::not_found,
-    // catcher::unauthorized,
-    // catcher::forbidden,
-    // catcher::internal_server_error,
-    // catcher::unprocessable_entity
+    catcher::not_found,
+    catcher::unauthorized,
+    catcher::forbidden,
+    catcher::internal_server_error,
+    catcher::unprocessable_entity
   ];
 
   // Routes
@@ -253,6 +257,8 @@ async fn main() -> Result<(), rocket::Error> {
     // Organization Ovh Credentials
     route::organization::credentials::ovh::new,
     route::organization::credentials::ovh::get,
+    route::organization::credentials::ovh::get_all,
+    route::organization::credentials::ovh::update,
     route::organization::credentials::ovh::delete,
     // Organization Credentials Docker Hub
     route::organization::credentials::docker_hub::new,
@@ -264,8 +270,6 @@ async fn main() -> Result<(), rocket::Error> {
     route::cloud_provider::aws::all_region,
     route::cloud_provider::aws::instance_types,
   ];
-
-  let doc = ApiDoc::openapi();
 
   let swagger_ui = SwaggerUi::new("/swagger-ui/<_..>")
     .url("/api-docs/openapi.json", ApiDoc::openapi());
@@ -280,11 +284,6 @@ async fn main() -> Result<(), rocket::Error> {
     .mount("/", swagger_ui)
     .mount("/", redoc_ui)
     .mount("/", routes)
-    .configure(rocket::Config {
-      address: "0.0.0.0".parse().unwrap(),
-      port: 8000,
-      ..rocket::Config::default()
-    })
     .ignite()
     .await?
     .launch()

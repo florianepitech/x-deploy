@@ -1,7 +1,8 @@
 mod controller;
 pub(crate) mod dto;
 
-use crate::guard::token::Token;
+use crate::guard::auth::Auth;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::organization::member::dto::MemberInfoResponse;
 use crate::route::{ApiResult, SuccessMessage};
 use bson::doc;
@@ -20,10 +21,10 @@ use rocket::State;
 #[get("/organization/<org_id>/member", format = "application/json")]
 pub(crate) async fn get_all(
   db: &State<Database>,
-  token: Token,
+  auth: Auth,
   org_id: &str,
 ) -> ApiResult<Vec<MemberInfoResponse>> {
-  controller::get_all(db, token, org_id).await
+  controller::get_all(db, auth, org_id).await
 }
 
 #[deprecated]
@@ -42,7 +43,7 @@ pub(crate) async fn get_all(
 )]
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: String,
   member_id: String,
 ) -> ApiResult<SuccessMessage> {

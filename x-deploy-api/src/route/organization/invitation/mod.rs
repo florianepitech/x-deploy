@@ -1,4 +1,4 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::organization::invitation::dto::{
   NewOrganizationInvitationRequest, OrganizationInvitationInfoResponse,
 };
@@ -22,7 +22,7 @@ pub mod dto;
 #[get("/organization/<org_id>/invitation", format = "application/json")]
 pub async fn get_all(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
 ) -> ApiResult<Vec<OrganizationInvitationInfoResponse>> {
   controller::get_all(db, token, org_id).await
@@ -45,7 +45,7 @@ pub async fn get_all(
 )]
 pub async fn new_invitation(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   body: Json<NewOrganizationInvitationRequest>,
 ) -> ApiResult<SuccessMessage> {
@@ -67,7 +67,7 @@ pub async fn new_invitation(
 )]
 pub async fn delete_invitation(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   invitation_id: &str,
 ) -> ApiResult<SuccessMessage> {

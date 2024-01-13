@@ -1,4 +1,4 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::account::dto::{
   ChangePasswordRequest, GetAccountInfoResponse, TwoFactorCodeRequest,
   TwoFactorInfoRequest, TwoFactorInfoResponse, TwoFactorSetupRequest,
@@ -28,7 +28,7 @@ pub(crate) mod dto;
 )]
 #[get("/account", format = "application/json")]
 pub(crate) async fn get_info(
-  token: Token,
+  token: BearerToken,
   db: &State<Database>,
 ) -> ApiResult<GetAccountInfoResponse> {
   return controller::get_info(token, db).await;
@@ -47,7 +47,7 @@ pub(crate) async fn get_info(
 #[post("/account/verify-email", format = "application/json", data = "<body>")]
 pub(crate) async fn verify_email(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<dto::VerifyEmailRequest>,
 ) -> ApiResult<SuccessMessage> {
   return controller::verify_email(db, token, body).await;
@@ -71,7 +71,7 @@ pub(crate) async fn verify_email(
 )]
 pub(crate) async fn change_password(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<ChangePasswordRequest>,
 ) -> ApiResult<SuccessMessage> {
   return controller::change_password(db, token, body).await;
@@ -112,7 +112,7 @@ pub(crate) async fn change_phone(
 #[post("/account/2fa", format = "application/json", data = "<body>")]
 pub(crate) async fn info_2fa(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<TwoFactorInfoRequest>,
 ) -> ApiResult<TwoFactorInfoResponse> {
   return controller::info_2fa(db, token, body).await;
@@ -132,7 +132,7 @@ pub(crate) async fn info_2fa(
 #[post("/account/2fa/setup", format = "application/json", data = "<body>")]
 pub(crate) async fn setup_2fa(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<TwoFactorSetupRequest>,
 ) -> ApiResult<TwoFactorSetupResponse> {
   return controller::setup_2fa(db, token, body).await;
@@ -152,7 +152,7 @@ pub(crate) async fn setup_2fa(
 #[post("/account/2fa/enable", format = "application/json", data = "<body>")]
 pub(crate) async fn enable_2fa(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<TwoFactorCodeRequest>,
 ) -> ApiResult<SuccessMessage> {
   return controller::enable_2fa(db, token, body).await;
@@ -172,7 +172,7 @@ pub(crate) async fn enable_2fa(
 #[post("/account/2fa/disable", format = "application/json", data = "<body>")]
 pub(crate) async fn disable_2fa(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<TwoFactorCodeRequest>,
 ) -> ApiResult<SuccessMessage> {
   return controller::disable_2fa(db, token, body).await;
@@ -191,7 +191,7 @@ pub(crate) async fn disable_2fa(
 pub(crate) async fn upload_profile_picture(
   db: &State<Database>,
   content_type: &ContentType,
-  token: Token,
+  token: BearerToken,
   data: Data<'_>,
 ) -> ApiResult<SuccessMessage> {
   return controller::upload_profile_picture(db, content_type, token, data)

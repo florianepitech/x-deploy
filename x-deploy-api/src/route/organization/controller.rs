@@ -1,6 +1,6 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::permission::general::{
-  verify_general_permission, GeneralPermissionType,
+  verify_general_permission, GeneralPermission,
 };
 use crate::route::organization::dto::{
   CreateOrganizationRequest, OrganizationInfoResponse,
@@ -34,7 +34,7 @@ use x_deploy_common::s3::file_type::CommonS3BucketType::OrganizationLogo;
 
 pub(crate) async fn all(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
 ) -> ApiResult<Vec<OrganizationInfoResponse>> {
   let id = token.parse_id()?;
   let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
@@ -56,7 +56,7 @@ pub(crate) async fn all(
 
 pub(crate) async fn new(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<CreateOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
@@ -98,7 +98,7 @@ pub(crate) async fn new(
 
 pub(crate) async fn get_by_id(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: String,
 ) -> ApiResult<OrganizationInfoResponse> {
   let id = token.parse_id()?;
@@ -123,7 +123,7 @@ pub(crate) async fn get_by_id(
 
 pub(crate) async fn update(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: String,
   body: Json<UpdateOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {
@@ -157,7 +157,7 @@ pub(crate) async fn update(
 
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   id: String,
   body: Json<DeleteOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {
@@ -204,7 +204,7 @@ pub(crate) async fn delete(
 
 pub(crate) async fn transfer(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   id: String,
   body: Json<TransferOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {
@@ -213,7 +213,7 @@ pub(crate) async fn transfer(
 
 pub(crate) async fn update_logo(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: String,
   content_type: &ContentType,
   data: Data<'_>,
@@ -228,7 +228,7 @@ pub(crate) async fn update_logo(
     };
   verify_general_permission(
     org_user.role,
-    &GeneralPermissionType::Organization,
+    &GeneralPermission::Organization,
     &StandardPermission::ReadWrite,
   )?;
   let profile_picture = ProfilePicture::from_data(data).await?;

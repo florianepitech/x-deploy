@@ -1,4 +1,4 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::account::dto::{
   ChangePasswordRequest, ChangePhoneRequest, GetAccountInfoResponse,
   TwoFactorCodeRequest, TwoFactorInfoRequest, TwoFactorInfoResponse,
@@ -27,7 +27,7 @@ use x_deploy_common::s3::file_type::CommonS3BucketType;
 use CommonS3BucketType::UserProfilePicture;
 
 pub(crate) async fn get_info(
-  token: Token,
+  token: BearerToken,
   db: &State<Database>,
 ) -> ApiResult<GetAccountInfoResponse> {
   let user_id = token.parse_id()?;
@@ -49,7 +49,7 @@ pub(crate) async fn get_info(
 
 pub(crate) async fn verify_email(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<VerifyEmailRequest>,
 ) -> ApiResult<SuccessMessage> {
   let id = token.parse_id()?;
@@ -85,7 +85,7 @@ pub(crate) async fn verify_email(
 
 pub(crate) async fn change_password(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<ChangePasswordRequest>,
 ) -> ApiResult<SuccessMessage> {
   let id = token.parse_id()?;
@@ -137,7 +137,7 @@ pub(crate) async fn change_phone(
 
 pub(crate) async fn info_2fa(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<TwoFactorInfoRequest>,
 ) -> ApiResult<TwoFactorInfoResponse> {
   let user_id = token.parse_id()?;
@@ -177,7 +177,7 @@ pub(crate) async fn info_2fa(
 
 pub(crate) async fn setup_2fa(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<TwoFactorSetupRequest>,
 ) -> ApiResult<TwoFactorSetupResponse> {
   let user_id = token.parse_id()?;
@@ -242,7 +242,7 @@ pub(crate) async fn setup_2fa(
 
 pub(crate) async fn enable_2fa(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<TwoFactorCodeRequest>,
 ) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
@@ -292,7 +292,7 @@ pub(crate) async fn enable_2fa(
 
 pub(crate) async fn disable_2fa(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   body: Json<TwoFactorCodeRequest>,
 ) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;
@@ -335,7 +335,7 @@ pub(crate) async fn disable_2fa(
 pub(crate) async fn upload_profile_picture(
   db: &State<Database>,
   content_type: &ContentType,
-  token: Token,
+  token: BearerToken,
   data: Data<'_>,
 ) -> ApiResult<SuccessMessage> {
   let user_id = token.parse_id()?;

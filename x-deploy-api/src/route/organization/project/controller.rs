@@ -1,6 +1,7 @@
-use crate::guard::token::Token;
+use crate::guard::auth::Auth;
+use crate::guard::bearer_token::BearerToken;
 use crate::permission::general::{
-  verify_general_permission, GeneralPermissionType,
+  verify_general_permission, GeneralPermission,
 };
 use crate::route::organization::project::dto::{
   CreateProjectRequest, ProjectInfoResponse, UpdateProjectInfoRequest,
@@ -11,7 +12,7 @@ use crate::route::{
 use crate::utils::object_id::ToObjectId;
 use crate::utils::profile_picture::ProfilePicture;
 use crate::CONFIG;
-use bson::oid;
+use bson::oid::ObjectId;
 use mongodb::Database;
 use rocket::http::{ContentType, Status};
 use rocket::serde::json::Json;
@@ -27,72 +28,57 @@ use x_deploy_common::s3::file_type::CommonS3BucketType::ProjectLogo;
 
 pub(crate) async fn new(
   db: &State<Database>,
-  token: Token,
+  auth: Auth,
   org_id: &str,
   body: Json<CreateProjectRequest>,
 ) -> ApiResult<SuccessMessage> {
-  let user_id = token.parse_id()?;
-  let org_id = org_id.to_object_id()?;
-  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
-  let organization = org_member_coll.get_user_in_org(&user_id, &org_id).await?;
+  let org_id = ObjectId::from_str(org_id)?;
 
-  return match organization {
-    Some(organization) => {
-      let project = OrganizationProject::new(
-        body.name.clone(),
-        body.description.clone(),
-        organization.organization.id.clone(),
-      );
-      let org_project_coll = CommonCollection::<OrganizationProject>::new(db);
-      org_project_coll.insert_one(&project).await?;
-      custom_message(Status::Created, "Your project was successfully created")
-    }
-    None => custom_message(
-      Status::NotFound,
-      "You are not a member of this organization",
-    ),
-  };
+  GeneralPermission::Project
+    .verify_auth(db, auth, &org_id, StandardPermission::Read)
+    .await?;
+
+  // Create project
+  let project = OrganizationProject::new(
+    body.name.clone(),
+    body.description.clone(),
+    org_id,
+  );
+  let org_project_coll = CommonCollection::<OrganizationProject>::new(db);
+  org_project_coll.insert_one(&project).await?;
+  custom_message(Status::Created, "Your project was successfully created")
 }
 
 pub(crate) async fn get_all(
   db: &State<Database>,
-  token: Token,
+  auth: Auth,
   org_id: &str,
 ) -> ApiResult<Vec<ProjectInfoResponse>> {
-  let user_id = token.parse_id()?;
-  let org_id = org_id.to_object_id()?;
-  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
-  let organization = org_member_coll.get_user_in_org(&user_id, &org_id).await?;
+  let org_id = ObjectId::from_str(org_id)?;
 
-  return match organization {
-    None => custom_error(
-      Status::NotFound,
-      "You are not a member of this organization",
-    ),
-    Some(organization) => {
-      let org_project_coll = CommonCollection::<OrganizationProject>::new(db);
-      let projects = org_project_coll
-        .get_of_org(&organization.organization.id)
-        .await?;
-      let mut result: Vec<ProjectInfoResponse> = Vec::new();
-      for project in projects {
-        let project_info = ProjectInfoResponse {
-          id: project.id.to_hex(),
-          name: project.name,
-          description: project.description,
-          logo_url: project.logo_url,
-          organization_id: org_id.to_string(),
-        };
-        result.push(project_info);
-      }
-      custom_response(Status::Ok, result)
-    }
-  };
+  GeneralPermission::Project
+    .verify_auth(db, auth, &org_id, StandardPermission::Read)
+    .await?;
+
+  let org_project_coll = CommonCollection::<OrganizationProject>::new(db);
+  let projects = org_project_coll.get_of_org(&org_id).await?;
+  let mut result: Vec<ProjectInfoResponse> = Vec::new();
+  for project in projects {
+    let project_info = ProjectInfoResponse {
+      id: project.id.to_hex(),
+      name: project.name,
+      description: project.description,
+      logo_url: project.logo_url,
+      organization_id: org_id.to_string(),
+    };
+    result.push(project_info);
+  }
+  custom_response(Status::Ok, result)
 }
 
 pub(crate) async fn get_by_id(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   project_id: &str,
 ) -> ApiResult<ProjectInfoResponse> {
@@ -131,7 +117,7 @@ pub(crate) async fn get_by_id(
 
 pub(crate) async fn update(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   project_id: &str,
   body: Json<UpdateProjectInfoRequest>,
@@ -174,7 +160,7 @@ pub(crate) async fn update(
 
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   project_id: &str,
 ) -> ApiResult<SuccessMessage> {
@@ -213,7 +199,7 @@ pub(crate) async fn delete(
 
 pub(crate) async fn update_logo(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
   project_id: &str,
   content_type: &ContentType,
@@ -230,7 +216,7 @@ pub(crate) async fn update_logo(
     };
   verify_general_permission(
     org_user.role,
-    &GeneralPermissionType::Organization,
+    &GeneralPermission::Organization,
     &StandardPermission::ReadWrite,
   )?;
   let org_project_coll = CommonCollection::<OrganizationProject>::new(db);

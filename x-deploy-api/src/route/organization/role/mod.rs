@@ -1,4 +1,4 @@
-use crate::guard::token::Token;
+use crate::guard::bearer_token::BearerToken;
 use crate::route::organization::role::dto::CustomRoleInfoResponse;
 use crate::route::ApiResult;
 use mongodb::Database;
@@ -19,7 +19,7 @@ mod dto;
 #[get("/organization/<org_id>/role", format = "application/json")]
 pub(crate) async fn all(
   db: &State<Database>,
-  token: Token,
+  token: BearerToken,
   org_id: &str,
 ) -> ApiResult<Vec<CustomRoleInfoResponse>> {
   controller::all(db, token, org_id).await
