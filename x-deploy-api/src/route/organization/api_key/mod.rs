@@ -13,12 +13,14 @@ use rocket::serde::json::Json;
 use rocket::State;
 use std::str::FromStr;
 
-#[deprecated]
 #[utoipa::path(
     post,
     operation_id = "Create ApiKey",
     path = "/organization/{id}/api-key",
     tag = "Organization ApiKey",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Your api key has been created", body = SuccessMessage)
     ),
@@ -38,12 +40,14 @@ pub(crate) async fn new(
   controller::new(db, token, id, body).await
 }
 
-#[deprecated]
 #[utoipa::path(
     get,
     operation_id = "Get ApiKey",
     path = "/organization/<id>/api-key",
     tag = "Organization ApiKey",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Api key retrieved", body = Vec<ApiKeyInfoResponse>),
     )
@@ -57,12 +61,14 @@ pub(crate) async fn get(
   controller::get(db, token, id).await
 }
 
-#[deprecated]
 #[utoipa::path(
     get,
     operation_id = "Get ApiKey by Id",
     path = "/organization/<id>/api-key/<key_id>",
     tag = "Organization ApiKey",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Specific api key retrieved", body = SuccessMessage),
     )
@@ -77,12 +83,14 @@ pub(crate) async fn get_by_id(
   controller::get_by_id(db, token, id, key_id).await
 }
 
-#[deprecated]
 #[utoipa::path(
     get,
     operation_id = "Update ApiKey Info",
     path = "/organization/<id>/api-key/<key_id>",
     tag = "Organization ApiKey",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Api key info updated", body = SuccessMessage),
     )
@@ -102,12 +110,14 @@ pub async fn update(
   controller::update(db, token, org_id, key_id, body).await
 }
 
-#[deprecated]
 #[utoipa::path(
     delete,
     operation_id = "Delete ApiKey",
     path = "/organization/<id>/api-key/<key_id>",
     tag = "Organization ApiKey",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Api key deleted", body = SuccessMessage),
     )

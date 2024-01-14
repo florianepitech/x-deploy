@@ -20,7 +20,7 @@ pub(crate) mod dto;
     path = "/account",
     tag = "Account",
     security(
-      ("token_jwt" = [])
+      ("bearer" = []),
     ),
     responses(
         (status = 200, description = "Get account info", body = GetAccountInfoResponse),
@@ -39,6 +39,9 @@ pub(crate) async fn get_info(
     operation_id = "Verify Account Email",
     path = "/account/verify-email",
     tag = "Account",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Verify email", body = SuccessMessage),
     ),
@@ -59,6 +62,9 @@ pub(crate) async fn verify_email(
     operation_id = "Change Password",
     path = "/account/change-password",
     tag = "Account",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Change password", body = SuccessMessage),
     ),
@@ -83,6 +89,9 @@ pub(crate) async fn change_password(
     operation_id = "Change Phone",
     path = "/account/change-phone",
     tag = "Account",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Change phone", body = SuccessMessage),
     ),
@@ -104,6 +113,9 @@ pub(crate) async fn change_phone(
   operation_id = "Get 2FA Info",
   path = "/account/2fa",
   tag = "Account",
+  security(
+    ("bearer" = []),
+  ),
   responses(
     (status = 200, description = "Information about your 2FA", body = TwoFactorInfoResponse),
   ),
@@ -124,6 +136,9 @@ pub(crate) async fn info_2fa(
   operation_id = "Setup 2FA",
   path = "/account/2fa/setup",
   tag = "Account",
+  security(
+    ("bearer" = []),
+  ),
   responses(
     (status = 200, description = "The data about your new 2FA setup", body = TwoFactorSetupResponse),
   ),
@@ -144,6 +159,9 @@ pub(crate) async fn setup_2fa(
     operation_id = "Enable 2FA",
     path = "/account/2fa/enable",
     tag = "Account",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Create api key", body = SuccessMessage),
     ),
@@ -164,6 +182,9 @@ pub(crate) async fn enable_2fa(
     operation_id = "Disable 2FA",
     path = "/account/2fa/disable",
     tag = "Account",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Create api key", body = SuccessMessage),
     ),
@@ -183,6 +204,9 @@ pub(crate) async fn disable_2fa(
     operation_id = "Upload Profile Picture",
     path = "/account/profile-picture",
     tag = "Account",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Upload profile picture", body = SuccessMessage),
     ),

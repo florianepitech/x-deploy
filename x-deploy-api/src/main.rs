@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::doc::security::{ApiKeySecurity, BearerSecurity};
 use crate::fairing::cors::Cors;
 use lazy_static::lazy_static;
 use rocket::futures::StreamExt;
@@ -12,6 +13,7 @@ extern crate rocket;
 
 mod catcher;
 mod config;
+pub mod doc;
 mod error;
 mod fairing;
 mod guard;
@@ -34,6 +36,7 @@ lazy_static! {
         email = "contact@x-deploy.com"
       )
     ),
+    modifiers(&BearerSecurity, &ApiKeySecurity),
     paths(
         // Auth
         route::auth::login,

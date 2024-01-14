@@ -24,6 +24,9 @@ pub(crate) mod role;
     operation_id = "Get All Organizations",
     path = "/organization",
     tag = "Organization",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Get all organizations", body = Vec<OrganizationInfoResponse>),
     ),
@@ -41,6 +44,9 @@ pub(crate) async fn all(
     operation_id = "Create Organization",
     path = "/organization",
     tag = "Organization",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Create a new organization", body = SuccessMessage),
     ),
@@ -60,6 +66,9 @@ pub(crate) async fn new(
     operation_id = "Get Organization by Id",
     path = "/organization/<id>",
     tag = "Organization",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Get organization by id", body = OrganizationInfoResponse),
     )
@@ -78,6 +87,9 @@ pub(crate) async fn get_by_id(
     operation_id = "Update Organization",
     path = "/organization/<id>",
     tag = "Organization",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Update an organization by id", body = SuccessMessage),
     ),
@@ -98,6 +110,9 @@ pub(crate) async fn update(
     operation_id = "Upload Organization Logo",
     path = "/organization/<org_id>/logo",
     tag = "Organization",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Upload organization logo by id", body = SuccessMessage),
     ),
@@ -118,6 +133,9 @@ pub(crate) async fn update_logo(
     operation_id = "Delete Organization",
     path = "/organization/<id>",
     tag = "Organization",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Delete organization by id", body = SuccessMessage),
     ),
@@ -138,6 +156,9 @@ pub(crate) async fn delete(
     operation_id = "Transfer Organization",
     path = "/organization/<id>/transfer",
     tag = "Organization",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Transfer organization by id", body = SuccessMessage),
     ),

@@ -73,13 +73,7 @@ pub(crate) async fn get_all(
     .await?;
   let mut response: Vec<ClusterInfoResponse> = Vec::new();
   for cluster in clusters {
-    let cluster_info = ClusterInfoResponse {
-      id: cluster.id.to_hex(),
-      name: cluster.name,
-      description: cluster.description,
-      cloud_provider: cluster.cloud_provider,
-      status: cluster.status.to_string(),
-    };
+    let cluster_info: ClusterInfoResponse = cluster.into();
     response.push(cluster_info);
   }
   custom_response(Status::Ok, response)
@@ -103,13 +97,7 @@ pub(crate) async fn get(
     .await?;
   return match cluster {
     Some(cluster) => {
-      let cluster_info = ClusterInfoResponse {
-        id: cluster.id.to_hex(),
-        name: cluster.name,
-        description: cluster.description,
-        cloud_provider: cluster.cloud_provider,
-        status: cluster.status.to_string(),
-      };
+      let cluster_info: ClusterInfoResponse = cluster.into();
       custom_response(Status::Ok, cluster_info)
     }
     None => {

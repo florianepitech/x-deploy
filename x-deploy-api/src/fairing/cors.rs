@@ -20,9 +20,14 @@ impl Fairing for Cors {
 
   async fn on_response<'r>(
     &self,
-    _request: &'r Request<'_>,
+    request: &'r Request<'_>,
     response: &mut Response<'r>,
   ) {
+    // Change status to 200 if the request is an OPTIONS request.
+    if request.method() == rocket::http::Method::Options {
+      response.set_status(rocket::http::Status::Ok);
+    }
+    // Add CORS headers for all response.
     let cors_allowed_origins = CONFIG.cors_allowed_origins.join(",");
     let cors_allowed_methods = CONFIG.cors_allowed_methods.join(",");
     let cors_allowed_headers = CONFIG.cors_allowed_headers.join(",");

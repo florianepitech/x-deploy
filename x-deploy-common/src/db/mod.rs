@@ -18,6 +18,7 @@ pub mod organization_project_environment;
 pub mod organization_role;
 pub mod query;
 pub mod user;
+mod organization_project_deployment;
 
 pub trait ToCollectionName {
   fn collection_name() -> String;

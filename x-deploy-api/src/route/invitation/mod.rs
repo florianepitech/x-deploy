@@ -15,6 +15,9 @@ pub(crate) mod dto;
     operation_id = "Get All Invitation",
     path = "/invitation",
     tag = "Invitation",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Get all invitation", body = Vec<InvitationInfoResponse>),
     ),
@@ -32,6 +35,9 @@ pub(crate) async fn get_all(
     operation_id = "Response to an invitation",
     path = "/invitation/<invitation_id>",
     tag = "Invitation",
+    security(
+      ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "Response to an invitation", body = SuccessMessage),
     ),

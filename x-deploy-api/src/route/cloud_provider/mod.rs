@@ -14,6 +14,9 @@ mod ovh;
     operation_id = "Get all cloud provider available",
     path = "/cloud-provider",
     tag = "Cloud Provider",
+    security(
+        ("bearer" = []),
+    ),
     responses(
         (status = 200, description = "The list of cloud provider available", body = Vec<CloudProviderResponse>),
     ),

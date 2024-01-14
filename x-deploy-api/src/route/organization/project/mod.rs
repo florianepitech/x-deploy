@@ -13,6 +13,8 @@ use rocket::{Data, State};
 pub mod cluster;
 mod controller;
 pub mod dto;
+mod environment;
+mod deployment;
 
 #[utoipa::path(
   get,

@@ -16,6 +16,10 @@ pub mod dto;
   operation_id = "Create a new cluster",
   path = "/organization/<org_id>/project/<project_id>/cluster",
   tag = "Organization Project Clusters",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Create a new cluster", body = SuccessMessage),
   ),
@@ -38,6 +42,10 @@ pub async fn new(
   operation_id = "Get all clusters of a project",
   path = "/organization/<org_id>/project/<project_id>/cluster",
   tag = "Organization Project Clusters",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Get all clusters of a project", body = Vec<ClusterInfoResponse>),
   ),
@@ -61,6 +69,10 @@ pub async fn get_all(
   operation_id = "Get a cluster of a project",
   path = "/organization/<org_id>/project/<project_id>/cluster/<cluster_id>",
   tag = "Organization Project Clusters",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Get a cluster of a project", body = ClusterInfoResponse),
   ),
