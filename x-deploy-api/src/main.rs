@@ -83,6 +83,10 @@ lazy_static! {
         route::organization::project::update,
         route::organization::project::update_logo,
         route::organization::project::delete,
+        // Organization Project Cluster
+        route::organization::project::cluster::new,
+        route::organization::project::cluster::get_all,
+        route::organization::project::cluster::get,
         // Organization Credentials Docker Hub
         route::organization::credentials::docker_hub::new,
         route::organization::credentials::docker_hub::get,
@@ -141,6 +145,13 @@ lazy_static! {
         route::organization::dto::OrganizationInfoResponse,
         route::organization::dto::UpdateOrganizationRequest,
         route::organization::dto::DeleteOrganizationRequest,
+        // Organization Project
+        route::organization::project::dto::CreateProjectRequest,
+        route::organization::project::dto::ProjectInfoResponse,
+        route::organization::project::dto::UpdateProjectInfoRequest,
+        // Organization Project Cluster
+        route::organization::project::cluster::dto::CreateClusterRequest,
+        route::organization::project::cluster::dto::ClusterInfoResponse,
         // Organization Invitation
         route::organization::invitation::dto::NewOrganizationInvitationRequest,
         route::organization::invitation::dto::OrganizationInvitationInfoResponse,
@@ -149,10 +160,8 @@ lazy_static! {
         route::organization::member::dto::MemberInfoResponse,
         // Organization Api Keys
         route::organization::api_key::dto::CreateApiKeyRequest,
-        // Organization Project
-        route::organization::project::dto::CreateProjectRequest,
-        route::organization::project::dto::ProjectInfoResponse,
-        route::organization::project::dto::UpdateProjectInfoRequest,
+        route::organization::api_key::dto::ApiKeyInfoResponse,
+        route::organization::api_key::dto::ApiKeyRoleInfoResponse,
         // Organization Credentials Docker Hub
         route::organization::credentials::docker_hub::dto::DockerHubInfoResponse,
         route::organization::credentials::docker_hub::dto::NewDockerHubRequest,
@@ -234,6 +243,10 @@ async fn main() -> Result<(), rocket::Error> {
     route::organization::project::update,
     route::organization::project::update_logo,
     route::organization::project::delete,
+    // Organization Project Cluster
+    route::organization::project::cluster::new,
+    route::organization::project::cluster::get_all,
+    route::organization::project::cluster::get,
     // Organization Aws Credentials
     route::organization::credentials::aws::new,
     route::organization::credentials::aws::get,

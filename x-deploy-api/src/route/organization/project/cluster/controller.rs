@@ -18,7 +18,7 @@ use x_deploy_common::db::organization_project_cluster::{
 };
 use x_deploy_common::db::CommonCollection;
 
-pub(crate) async fn create_cluster(
+pub(crate) async fn new(
   db: &State<Database>,
   auth: Auth,
   org_id: &str,

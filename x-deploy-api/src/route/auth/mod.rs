@@ -75,7 +75,7 @@ pub(crate) async fn register(
     responses(
         (status = 200, description = "You're now logged in", body = SuccessMessage),
     ),
-    request_body = TwoFactorCode,
+    request_body = TwoFactorCodeRequest,
 )]
 #[post("/auth/2fa", format = "application/json", data = "<body>")]
 pub(crate) async fn two_factor(
