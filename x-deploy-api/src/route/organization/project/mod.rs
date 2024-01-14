@@ -10,8 +10,9 @@ use rocket::http::ContentType;
 use rocket::serde::json::Json;
 use rocket::{Data, State};
 
+pub mod cluster;
 mod controller;
-pub(crate) mod dto;
+pub mod dto;
 
 #[utoipa::path(
   get,

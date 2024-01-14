@@ -2,6 +2,7 @@ use rusoto_core::RusotoError;
 use rusoto_s3::{DeleteObjectError, PutObjectError};
 
 pub mod cache;
+pub mod data;
 pub mod db;
 pub mod event;
 pub mod s3;
@@ -18,6 +19,7 @@ pub enum CommonError {
   RedisError(redis::RedisError),
   S3AddObjectError(RusotoError<PutObjectError>),
   S3DeleteObjectError(RusotoError<DeleteObjectError>),
+  FromStrError(String),
 }
 
 impl From<mongodb::error::Error> for CommonError {

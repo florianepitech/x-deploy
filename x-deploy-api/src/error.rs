@@ -28,13 +28,15 @@ impl ApiError {
 }
 
 impl From<CommonError> for ApiError {
-  fn from(_: CommonError) -> Self {
-    let status = rocket::http::Status::InternalServerError;
-    let error = ApiError::new(
-      status,
-      "An internal error occurred, please try again later".to_string(),
-    );
-    error
+  fn from(e: CommonError) -> Self {
+    let status = Status::InternalServerError;
+    return match e {
+      CommonError::FromStrError(message) => ApiError::new(status, message),
+      _ => ApiError::new(
+        status,
+        "An internal error occurred, please try again later".to_string(),
+      ),
+    };
   }
 }
 

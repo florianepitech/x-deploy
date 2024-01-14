@@ -19,14 +19,6 @@ pub mod organization_role;
 pub mod query;
 pub mod user;
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
-pub enum CloudProvider {
-  #[serde(rename = "AWS")]
-  AWS,
-  #[serde(rename = "OVH")]
-  OVH,
-}
-
 pub trait ToCollectionName {
   fn collection_name() -> String;
 }

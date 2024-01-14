@@ -64,7 +64,7 @@ lazy_static! {
         route::organization::update_logo,
         route::organization::delete,
         route::organization::transfer,
-        // Organization Invitiation
+        // Organization Invitation
         route::organization::invitation::get_all,
         route::organization::invitation::new_invitation,
         route::organization::invitation::delete_invitation,
@@ -240,14 +240,6 @@ async fn main() -> Result<(), rocket::Error> {
     route::organization::credentials::aws::get_all,
     route::organization::credentials::aws::update,
     route::organization::credentials::aws::delete,
-    // Organization Azure Credentials
-    route::organization::credentials::azure::new,
-    route::organization::credentials::azure::get,
-    route::organization::credentials::azure::delete,
-    // Organization Google Cloud Credentials
-    route::organization::credentials::google_cloud::new,
-    route::organization::credentials::google_cloud::get,
-    route::organization::credentials::google_cloud::delete,
     // Organization Ovh Credentials
     route::organization::credentials::ovh::new,
     route::organization::credentials::ovh::get,
