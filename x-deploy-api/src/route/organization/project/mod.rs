@@ -12,9 +12,9 @@ use rocket::{Data, State};
 
 pub mod cluster;
 mod controller;
+mod deployment;
 pub mod dto;
 mod environment;
-mod deployment;
 
 #[utoipa::path(
   get,
@@ -39,6 +39,10 @@ pub(crate) async fn get_all(
   operation_id = "Get Project by Id",
   path = "/organization/<org_id>/project/<project_id>",
   tag = "Organization Projects",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Get project by id", body = ProjectInfoResponse),
   ),
@@ -49,11 +53,11 @@ pub(crate) async fn get_all(
 )]
 pub(crate) async fn get_by_id(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   project_id: &str,
 ) -> ApiResult<ProjectInfoResponse> {
-  controller::get_by_id(db, token, org_id, project_id).await
+  controller::get_by_id(db, auth, org_id, project_id).await
 }
 
 #[utoipa::path(

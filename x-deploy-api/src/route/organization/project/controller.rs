@@ -78,40 +78,33 @@ pub(crate) async fn get_all(
 
 pub(crate) async fn get_by_id(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   project_id: &str,
 ) -> ApiResult<ProjectInfoResponse> {
-  let user_id = token.parse_id()?;
-  let org_id = org_id.to_object_id()?;
-  let project_id = project_id.to_object_id()?;
-  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
-  let organization = org_member_coll.get_user_in_org(&user_id, &org_id).await?;
+  let org_id = ObjectId::from_str(org_id)?;
+  let project_id = ObjectId::from_str(project_id)?;
 
-  return match organization {
-    None => custom_error(
-      Status::NotFound,
-      "You are not a member of this organization",
-    ),
-    Some(organization) => {
-      let org_project_coll = CommonCollection::<OrganizationProject>::new(db);
-      let project = org_project_coll
-        .get_with_id_of_org(&project_id, &org_id)
-        .await?;
-      return match project {
-        Some(project) => {
-          let result = ProjectInfoResponse {
-            id: project.id.to_string(),
-            name: project.name,
-            description: project.description,
-            logo_url: project.logo_url,
-            organization_id: org_id.to_string(),
-          };
-          custom_response(Status::Ok, result)
-        }
-        None => return custom_error(Status::NotFound, "Project not found"),
+  GeneralPermission::Project
+    .verify_auth(db, auth, &org_id, StandardPermission::Read)
+    .await?;
+
+  let org_project_coll = CommonCollection::<OrganizationProject>::new(db);
+  let project = org_project_coll
+    .get_with_id_of_org(&project_id, &org_id)
+    .await?;
+  return match project {
+    Some(project) => {
+      let result = ProjectInfoResponse {
+        id: project.id.to_string(),
+        name: project.name,
+        description: project.description,
+        logo_url: project.logo_url,
+        organization_id: org_id.to_string(),
       };
+      custom_response(Status::Ok, result)
     }
+    None => return custom_error(Status::NotFound, "Project not found"),
   };
 }
 
