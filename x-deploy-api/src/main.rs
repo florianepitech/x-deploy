@@ -69,6 +69,7 @@ lazy_static! {
         route::organization::transfer,
         // Organization Invitation
         route::organization::invitation::get_all,
+        route::organization::invitation::get_by_id,
         route::organization::invitation::new_invitation,
         route::organization::invitation::delete_invitation,
         // Organization Api Keys
@@ -239,6 +240,11 @@ async fn main() -> Result<(), rocket::Error> {
     // Organization Members
     route::organization::member::get_all,
     route::organization::member::delete,
+    // Organization Invitation
+    route::organization::invitation::get_all,
+    route::organization::invitation::get_by_id,
+    route::organization::invitation::new_invitation,
+    route::organization::invitation::delete_invitation,
     // Organization Project
     route::organization::project::new,
     route::organization::project::get_by_id,

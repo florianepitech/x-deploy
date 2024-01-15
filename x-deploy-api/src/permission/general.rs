@@ -54,25 +54,37 @@ impl GeneralPermission {
     ))
   }
 
+  /// The method verifies if the user has the permission to
+  /// do the action and was a member of the organization.
+  /// # Arguments
+  ///
+  /// * `db`: The database connection
+  /// * `auth`: The authentication method
+  /// * `org_id`: The id of the organization
+  /// * `ask`: The permission to ask for
+  ///
+  /// returns: Result<Option<ObjectId>, ApiError>
+  /// The role id if the user has a role or None if the user is the owner of the organization
   pub async fn verify_auth(
     &self,
     db: &Database,
     auth: Auth,
     org_id: &ObjectId,
     ask: StandardPermission,
-  ) -> Result<(), ApiError> {
-    match auth {
+  ) -> Result<Option<OrganizationRole>, ApiError> {
+    return match auth {
       Auth::ApiKey(api_key) => {
-        self
+        let result = self
           .verify_key_and_get(db, &api_key.id, &org_id, &ask)
           .await?;
+        Ok(result.role)
       }
       Auth::Bearer(token) => {
         let user_id = token.parse_id()?;
-        self.verify_and_get(db, &user_id, &org_id, &ask).await?;
+        let result = self.verify_and_get(db, &user_id, &org_id, &ask).await?;
+        Ok(result.role)
       }
-    }
-    Ok(())
+    };
   }
 
   pub async fn verify_and_get(
@@ -130,7 +142,7 @@ impl GeneralPermission {
       GeneralPermission::Members => role.general_permission.members.clone(),
       GeneralPermission::Organization => {
         role.general_permission.organization.clone()
-      },
+      }
       GeneralPermission::Project => role.general_permission.project.clone(),
     };
   }

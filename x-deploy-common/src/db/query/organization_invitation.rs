@@ -70,6 +70,27 @@ impl CommonCollection<OrganizationInvitation> {
     return Ok(result);
   }
 
+  pub async fn get_by_id_of_org(
+    &self,
+    org_id: &ObjectId,
+    invitation_id: &ObjectId,
+  ) -> CommonResult<Option<OrganizationInvitationQuery>> {
+    let filter = doc! {
+      "organizationId": org_id,
+      "_id": invitation_id,
+    };
+    let mut pipeline = Self::default_pipeline();
+    pipeline.insert(
+      0,
+      doc! {
+        "$match": filter,
+      },
+    );
+    let cursor = self.collection.aggregate(pipeline, None).await?;
+    let mut result = cursor_doc_to_vec(cursor).await?;
+    return Ok(result.pop());
+  }
+
   pub async fn get_of_user(
     &self,
     user_id: &ObjectId,
