@@ -1,7 +1,6 @@
+use crate::guard::auth::Auth;
 use crate::guard::bearer_token::BearerToken;
-use crate::permission::general::{
-  verify_general_permission, GeneralPermission,
-};
+use crate::permission::general::GeneralPermission;
 use crate::route::organization::dto::{
   CreateOrganizationRequest, OrganizationInfoResponse,
   UpdateOrganizationRequest,
@@ -12,15 +11,16 @@ use crate::route::organization::dto::{
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResult, SuccessMessage,
 };
-use crate::utils::object_id::ToObjectId;
 use crate::utils::password::verify_password;
 use crate::utils::profile_picture::ProfilePicture;
 use crate::CONFIG;
 use bson::oid;
+use bson::Bson::ObjectId;
 use mongodb::Database;
 use rocket::http::{ContentType, Status};
 use rocket::serde::json::Json;
 use rocket::{Data, State};
+use std::str::FromStr;
 use x_deploy_common::db::organization::Organization;
 use x_deploy_common::db::organization_member::OrganizationMember;
 use x_deploy_common::db::organization_role::StandardPermission;
@@ -98,61 +98,63 @@ pub(crate) async fn new(
 
 pub(crate) async fn get_by_id(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: String,
 ) -> ApiResult<OrganizationInfoResponse> {
-  let id = token.parse_id()?;
-  let orgs_id = org_id.to_object_id()?;
-  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
-  let orgs = org_member_coll.get_user_in_org(&orgs_id, &id).await?;
-  return match orgs {
-    None => custom_error(Status::NotFound, "Organization not found"),
-    Some(orgs) => {
+  let org_id = bson::oid::ObjectId::from_str(&org_id)?;
+  GeneralPermission::Organization
+    .verify_auth(db, auth, &org_id, StandardPermission::Read)
+    .await?;
+  let collection = CommonCollection::<Organization>::new(db);
+  let org = collection.get_by_id(&org_id).await?;
+  return match org {
+    Some(org) => {
       let result = OrganizationInfoResponse {
-        id: orgs.organization.id.to_string(),
-        name: orgs.organization.name,
-        description: orgs.organization.description,
-        logo_url: orgs.organization.logo_url,
-        website: orgs.organization.website,
-        contact_email: orgs.organization.contact_email,
+        id: org.id.to_string(),
+        name: org.name,
+        description: org.description,
+        logo_url: org.logo_url,
+        website: org.website,
+        contact_email: org.contact_email,
       };
       custom_response(Status::Ok, result)
     }
+    None => custom_error(
+      Status::InternalServerError,
+      "Organization not found, please contact support",
+    ),
   };
 }
 
 pub(crate) async fn update(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: String,
   body: Json<UpdateOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {
-  let user_id = token.parse_id()?;
-  let org_id = org_id.to_object_id()?;
-  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
-  let organization = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
-  return match organization {
-    None => custom_error(Status::NotFound, "Organization not found"),
-    Some(organization) => {
-      let org_collection = CommonCollection::<Organization>::new(db);
-      let update_result = org_collection
-        .update_info(
-          &organization.id,
-          body.name.clone(),
-          body.description.clone(),
-          body.website.clone(),
-          body.contact_email.clone(),
-        )
-        .await?;
-      if update_result.modified_count == 0 {
-        return custom_error(
-          Status::InternalServerError,
-          "Failed to update organization",
-        );
-      }
-      custom_message(Status::Ok, "Organization updated successfully")
-    }
-  };
+  let org_id = bson::oid::ObjectId::from_str(&org_id)?;
+
+  GeneralPermission::Organization
+    .verify_auth(db, auth, &org_id, StandardPermission::ReadWrite)
+    .await?;
+
+  let org_collection = CommonCollection::<Organization>::new(db);
+  let update_result = org_collection
+    .update_info(
+      &org_id,
+      body.name.clone(),
+      body.description.clone(),
+      body.website.clone(),
+      body.contact_email.clone(),
+    )
+    .await?;
+  if update_result.modified_count == 0 {
+    return custom_error(
+      Status::InternalServerError,
+      "Failed to update organization",
+    );
+  }
+  custom_message(Status::Ok, "Organization updated successfully")
 }
 
 pub(crate) async fn delete(
@@ -213,24 +215,17 @@ pub(crate) async fn transfer(
 
 pub(crate) async fn update_logo(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: String,
   content_type: &ContentType,
   data: Data<'_>,
 ) -> ApiResult<SuccessMessage> {
-  let user_id = token.parse_id()?;
-  let org_id = org_id.to_object_id()?;
-  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
-  let org_user =
-    match org_member_coll.get_user_in_org(&org_id, &user_id).await? {
-      None => return custom_error(Status::NotFound, "Organization not found"),
-      Some(org_user) => org_user,
-    };
-  verify_general_permission(
-    org_user.role,
-    &GeneralPermission::Organization,
-    &StandardPermission::ReadWrite,
-  )?;
+  let org_id = bson::oid::ObjectId::from_str(&org_id)?;
+
+  GeneralPermission::Organization
+    .verify_auth(db, auth, &org_id, StandardPermission::ReadWrite)
+    .await?;
+
   let profile_picture = ProfilePicture::from_data(data).await?;
   let profile_picture = profile_picture.to_square()?;
   let s3_config = CommonS3Config::new(
@@ -241,7 +236,7 @@ pub(crate) async fn update_logo(
     CONFIG.s3_region.clone(),
   );
   let extension = profile_picture.get_extension()?;
-  let filename = format!("{}.{}", user_id, extension);
+  let filename = format!("{}.{}", org_id.to_string(), extension);
   let bytes = profile_picture.get_image_bytes()?;
   // Save file in S3
   let s3 = CommonS3Bucket::new(OrganizationLogo, s3_config);

@@ -147,36 +147,3 @@ impl GeneralPermission {
     };
   }
 }
-
-#[deprecated]
-pub fn has_general_permission(
-  role: &OrganizationRole,
-  permission: &GeneralPermission,
-  ask: &StandardPermission,
-) -> bool {
-  let permission = GeneralPermission::get_organization_role(permission, role);
-  let level = get_level(&permission);
-  let ask_level = get_level(ask);
-  return level >= ask_level;
-}
-
-#[deprecated]
-pub fn verify_general_permission(
-  role: Option<OrganizationRole>,
-  permission: &GeneralPermission,
-  ask: &StandardPermission,
-) -> Result<(), ApiError> {
-  return match role {
-    None => Ok(()),
-    Some(role) => {
-      let result = has_general_permission(&role, permission, ask);
-      if result {
-        return Ok(());
-      }
-      Err(ApiError::new(
-        Status::Forbidden,
-        "You don't have the permission to do this".to_string(),
-      ))
-    }
-  };
-}

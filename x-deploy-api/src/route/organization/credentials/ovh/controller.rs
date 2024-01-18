@@ -1,3 +1,4 @@
+use crate::guard::auth::Auth;
 use crate::guard::bearer_token::BearerToken;
 use crate::permission::general::GeneralPermission;
 use crate::route::organization::credentials::ovh::dto::{
@@ -19,15 +20,14 @@ use x_deploy_common::db::CommonCollection;
 
 pub async fn new(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   body: Json<NewOvhCredentialsRequest>,
 ) -> ApiResult<SuccessMessage> {
-  let user_id = token.parse_id()?;
   let org_id = ObjectId::from_str(org_id)?;
 
   GeneralPermission::Credentials
-    .verify_and_get(db, &user_id, &org_id, &StandardPermission::ReadWrite)
+    .verify_auth(db, auth, &org_id, StandardPermission::ReadWrite)
     .await?;
 
   // Insert credential in database
@@ -47,16 +47,15 @@ pub async fn new(
 
 pub async fn get(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<OvhCredentialsInfoResponse> {
-  let user_id = token.parse_id()?;
   let org_id = ObjectId::from_str(org_id)?;
   let cred_id = ObjectId::from_str(cred_id)?;
 
   GeneralPermission::Credentials
-    .verify_and_get(db, &user_id, &org_id, &StandardPermission::Read)
+    .verify_auth(db, auth, &org_id, StandardPermission::Read)
     .await?;
 
   // Get credential from database
@@ -80,14 +79,13 @@ pub async fn get(
 
 pub async fn get_all(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
 ) -> ApiResult<Vec<OvhCredentialsInfoResponse>> {
-  let user_id = token.parse_id()?;
   let org_id = ObjectId::from_str(org_id)?;
 
   GeneralPermission::Credentials
-    .verify_and_get(db, &user_id, &org_id, &StandardPermission::Read)
+    .verify_auth(db, auth, &org_id, StandardPermission::Read)
     .await?;
 
   // Get credentials from database
@@ -110,16 +108,15 @@ pub async fn get_all(
 
 pub async fn delete(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<SuccessMessage> {
-  let user_id = token.parse_id()?;
   let org_id = ObjectId::from_str(org_id)?;
   let cred_id = ObjectId::from_str(cred_id)?;
 
   GeneralPermission::Credentials
-    .verify_and_get(db, &user_id, &org_id, &StandardPermission::ReadWrite)
+    .verify_auth(db, auth, &org_id, StandardPermission::ReadWrite)
     .await?;
 
   let org_cred_ovh = CommonCollection::<OrganizationCredentialOvh>::new(db);
@@ -135,17 +132,16 @@ pub async fn delete(
 
 pub async fn update(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   cred_id: &str,
   body: Json<UpdateOvhCredentialsRequest>,
 ) -> ApiResult<SuccessMessage> {
-  let user_id = token.parse_id()?;
   let org_id = ObjectId::from_str(org_id)?;
   let cred_id = ObjectId::from_str(cred_id)?;
 
   GeneralPermission::Credentials
-    .verify_and_get(db, &user_id, &org_id, &StandardPermission::ReadWrite)
+    .verify_auth(db, auth, &org_id, StandardPermission::ReadWrite)
     .await?;
 
   // Get credential from database

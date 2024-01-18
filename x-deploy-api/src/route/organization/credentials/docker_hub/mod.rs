@@ -1,3 +1,4 @@
+use crate::guard::auth::Auth;
 use crate::guard::bearer_token::BearerToken;
 use crate::route::organization::credentials::docker_hub::dto::{
   DockerHubInfoResponse, NewDockerHubRequest, UpdateDockerHubCredentialsRequest,
@@ -16,6 +17,10 @@ pub(crate) mod dto;
   operation_id = "Create Docker Hub Credentials",
   path = "/organization/<org_id>/credentials/docker-hub",
   tag = "Organization Credentials Docker Hub",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 201, description = "Successfully created new Docker Hub credential", body = SuccessMessage),
   ),
@@ -27,11 +32,11 @@ pub(crate) mod dto;
 )]
 pub(crate) async fn new(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   body: Json<NewDockerHubRequest>,
 ) -> ApiResult<SuccessMessage> {
-  controller::new(db, token, org_id, body).await
+  controller::new(db, auth, org_id, body).await
 }
 
 #[utoipa::path(
@@ -39,6 +44,10 @@ pub(crate) async fn new(
   operation_id = "Get Docker Hub Credentials",
   path = "/organization/<org_id>/credentials/docker-hub/<cred_id>",
   tag = "Organization Credentials Docker Hub",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Get Docker Hub credential", body = DockerHubInfoResponse),
   ),
@@ -49,11 +58,11 @@ pub(crate) async fn new(
 )]
 pub(crate) async fn get(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<DockerHubInfoResponse> {
-  controller::get(db, token, org_id, cred_id).await
+  controller::get(db, auth, org_id, cred_id).await
 }
 
 #[utoipa::path(
@@ -61,6 +70,10 @@ pub(crate) async fn get(
   operation_id = "Get All Docker Hub Credentials",
   path = "/organization/<org_id>/credentials/docker-hub",
   tag = "Organization Credentials Docker Hub",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Get all Docker Hub credentials", body = Vec<DockerHubInfoResponse>),
   ),
@@ -71,10 +84,10 @@ pub(crate) async fn get(
 )]
 pub async fn get_all(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
 ) -> ApiResult<Vec<DockerHubInfoResponse>> {
-  controller::get_all(db, token, org_id).await
+  controller::get_all(db, auth, org_id).await
 }
 
 #[utoipa::path(
@@ -82,6 +95,10 @@ pub async fn get_all(
   operation_id = "Update Docker Hub Credentials",
   path = "/organization/<org_id>/credentials/docker-hub/<cred_id>",
   tag = "Organization Credentials Docker Hub",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Successfully updated Docker Hub credential", body = SuccessMessage),
   ),
@@ -94,12 +111,12 @@ pub async fn get_all(
 )]
 pub async fn update(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   cred_id: &str,
   body: Json<UpdateDockerHubCredentialsRequest>,
 ) -> ApiResult<SuccessMessage> {
-  controller::update(db, token, org_id, cred_id, body).await
+  controller::update(db, auth, org_id, cred_id, body).await
 }
 
 #[utoipa::path(
@@ -107,6 +124,10 @@ pub async fn update(
   operation_id = "Delete Docker Hub Credentials",
   path = "/organization/<org_id>/credentials/docker-hub/<cred_id>",
   tag = "Organization Credentials Docker Hub",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Successfully deleted Docker Hub credential", body = SuccessMessage),
   ),
@@ -117,9 +138,9 @@ pub async fn update(
 )]
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<SuccessMessage> {
-  controller::delete(db, token, org_id, cred_id).await
+  controller::delete(db, auth, org_id, cred_id).await
 }

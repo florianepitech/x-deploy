@@ -1,3 +1,4 @@
+use crate::guard::auth::Auth;
 use crate::guard::bearer_token::BearerToken;
 use crate::route::organization::dto::{
   CreateOrganizationRequest, DeleteOrganizationRequest,
@@ -68,6 +69,7 @@ pub(crate) async fn new(
     tag = "Organization",
     security(
       ("bearer" = []),
+      ("apiKey" = []),
     ),
     responses(
         (status = 200, description = "Get organization by id", body = OrganizationInfoResponse),
@@ -76,10 +78,10 @@ pub(crate) async fn new(
 #[get("/organization/<id>", format = "application/json")]
 pub(crate) async fn get_by_id(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   id: String,
 ) -> ApiResult<OrganizationInfoResponse> {
-  controller::get_by_id(db, token, id).await
+  controller::get_by_id(db, auth, id).await
 }
 
 #[utoipa::path(
@@ -89,6 +91,7 @@ pub(crate) async fn get_by_id(
     tag = "Organization",
     security(
       ("bearer" = []),
+      ("apiKey" = []),
     ),
     responses(
         (status = 200, description = "Update an organization by id", body = SuccessMessage),
@@ -98,11 +101,11 @@ pub(crate) async fn get_by_id(
 #[patch("/organization/<id>", format = "application/json", data = "<body>")]
 pub(crate) async fn update(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   id: String,
   body: Json<UpdateOrganizationRequest>,
 ) -> ApiResult<SuccessMessage> {
-  controller::update(db, token, id, body).await
+  controller::update(db, auth, id, body).await
 }
 
 #[utoipa::path(
@@ -112,20 +115,22 @@ pub(crate) async fn update(
     tag = "Organization",
     security(
       ("bearer" = []),
+      ("apiKey" = []),
     ),
     responses(
         (status = 200, description = "Upload organization logo by id", body = SuccessMessage),
     ),
+    request_body = Vec<u8>
 )]
 #[post("/organization/<org_id>/logo", format = "image/*", data = "<body>")]
 pub(crate) async fn update_logo(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: String,
   content_type: &ContentType,
   body: Data<'_>,
 ) -> ApiResult<SuccessMessage> {
-  controller::update_logo(db, token, org_id, content_type, body).await
+  controller::update_logo(db, auth, org_id, content_type, body).await
 }
 
 #[utoipa::path(
@@ -151,6 +156,7 @@ pub(crate) async fn delete(
   controller::delete(db, token, id, body).await
 }
 
+#[deprecated]
 #[utoipa::path(
     post,
     operation_id = "Transfer Organization",

@@ -1,15 +1,11 @@
 use crate::guard::auth::Auth;
-use crate::guard::bearer_token::BearerToken;
-use crate::permission::general::{
-  verify_general_permission, GeneralPermission,
-};
+use crate::permission::general::GeneralPermission;
 use crate::route::organization::project::dto::{
   CreateProjectRequest, ProjectInfoResponse, UpdateProjectInfoRequest,
 };
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResult, SuccessMessage,
 };
-use crate::utils::object_id::ToObjectId;
 use crate::utils::profile_picture::ProfilePicture;
 use crate::CONFIG;
 use bson::oid::ObjectId;
@@ -35,7 +31,7 @@ pub(crate) async fn new(
   let org_id = ObjectId::from_str(org_id)?;
 
   GeneralPermission::Project
-    .verify_auth(db, auth, &org_id, StandardPermission::Read)
+    .verify_auth(db, auth, &org_id, StandardPermission::ReadWrite)
     .await?;
 
   // Create project
@@ -110,108 +106,86 @@ pub(crate) async fn get_by_id(
 
 pub(crate) async fn update(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   project_id: &str,
   body: Json<UpdateProjectInfoRequest>,
 ) -> ApiResult<SuccessMessage> {
-  let user_id = token.parse_id()?;
-  let org_id = org_id.to_object_id()?;
-  let project_id = project_id.to_object_id()?;
-  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
-  let organization = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
+  let org_id = ObjectId::from_str(org_id)?;
+  let project_id = ObjectId::from_str(project_id)?;
 
-  return match organization {
-    None => custom_error(
-      Status::NotFound,
-      "You are not a member of this organization",
-    ),
-    Some(organization) => {
-      let org_project_coll = CommonCollection::<OrganizationProject>::new(db);
-      let project = org_project_coll
-        .get_with_id_of_org(&project_id, &organization.organization.id)
+  GeneralPermission::Project
+    .verify_auth(db, auth, &org_id, StandardPermission::ReadWrite)
+    .await?;
+
+  let org_project_coll = CommonCollection::<OrganizationProject>::new(db);
+  let project = org_project_coll
+    .get_with_id_of_org(&project_id, &org_id)
+    .await?;
+  return match project {
+    Some(project) => {
+      let result = org_project_coll
+        .update_info(&project.id, &body.name, &body.description)
         .await?;
-      return match project {
-        Some(project) => {
-          // TODO: Update project
-          let result = org_project_coll
-            .update_info(&project.id, &body.name, &body.description)
-            .await?;
-          if result.modified_count == 0 {
-            return custom_error(
-              Status::InternalServerError,
-              "Project not updated",
-            );
-          }
-          custom_message(Status::Ok, "Project updated")
-        }
-        None => return custom_error(Status::NotFound, "Project not found"),
-      };
+      if result.modified_count == 0 {
+        return custom_error(
+          Status::InternalServerError,
+          "Project not updated",
+        );
+      }
+      custom_message(Status::Ok, "Project updated")
     }
+    None => return custom_error(Status::NotFound, "Project not found"),
   };
 }
 
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   project_id: &str,
 ) -> ApiResult<SuccessMessage> {
-  let user_id = token.parse_id()?;
-  let org_id = org_id.to_object_id()?;
-  let project_id = project_id.to_object_id()?;
-  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
-  let organization = org_member_coll.get_user_in_org(&org_id, &user_id).await?;
+  let org_id = ObjectId::from_str(org_id)?;
+  let project_id = ObjectId::from_str(project_id)?;
 
-  return match organization {
-    None => custom_error(
-      Status::NotFound,
-      "You are not a member of this organization",
-    ),
-    Some(organization) => {
-      let org_project_coll = CommonCollection::<OrganizationProject>::new(db);
-      let project = org_project_coll
-        .get_with_id_of_org(&project_id, &organization.organization.id)
-        .await?;
-      return match project {
-        Some(project) => {
-          let result = org_project_coll.delete_by_id(&project.id).await?;
-          if result.deleted_count == 0 {
-            return custom_error(
-              Status::InternalServerError,
-              "Project not deleted",
-            );
-          }
-          custom_message(Status::Ok, "Project deleted")
-        }
-        None => return custom_error(Status::NotFound, "Project not found"),
-      };
+  GeneralPermission::Project
+    .verify_auth(db, auth, &org_id, StandardPermission::ReadWrite)
+    .await?;
+
+  let org_project_coll = CommonCollection::<OrganizationProject>::new(db);
+  let project = org_project_coll
+    .get_with_id_of_org(&project_id, &org_id)
+    .await?;
+  return match project {
+    Some(project) => {
+      let result = org_project_coll.delete_by_id(&project.id).await?;
+      if result.deleted_count == 0 {
+        return custom_error(
+          Status::InternalServerError,
+          "Project not deleted",
+        );
+      }
+      custom_message(Status::Ok, "Project deleted")
     }
+    None => return custom_error(Status::NotFound, "Project not found"),
   };
 }
 
 pub(crate) async fn update_logo(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   project_id: &str,
   content_type: &ContentType,
   data: Data<'_>,
 ) -> ApiResult<SuccessMessage> {
-  let user_id = token.parse_id()?;
-  let org_id = org_id.to_object_id()?;
-  let project_id = project_id.to_object_id()?;
-  let org_member_coll = CommonCollection::<OrganizationMember>::new(db);
-  let org_user =
-    match org_member_coll.get_user_in_org(&org_id, &user_id).await? {
-      Some(org_user) => org_user,
-      None => return custom_error(Status::NotFound, "Organization not found"),
-    };
-  verify_general_permission(
-    org_user.role,
-    &GeneralPermission::Organization,
-    &StandardPermission::ReadWrite,
-  )?;
+  let org_id = ObjectId::from_str(org_id)?;
+  let project_id = ObjectId::from_str(project_id)?;
+
+  GeneralPermission::Project
+    .verify_auth(db, auth, &org_id, StandardPermission::ReadWrite)
+    .await?;
+
   let org_project_coll = CommonCollection::<OrganizationProject>::new(db);
   let project = match org_project_coll
     .get_with_id_of_org(&project_id, &org_id)
@@ -230,7 +204,7 @@ pub(crate) async fn update_logo(
     CONFIG.s3_region.clone(),
   );
   let extension = profile_picture.get_extension()?;
-  let filename = format!("{}.{}", user_id, extension);
+  let filename = format!("{}.{}", project_id, extension);
   let bytes = profile_picture.get_image_bytes()?;
   // Save file in S3
   let s3 = CommonS3Bucket::new(ProjectLogo, s3_config);

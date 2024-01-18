@@ -1,6 +1,7 @@
 mod controller;
 pub mod dto;
 
+use crate::guard::auth::Auth;
 use crate::guard::bearer_token::BearerToken;
 use crate::route::{ApiResult, SuccessMessage};
 use dto::{
@@ -16,6 +17,10 @@ use rocket::State;
   operation_id = "Create Aws Credential",
   path = "/organization/<org_id>/credentials/aws",
   tag = "Organization Credentials Aws",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 201, description = "Successfully created new Aws credential", body = SuccessMessage),
   ),
@@ -27,11 +32,11 @@ use rocket::State;
 )]
 pub(crate) async fn new(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   body: Json<NewAwsCredentialsRequest>,
 ) -> ApiResult<SuccessMessage> {
-  controller::new(db, token, org_id, body).await
+  controller::new(db, auth, org_id, body).await
 }
 
 #[utoipa::path(
@@ -39,6 +44,10 @@ pub(crate) async fn new(
   operation_id = "Get Aws Credentials",
   path = "/organization/<org_id>/credentials/aws/<cred_id>",
   tag = "Organization Credentials Aws",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Get Aws credential", body = AwsCredentialsInfoResponse),
   ),
@@ -49,11 +58,11 @@ pub(crate) async fn new(
 )]
 pub(crate) async fn get(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<AwsCredentialsInfoResponse> {
-  controller::get(db, token, org_id, cred_id).await
+  controller::get(db, auth, org_id, cred_id).await
 }
 
 #[utoipa::path(
@@ -61,6 +70,10 @@ pub(crate) async fn get(
   operation_id = "Get All Aws Credentials",
   path = "/organization/<org_id>/credentials/aws",
   tag = "Organization Credentials Aws",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Get all Aws credentials", body = Vec<AwsCredentialsInfoResponse>),
   ),
@@ -68,10 +81,10 @@ pub(crate) async fn get(
 #[get("/organization/<org_id>/credentials/aws", format = "application/json")]
 pub async fn get_all(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
 ) -> ApiResult<Vec<AwsCredentialsInfoResponse>> {
-  controller::get_all(db, token, org_id).await
+  controller::get_all(db, auth, org_id).await
 }
 
 #[utoipa::path(
@@ -79,6 +92,10 @@ pub async fn get_all(
   operation_id = "Update Aws Credential",
   path = "/organization/<org_id>/credentials/aws/<cred_id>",
   tag = "Organization Credentials Aws",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Successfully updated Aws credential", body = SuccessMessage),
   ),
@@ -91,12 +108,12 @@ pub async fn get_all(
 )]
 pub async fn update(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   cred_id: &str,
   body: Json<UpdateAwsCredentialsRequest>,
 ) -> ApiResult<SuccessMessage> {
-  controller::update(db, token, org_id, cred_id, body).await
+  controller::update(db, auth, org_id, cred_id, body).await
 }
 
 #[utoipa::path(
@@ -104,6 +121,10 @@ pub async fn update(
   operation_id = "Delete Aws Credential",
   path = "/organization/<org_id>/credentials/aws/<cred_id>",
   tag = "Organization Credentials Aws",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Successfully deleted Aws credential", body = SuccessMessage),
   ),
@@ -114,9 +135,9 @@ pub async fn update(
 )]
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<SuccessMessage> {
-  controller::delete(db, token, org_id, cred_id).await
+  controller::delete(db, auth, org_id, cred_id).await
 }

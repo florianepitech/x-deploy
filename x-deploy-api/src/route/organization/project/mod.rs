@@ -21,6 +21,10 @@ mod environment;
   operation_id = "Get All Projects",
   path = "/organization/<org_id>/project",
   tag = "Organization Projects",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Get all projects", body = Vec<ProjectInfoResponse>),
   ),
@@ -65,6 +69,13 @@ pub(crate) async fn get_by_id(
   operation_id = "Create Project",
   path = "/organization/<org_id>/project",
   tag = "Organization Projects",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
+  responses(
+    (status = 200, description = "Create a new project", body = SuccessMessage),
+  ),
   request_body = CreateProjectRequest
 )]
 #[post(
@@ -86,6 +97,13 @@ pub(crate) async fn new(
   operation_id = "Update Project",
   path = "/organization/<org_id>/project/<project_id>",
   tag = "Organization Projects",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
+  responses(
+    (status = 200, description = "Successfully updated project", body = SuccessMessage),
+  ),
   request_body = UpdateProjectInfoRequest
 )]
 #[patch(
@@ -95,19 +113,27 @@ pub(crate) async fn new(
 )]
 pub(crate) async fn update(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   project_id: &str,
   body: Json<UpdateProjectInfoRequest>,
 ) -> ApiResult<SuccessMessage> {
-  controller::update(db, token, org_id, project_id, body).await
+  controller::update(db, auth, org_id, project_id, body).await
 }
 
 #[utoipa::path(
   post,
   operation_id = "Update Project Logo",
   path = "/organization/<org_id>/project/<project_id>/logo",
-  tag = "Organization Projects"
+  tag = "Organization Projects",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
+  responses(
+    (status = 200, description = "Successfully updated project logo", body = SuccessMessage),
+  ),
+  request_body = Vec<u8>,
 )]
 #[post(
   "/organization/<org_id>/project/<project_id>/logo",
@@ -116,13 +142,13 @@ pub(crate) async fn update(
 )]
 pub async fn update_logo(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   project_id: &str,
   content_type: &ContentType,
   body: Data<'_>,
 ) -> ApiResult<SuccessMessage> {
-  controller::update_logo(db, token, org_id, project_id, content_type, body)
+  controller::update_logo(db, auth, org_id, project_id, content_type, body)
     .await
 }
 
@@ -130,7 +156,14 @@ pub async fn update_logo(
   delete,
   operation_id = "Delete Project",
   path = "/organization/<org_id>/project/<project_id>",
-  tag = "Organization Projects"
+  tag = "Organization Projects",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
+  responses(
+    (status = 200, description = "Successfully deleted project", body = SuccessMessage),
+  ),
 )]
 #[delete(
   "/organization/<org_id>/project/<project_id>",
@@ -138,9 +171,9 @@ pub async fn update_logo(
 )]
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   project_id: &str,
 ) -> ApiResult<SuccessMessage> {
-  controller::delete(db, token, org_id, project_id).await
+  controller::delete(db, auth, org_id, project_id).await
 }

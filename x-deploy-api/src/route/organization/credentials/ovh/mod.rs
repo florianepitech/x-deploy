@@ -1,7 +1,7 @@
 mod controller;
 pub mod dto;
 
-use crate::guard::bearer_token::BearerToken;
+use crate::guard::auth::Auth;
 use crate::route::{ApiResult, SuccessMessage};
 use dto::{
   NewOvhCredentialsRequest, OvhCredentialsInfoResponse,
@@ -16,6 +16,10 @@ use rocket::State;
   operation_id = "Create Ovh Credential",
   path = "/organization/<org_id>/credentials/ovh",
   tag = "Organization Credentials Ovh",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 201, description = "Successfully created new Ovh credential", body = SuccessMessage),
   ),
@@ -27,11 +31,11 @@ use rocket::State;
 )]
 pub(crate) async fn new(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   body: Json<NewOvhCredentialsRequest>,
 ) -> ApiResult<SuccessMessage> {
-  controller::new(db, token, org_id, body).await
+  controller::new(db, auth, org_id, body).await
 }
 
 #[utoipa::path(
@@ -39,6 +43,10 @@ pub(crate) async fn new(
   operation_id = "Get Ovh Credentials",
   path = "/organization/<org_id>/credentials/ovh/<cred_id>",
   tag = "Organization Credentials Ovh",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Get Ovh credential", body = OvhCredentialsInfoResponse),
   ),
@@ -49,11 +57,11 @@ pub(crate) async fn new(
 )]
 pub(crate) async fn get(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<OvhCredentialsInfoResponse> {
-  controller::get(db, token, org_id, cred_id).await
+  controller::get(db, auth, org_id, cred_id).await
 }
 
 #[utoipa::path(
@@ -61,6 +69,10 @@ pub(crate) async fn get(
   operation_id = "Get All Ovh Credentials",
   path = "/organization/<org_id>/credentials/ovh",
   tag = "Organization Credentials Ovh",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Get all Ovh credentials", body = Vec<OvhCredentialsInfoResponse>),
   ),
@@ -68,10 +80,10 @@ pub(crate) async fn get(
 #[get("/organization/<org_id>/credentials/ovh", format = "application/json")]
 pub async fn get_all(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
 ) -> ApiResult<Vec<OvhCredentialsInfoResponse>> {
-  controller::get_all(db, token, org_id).await
+  controller::get_all(db, auth, org_id).await
 }
 
 #[utoipa::path(
@@ -79,6 +91,10 @@ pub async fn get_all(
   operation_id = "Update Ovh Credential",
   path = "/organization/<org_id>/credentials/ovh/<cred_id>",
   tag = "Organization Credentials Ovh",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Successfully updated Ovh credential", body = SuccessMessage),
   ),
@@ -91,12 +107,12 @@ pub async fn get_all(
 )]
 pub async fn update(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   cred_id: &str,
   body: Json<UpdateOvhCredentialsRequest>,
 ) -> ApiResult<SuccessMessage> {
-  controller::update(db, token, org_id, cred_id, body).await
+  controller::update(db, auth, org_id, cred_id, body).await
 }
 
 #[utoipa::path(
@@ -104,6 +120,10 @@ pub async fn update(
   operation_id = "Delete Ovh Credential",
   path = "/organization/<org_id>/credentials/ovh/<cred_id>",
   tag = "Organization Credentials Ovh",
+  security(
+    ("bearer" = []),
+    ("apiKey" = []),
+  ),
   responses(
     (status = 200, description = "Successfully deleted Ovh credential", body = SuccessMessage),
   ),
@@ -114,9 +134,9 @@ pub async fn update(
 )]
 pub(crate) async fn delete(
   db: &State<Database>,
-  token: BearerToken,
+  auth: Auth,
   org_id: &str,
   cred_id: &str,
 ) -> ApiResult<SuccessMessage> {
-  controller::delete(db, token, org_id, cred_id).await
+  controller::delete(db, auth, org_id, cred_id).await
 }

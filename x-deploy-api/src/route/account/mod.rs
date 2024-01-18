@@ -210,6 +210,7 @@ pub(crate) async fn disable_2fa(
     responses(
         (status = 200, description = "Upload profile picture", body = SuccessMessage),
     ),
+    request_body = Vec<u8>
 )]
 #[post("/account/profile-picture", format = "image/*", data = "<data>")]
 pub(crate) async fn upload_profile_picture(
