@@ -1,5 +1,4 @@
 use crate::guard::auth::Auth;
-use crate::guard::bearer_token::BearerToken;
 use crate::route::organization::project::dto::{
   CreateProjectRequest, ProjectInfoResponse, UpdateProjectInfoRequest,
 };

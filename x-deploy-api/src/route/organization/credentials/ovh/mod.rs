@@ -23,6 +23,7 @@ use rocket::State;
   responses(
     (status = 201, description = "Successfully created new Ovh credential", body = SuccessMessage),
   ),
+  request_body = NewOvhCredentialsRequest,
 )]
 #[post(
   "/organization/<org_id>/credentials/ovh",

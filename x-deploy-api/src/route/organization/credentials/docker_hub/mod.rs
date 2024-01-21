@@ -24,6 +24,7 @@ pub(crate) mod dto;
   responses(
     (status = 201, description = "Successfully created new Docker Hub credential", body = SuccessMessage),
   ),
+  request_body = NewDockerHubRequest,
 )]
 #[post(
   "/organization/<org_id>/credentials/docker-hub",

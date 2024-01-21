@@ -24,6 +24,7 @@ use rocket::State;
   responses(
     (status = 201, description = "Successfully created new Aws credential", body = SuccessMessage),
   ),
+  request_body = NewAwsCredentialsRequest,
 )]
 #[post(
   "/organization/<org_id>/credentials/aws",
