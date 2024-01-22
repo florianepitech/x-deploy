@@ -8,6 +8,8 @@ use mongodb::results::UpdateResult;
 use mongodb::{Collection, Database};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
+use crate::db::organization_member::OrganizationMember;
+use crate::db::query::cursor_to_vec;
 
 const ORGANIZATION_INVITATION_COLLECTION_NAME: &str = "organizationInvitations";
 
@@ -103,6 +105,17 @@ impl CommonCollection<OrganizationInvitation> {
     return Ok(result);
   }
 
+  pub async fn get_with_role(
+    &self,
+    org_id: &ObjectId,
+    role: &ObjectId,
+  ) -> CommonResult<Vec<OrganizationInvitation>> {
+    let filter = doc! { "organizationId": org_id, "role": role };
+    let result = self.collection.find(filter, None).await?;
+    let result = cursor_to_vec(result).await?;
+    return Ok(result);
+  }
+  
   pub async fn update_status(
     &self,
     invitation_id: &ObjectId,

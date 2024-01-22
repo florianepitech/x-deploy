@@ -1,8 +1,11 @@
+use crate::db::organization_member::OrganizationMember;
 use crate::db::query::cursor_to_vec;
 use crate::db::{CommonCollection, ToCollectionName};
 use crate::CommonResult;
-use bson::doc;
 use bson::oid::ObjectId;
+use bson::{doc, Bson};
+use log::info;
+use mongodb::results::{DeleteResult, UpdateResult};
 use serde::{Deserialize, Serialize};
 
 const ORGANIZATION_ROLE_COLLECTION_NAME: &str = "organizationRoles";
@@ -26,18 +29,7 @@ pub struct OrganizationRole {
 
   #[serde(rename = "generalPermission")]
   pub general_permission: GeneralPermission,
-  // #[serde(rename = "environmentPermissions")]
-  // pub environment_permissions: Vec<OrganizationRoleEnvironmentPermission>,
 }
-
-// #[derive(Deserialize, Serialize, Clone, Debug)]
-// pub struct OrganizationRoleEnvironmentPermission {
-//   #[serde(rename = "environmentId")]
-//   pub environment_id: ObjectId,
-//
-//   #[serde(rename = "permission")]
-//   pub permission: EnvironmentPermission,
-// }
 
 impl OrganizationRole {
   pub fn new(
@@ -70,6 +62,26 @@ pub enum ClusterPermission {
   ReadEnvironment,
 }
 
+impl Default for ClusterPermission {
+  fn default() -> Self {
+    ClusterPermission::ReadEnvironment
+  }
+}
+
+impl From<ClusterPermission> for Bson {
+  fn from(permission: ClusterPermission) -> Self {
+    match permission {
+      ClusterPermission::FullAccess => Bson::String("FULL_ACCESS".to_string()),
+      ClusterPermission::CreateEnvironment => {
+        Bson::String("CREATE_ENVIRONMENT".to_string())
+      }
+      ClusterPermission::ReadEnvironment => {
+        Bson::String("READ_ENVIRONMENT".to_string())
+      }
+    }
+  }
+}
+
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub enum StandardPermission {
   #[serde(rename = "NONE")]
@@ -80,6 +92,22 @@ pub enum StandardPermission {
 
   #[serde(rename = "READ_WRITE")]
   ReadWrite,
+}
+
+impl From<StandardPermission> for Bson {
+  fn from(permission: StandardPermission) -> Self {
+    match permission {
+      StandardPermission::None => Bson::String("NONE".to_string()),
+      StandardPermission::Read => Bson::String("READ".to_string()),
+      StandardPermission::ReadWrite => Bson::String("READ_WRITE".to_string()),
+    }
+  }
+}
+
+impl Default for StandardPermission {
+  fn default() -> Self {
+    StandardPermission::None
+  }
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
@@ -100,15 +128,9 @@ pub enum EnvironmentPermission {
   FullAccess,
 }
 
-impl Default for ClusterPermission {
+impl Default for EnvironmentPermission {
   fn default() -> Self {
-    ClusterPermission::ReadEnvironment
-  }
-}
-
-impl Default for StandardPermission {
-  fn default() -> Self {
-    StandardPermission::None
+    EnvironmentPermission::NoAccess
   }
 }
 
@@ -131,6 +153,9 @@ pub struct GeneralPermission {
 
   #[serde(rename = "credentials")]
   pub credentials: StandardPermission,
+
+  #[serde(rename = "role")]
+  pub role: StandardPermission,
 }
 
 impl Default for GeneralPermission {
@@ -142,7 +167,22 @@ impl Default for GeneralPermission {
       project: Default::default(),
       api_keys: Default::default(),
       credentials: Default::default(),
+      role: Default::default(),
     }
+  }
+}
+
+impl From<GeneralPermission> for Bson {
+  fn from(value: GeneralPermission) -> Self {
+    return Bson::from(doc! {
+      "organization": value.organization,
+      "billing": value.billing,
+      "members": value.members,
+      "project": value.project,
+      "apiKeys": value.api_keys,
+      "credentials": value.credentials,
+      "role": value.role,
+    });
   }
 }
 
@@ -165,7 +205,18 @@ impl CommonCollection<OrganizationRole> {
     Ok(roles)
   }
 
-  pub async fn get_with_id_of_org(
+  pub async fn delete_of_org(
+    &self,
+    org_id: &ObjectId,
+  ) -> CommonResult<DeleteResult> {
+    let filter = doc! {
+      "organizationId": org_id,
+    };
+    let result = self.collection.delete_many(filter, None).await?;
+    Ok(result)
+  }
+  
+  pub async fn get_with_id_and_org(
     &self,
     org_id: &ObjectId,
     role_id: &ObjectId,
@@ -175,6 +226,69 @@ impl CommonCollection<OrganizationRole> {
       "organizationId": org_id,
     };
     let result = self.collection.find_one(filter, None).await?;
+    Ok(result)
+  }
+
+  pub async fn update_general_permission(
+    &self,
+    org_id: &ObjectId,
+    role_id: &ObjectId,
+    permission: &GeneralPermission,
+  ) -> CommonResult<UpdateResult> {
+    let filter = doc! {
+      "_id": role_id,
+      "organizationId": org_id,
+    };
+    let update = doc! {
+      "$set": {
+        "generalPermission": permission,
+      }
+    };
+    let result = self.collection.update_one(filter, update, None).await?;
+    Ok(result)
+  }
+
+  pub async fn update_cluster_permission(
+    &self,
+    org_id: &ObjectId,
+    role_id: &ObjectId,
+    permission: &ClusterPermission,
+  ) -> CommonResult<UpdateResult> {
+    let filter = doc! {
+      "_id": role_id,
+      "organizationId": org_id,
+    };
+    let update = doc! {
+      "$set": {
+        "clusterPermission": permission,
+      }
+    };
+    let result = self.collection.update_one(filter, update, None).await?;
+    Ok(result)
+  }
+
+  pub async fn update_info(
+    &self,
+    org_id: &ObjectId,
+    role_id: &ObjectId,
+    name: &str,
+    description: Option<String>,
+  ) -> CommonResult<UpdateResult> {
+    let filter = doc! {
+      "_id": role_id,
+      "organizationId": org_id,
+    };
+    let bson_description = match description {
+      Some(description) => bson::Bson::String(description),
+      None => bson::Bson::Null,
+    };
+    let update = doc! {
+      "$set": {
+        "name": name,
+        "description": bson_description,
+      }
+    };
+    let result = self.collection.update_one(filter, update, None).await?;
     Ok(result)
   }
 }

@@ -40,7 +40,7 @@ pub(crate) async fn new(
     Some(role_id) => {
       let role_id = ObjectId::from_str(&role_id)?;
       let orc = CommonCollection::<OrganizationRole>::new(db);
-      let role = orc.get_with_id_of_org(&org_id, &role_id).await?;
+      let role = orc.get_with_id_and_org(&org_id, &role_id).await?;
       if let None = role {
         return custom_error(Status::NotFound, "Role not found");
       }

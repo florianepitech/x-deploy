@@ -79,7 +79,14 @@ lazy_static! {
         route::organization::api_key::delete,
         // Organization Members
         route::organization::member::get_all,
+        route::organization::member::get_by_id,
         route::organization::member::delete,
+        // Organization Role
+        route::organization::role::all,
+        route::organization::role::new,
+        route::organization::role::update,
+        route::organization::role::delete,
+        route::organization::role::get_by_id,
         // Organization Project
         route::organization::project::new,
         route::organization::project::get_all,
@@ -162,6 +169,12 @@ lazy_static! {
         route::organization::invitation::dto::OrganizationInvitationInfoUser,
         // Organization Members
         route::organization::member::dto::MemberInfoResponse,
+        // Organization Role
+        route::organization::role::dto::CreateCustomRoleRequest,
+        route::organization::role::dto::CustomRoleInfoResponse,
+        route::organization::role::dto::CustomRoleClusterPermissionInfo,
+        route::organization::role::dto::CustomRoleGeneralPermissionInfo,
+        route::organization::role::dto::UpdateCustomRoleRequest,
         // Organization Api Keys
         route::organization::api_key::dto::CreateApiKeyRequest,
         route::organization::api_key::dto::ApiKeyInfoResponse,
@@ -240,6 +253,13 @@ async fn main() -> Result<(), rocket::Error> {
     // Organization Members
     route::organization::member::get_all,
     route::organization::member::delete,
+    route::organization::member::get_by_id,
+    // Organization Role
+    route::organization::role::all,
+    route::organization::role::new,
+    route::organization::role::delete,
+    route::organization::role::get_by_id,
+    route::organization::role::update,
     // Organization Invitation
     route::organization::invitation::get_all,
     route::organization::invitation::get_by_id,

@@ -1,7 +1,7 @@
 use crate::db::organization::Organization;
 use crate::db::organization_member::OrganizationMember;
 use crate::db::organization_role::OrganizationRole;
-use crate::db::query::cursor_doc_to_vec;
+use crate::db::query::{cursor_doc_to_vec, cursor_to_vec};
 use crate::db::user::User;
 use crate::db::{CommonCollection, ToCollectionName};
 use crate::CommonResult;

@@ -118,4 +118,15 @@ impl CommonCollection<OrganizationCredentialAws> {
     let result = self.collection.update_one(filter, update, None).await?;
     return Ok(result);
   }
+
+  pub async fn delete_of_org(
+    &self,
+    org_id: &ObjectId,
+  ) -> CommonResult<DeleteResult> {
+    let filter = doc! {
+      "organizationId": org_id,
+    };
+    let result = self.collection.delete_many(filter, None).await?;
+    Ok(result)
+  }
 }

@@ -1,5 +1,10 @@
+use crate::db::organization_role::OrganizationRole;
+use crate::db::query::cursor_to_vec;
 use crate::db::{CommonCollection, ToCollectionName};
+use crate::CommonResult;
+use bson::doc;
 use bson::oid::ObjectId;
+use mongodb::results::DeleteResult;
 use serde::{Deserialize, Serialize};
 
 const ORGANIZATION_MEMBER_COLLECTION_NAME: &str = "organizationMembers";
@@ -47,5 +52,27 @@ impl ToCollectionName for OrganizationMember {
 }
 
 impl CommonCollection<OrganizationMember> {
-  // Nothing to do here
+  pub async fn get_with_role(
+    &self,
+    org_id: &ObjectId,
+    role: &ObjectId,
+  ) -> CommonResult<Vec<OrganizationMember>> {
+    let filter = doc! { "organization": org_id, "role": role };
+    let result = self.collection.find(filter, None).await?;
+    let result = cursor_to_vec(result).await?;
+    return Ok(result);
+  }
+
+  pub async fn delete_by_id_and_org(
+    &self,
+    id: &ObjectId,
+    org_id: &ObjectId,
+  ) -> CommonResult<DeleteResult> {
+    let filter = doc! {
+      "_id": id,
+      "organizationId": org_id,
+    };
+    let result = self.collection.delete_one(filter, None).await?;
+    Ok(result)
+  }
 }

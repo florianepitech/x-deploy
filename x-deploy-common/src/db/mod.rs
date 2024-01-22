@@ -14,11 +14,11 @@ pub mod organization_invitation;
 pub mod organization_member;
 pub mod organization_project;
 pub mod organization_project_cluster;
+mod organization_project_deployment;
 pub mod organization_project_environment;
 pub mod organization_role;
 pub mod query;
 pub mod user;
-mod organization_project_deployment;
 
 pub trait ToCollectionName {
   fn collection_name() -> String;

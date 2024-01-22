@@ -20,6 +20,7 @@ pub enum GeneralPermission {
   Project,
   ApiKeys,
   Credentials,
+  Roles,
 }
 
 impl GeneralPermission {
@@ -144,6 +145,7 @@ impl GeneralPermission {
         role.general_permission.organization.clone()
       }
       GeneralPermission::Project => role.general_permission.project.clone(),
+      GeneralPermission::Roles => role.general_permission.role.clone(),
     };
   }
 }

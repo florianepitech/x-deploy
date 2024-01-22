@@ -86,7 +86,7 @@ pub async fn invite_user(
   // Check if role exist in organization
   let org_role_coll = CommonCollection::<OrganizationRole>::new(db);
   let org_role =
-    match org_role_coll.get_with_id_of_org(&role_id, &org_id).await? {
+    match org_role_coll.get_with_id_and_org(&role_id, &org_id).await? {
       Some(role) => role,
       None => {
         return custom_error(

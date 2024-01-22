@@ -2,7 +2,7 @@ use crate::db::{CommonCollection, ToCollectionName};
 use crate::CommonResult;
 use bson::doc;
 use bson::oid::ObjectId;
-use mongodb::results::UpdateResult;
+use mongodb::results::{DeleteResult, UpdateResult};
 use serde::{Deserialize, Serialize};
 
 const ORGANIZATION_APIKEY_COLLECTION_NAME: &str = "organizations";
@@ -80,5 +80,16 @@ impl CommonCollection<OrganizationApiKey> {
     };
     let result = self.collection.update_one(filter, update, None).await?;
     return Ok(result);
+  }
+
+  pub async fn delete_of_org(
+    &self,
+    org_id: &ObjectId,
+  ) -> CommonResult<DeleteResult> {
+    let filter = doc! {
+      "organizationId": org_id,
+    };
+    let result = self.collection.delete_many(filter, None).await?;
+    Ok(result)
   }
 }
