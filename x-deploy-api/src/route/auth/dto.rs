@@ -19,6 +19,16 @@ pub(crate) struct LoginRequest {
 
 #[derive(Deserialize, Serialize, Debug, ToSchema, Validate)]
 #[schema(example = json!({
+  "service": "GITHUB",
+  "accessToken": "gh_ey78...",
+}))]
+pub(crate) struct LoginOAuthRequest {
+  pub(crate) service: String,
+  pub(crate) access_token: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, ToSchema, Validate)]
+#[schema(example = json!({
     "email": "john@doe.net"
 }))]
 pub(crate) struct MagicLinkRequest {

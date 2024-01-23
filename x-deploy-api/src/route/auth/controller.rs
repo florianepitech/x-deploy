@@ -1,8 +1,9 @@
 use crate::guard::bearer_token::BearerToken;
+use crate::oauth::{OAuth, OAuthService, OAuthUser};
 use crate::route::auth::dto::{
-  ForgotPasswordRequest, LoginRequest, LoginResponse, MagicLinkRequest,
-  RegisterRequest, ResetPasswordRequest, TwoFactorCodeRequest,
-  TwoFactorRecoveryRequest,
+  ForgotPasswordRequest, LoginOAuthRequest, LoginRequest, LoginResponse,
+  MagicLinkRequest, RegisterRequest, ResetPasswordRequest,
+  TwoFactorCodeRequest, TwoFactorRecoveryRequest,
 };
 use crate::route::{
   custom_error, custom_message, custom_response, ApiResult, SuccessMessage,
@@ -17,6 +18,7 @@ use mongodb::Database;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::{tokio, State};
+use std::str::FromStr;
 use validator::Validate;
 use x_deploy_common::db::user::User;
 use x_deploy_common::db::CommonCollection;
@@ -58,6 +60,19 @@ pub(crate) async fn login(
   let jwt = token.to_jwt()?;
   let response = LoginResponse { token: jwt };
   custom_response(Status::Ok, response)
+}
+
+pub(crate) async fn login_oauth(
+  db: &State<Database>,
+  body: Json<LoginOAuthRequest>,
+) -> ApiResult<LoginResponse> {
+  let body = body.into_inner();
+  let service = OAuthService::from_str(body.service.as_str())?;
+  let result: OAuthUser = OAuth::get_user(service, body.access_token).await?;
+  let fake_response = LoginResponse {
+    token: "fsedf".to_string(),
+  };
+  custom_response(Status::Ok, fake_response)
 }
 
 pub(crate) async fn magic_link(

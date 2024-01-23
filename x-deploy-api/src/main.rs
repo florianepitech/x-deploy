@@ -17,6 +17,7 @@ pub mod doc;
 mod error;
 mod fairing;
 mod guard;
+pub mod oauth;
 mod permission;
 mod route;
 pub mod utils;
@@ -40,6 +41,7 @@ lazy_static! {
     paths(
         // Auth
         route::auth::login,
+        route::auth::login_oauth,
         route::auth::magic_link,
         route::auth::register,
         route::auth::two_factor,
@@ -128,6 +130,7 @@ lazy_static! {
         route::ErrorMessage,
         // Auth
         route::auth::dto::LoginRequest,
+        route::auth::dto::LoginOAuthRequest,
         route::auth::dto::LoginResponse,
         route::auth::dto::MagicLinkRequest,
         route::auth::dto::RegisterRequest,
@@ -218,8 +221,9 @@ async fn main() -> Result<(), rocket::Error> {
 
   let routes = routes![
     // Auth
-    route::auth::register,
     route::auth::login,
+    route::auth::login_oauth,
+    route::auth::register,
     route::auth::magic_link,
     route::auth::two_factor,
     route::auth::reset_password,

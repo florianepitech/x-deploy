@@ -70,4 +70,22 @@ impl From<validator::ValidationErrors> for ApiError {
   }
 }
 
+impl From<reqwest::Error> for ApiError {
+  fn from(error: reqwest::Error) -> Self {
+    ApiError::new(
+      Status::InternalServerError,
+      format!("Could not send request to external service: {}", error),
+    )
+  }
+}
+
+impl From<serde_json::Error> for ApiError {
+  fn from(error: serde_json::Error) -> Self {
+    ApiError::new(
+      Status::InternalServerError,
+      format!("Could not parse response from external service: {}", error),
+    )
+  }
+}
+
 impl Error for ApiError {}

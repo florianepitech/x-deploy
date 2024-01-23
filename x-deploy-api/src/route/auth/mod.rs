@@ -1,7 +1,7 @@
 use crate::route::auth::dto::{
-  ForgotPasswordRequest, LoginRequest, LoginResponse, MagicLinkRequest,
-  RegisterRequest, ResetPasswordRequest, TwoFactorCodeRequest,
-  TwoFactorRecoveryRequest,
+  ForgotPasswordRequest, LoginOAuthRequest, LoginRequest, LoginResponse,
+  MagicLinkRequest, RegisterRequest, ResetPasswordRequest,
+  TwoFactorCodeRequest, TwoFactorRecoveryRequest,
 };
 use crate::route::{ApiResult, SuccessMessage};
 use bson::doc;
@@ -16,19 +16,41 @@ pub mod dto;
 #[utoipa::path(
     post,
     operation_id = "Login",
-    path = "/auth/login",
+    path = "/auth/login/credentials",
     tag = "Auth",
     responses(
         (status = 200, description = "You're now logged in", body = LoginResponse),
     ),
     request_body = LoginRequest,
 )]
-#[post("/auth/login", format = "application/json", data = "<body>")]
+#[post(
+  "/auth/login/credentials",
+  format = "application/json",
+  data = "<body>"
+)]
 pub(crate) async fn login(
   db: &State<Database>,
   body: Json<LoginRequest>,
 ) -> ApiResult<LoginResponse> {
   return controller::login(db, body).await;
+}
+
+#[utoipa::path(
+    post,
+    operation_id = "Login OAuth",
+    path = "/auth/login/oauth",
+    tag = "Auth",
+    responses(
+        (status = 200, description = "You're now logged in", body = LoginResponse),
+    ),
+    request_body = LoginOAuthRequest,
+)]
+#[post("/auth/login/oauth", format = "application/json", data = "<body>")]
+pub async fn login_oauth(
+  db: &State<Database>,
+  body: Json<LoginOAuthRequest>,
+) -> ApiResult<LoginResponse> {
+  return controller::login_oauth(db, body).await;
 }
 
 #[utoipa::path(
