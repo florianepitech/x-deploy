@@ -106,19 +106,6 @@ pub enum CustomRoleGeneralPermissionInfo {
   ReadWrite,
 }
 
-impl Into<OrganizationRole> for CreateCustomRoleRequest {
-  fn into(self) -> OrganizationRole {
-    OrganizationRole {
-      id: Default::default(),
-      name: self.name,
-      description: self.description,
-      organization_id: Default::default(),
-      cluster_permission: Default::default(),
-      general_permission: Default::default(),
-    }
-  }
-}
-
 impl Into<GeneralPermission> for UpdateCustomRoleRequest {
   fn into(self) -> GeneralPermission {
     GeneralPermission {

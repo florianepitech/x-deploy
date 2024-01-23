@@ -35,7 +35,14 @@ pub(crate) async fn new(
     .await?;
 
   let collection = CommonCollection::<OrganizationRole>::new(database);
-  let to_insert: OrganizationRole = body.into_inner().into();
+  let to_insert: OrganizationRole = OrganizationRole {
+    id: Default::default(),
+    name: body.name.clone(),
+    description: body.description.clone(),
+    organization_id: org_id.clone(),
+    cluster_permission: Default::default(),
+    general_permission: Default::default(),
+  };
   collection.insert_one(&to_insert).await?;
 
   custom_message(Status::Ok, "Role created successfully for the organization")

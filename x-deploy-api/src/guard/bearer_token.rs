@@ -142,7 +142,7 @@ impl<'r> FromRequest<'r> for BearerToken {
     if keys.len() != 1 {
       let message =
         ErrorMessage::new("Authorization header must be present".to_string());
-      return Outcome::Error((rocket::http::Status::Unauthorized, message));
+      return Outcome::Error((Status::Unauthorized, message));
     }
 
     let header = keys[0];
@@ -153,7 +153,7 @@ impl<'r> FromRequest<'r> for BearerToken {
         // Verify if token is expired
         if (token.is_expired()) {
           return Outcome::Error((
-            rocket::http::Status::Unauthorized,
+            Status::Unauthorized,
             ErrorMessage::new("Token expired, please login again.".to_string()),
           ));
         }
@@ -161,7 +161,7 @@ impl<'r> FromRequest<'r> for BearerToken {
         if let Some(otp) = token.otp {
           if !otp {
             return Outcome::Error((
-              rocket::http::Status::Unauthorized,
+              Status::Unauthorized,
               ErrorMessage::new("2FA not validated".to_string()),
             ));
           }
