@@ -31,3 +31,4 @@ regex = "1.10.2"
 chrono = { version = "0.4.31", features = ["serde"] }
 aws-region = "0.25.4"
 image = "0.24.7"
+reqwest = { workspace = true }
