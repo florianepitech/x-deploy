@@ -1,12 +1,12 @@
 use crate::oauth::OAuthUser;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct GitHubEmail {
   pub email: String,
   pub verified: bool,
   pub primary: bool,
-  pub visibility: String,
+  pub visibility: Option<String>,
 }
 
 impl GitHubEmail {

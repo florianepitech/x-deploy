@@ -75,7 +75,7 @@ pub(crate) async fn login_oauth(
     None => {
       return custom_error(
         Status::NotFound,
-        "User not found with this email, please register",
+        "User not found with this email, please register before",
       )
     }
   };
