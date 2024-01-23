@@ -69,10 +69,25 @@ pub(crate) async fn login_oauth(
   let body = body.into_inner();
   let service = OAuthService::from_str(body.service.as_str())?;
   let result: OAuthUser = OAuth::get_user(service, body.access_token).await?;
-  let fake_response = LoginResponse {
-    token: "fsedf".to_string(),
+  let collection = CommonCollection::<User>::new(db);
+  let user = match collection.find_with_email(&result.email).await? {
+    Some(user) => user,
+    None => {
+      return custom_error(
+        Status::NotFound,
+        "User not found with this email, please register",
+      )
+    }
   };
-  custom_response(Status::Ok, fake_response)
+  let two_factor: Option<bool> = if let None = user.two_factor.clone() {
+    None
+  } else {
+    Some(false)
+  };
+  let token = BearerToken::new(user.id.clone(), two_factor)?;
+  let jwt = token.to_jwt()?;
+  let response = LoginResponse { token: jwt };
+  custom_response(Status::Ok, response)
 }
 
 pub(crate) async fn magic_link(
