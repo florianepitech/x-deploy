@@ -1,5 +1,6 @@
 use crate::error::ApiError;
 use rocket::http::Status;
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 pub mod github;
@@ -17,7 +18,9 @@ impl OAuth {
   }
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum OAuthService {
+  #[serde(rename = "GITHUB")]
   Github,
 }
 

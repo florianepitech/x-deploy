@@ -1,7 +1,6 @@
 use crate::config::Config;
 use crate::doc::security::{ApiKeySecurity, BearerSecurity};
 use crate::fairing::cors::Cors;
-use crate::oauth::{OAuth, OAuthService};
 use lazy_static::lazy_static;
 use rocket::futures::StreamExt;
 use rocket::serde::Deserialize;
@@ -132,6 +131,7 @@ lazy_static! {
         // Auth
         route::auth::dto::LoginRequest,
         route::auth::dto::LoginOAuthRequest,
+        route::auth::dto::OAuthServiceType,
         route::auth::dto::LoginResponse,
         route::auth::dto::MagicLinkRequest,
         route::auth::dto::RegisterRequest,

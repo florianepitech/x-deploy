@@ -12,7 +12,7 @@ pub struct GitHubEmail {
 impl GitHubEmail {
   pub fn get_primary_email(emails: Vec<GitHubEmail>) -> Option<GitHubEmail> {
     for email in emails {
-      if email.primary {
+      if email.primary && email.verified {
         return Some(email);
       }
     }

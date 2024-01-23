@@ -67,7 +67,7 @@ pub(crate) async fn login_oauth(
   body: Json<LoginOAuthRequest>,
 ) -> ApiResult<LoginResponse> {
   let body = body.into_inner();
-  let service = OAuthService::from_str(body.service.as_str())?;
+  let service: OAuthService = body.service.into();
   let result: OAuthUser = OAuth::get_user(service, body.access_token).await?;
   let collection = CommonCollection::<User>::new(db);
   let user = match collection.find_with_email(&result.email).await? {

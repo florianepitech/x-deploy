@@ -1,3 +1,4 @@
+use crate::oauth::OAuthService;
 use rocket::serde::json::serde_json::json;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -23,8 +24,14 @@ pub(crate) struct LoginRequest {
   "accessToken": "gh_ey78...",
 }))]
 pub(crate) struct LoginOAuthRequest {
-  pub(crate) service: String,
+  pub(crate) service: OAuthServiceType,
   pub(crate) access_token: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, ToSchema)]
+pub enum OAuthServiceType {
+  #[serde(rename = "GITHUB")]
+  Github,
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema, Validate)]
@@ -130,4 +137,12 @@ pub(crate) struct ResetPasswordRequest {
 
   #[serde(rename = "newPassword")]
   pub(crate) new_password: String,
+}
+
+impl Into<OAuthService> for OAuthServiceType {
+  fn into(self) -> OAuthService {
+    match self {
+      OAuthServiceType::Github => OAuthService::Github,
+    }
+  }
 }
