@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::doc::security::{ApiKeySecurity, BearerSecurity};
 use crate::fairing::cors::Cors;
+use crate::oauth::{OAuth, OAuthService};
 use lazy_static::lazy_static;
 use rocket::futures::StreamExt;
 use rocket::serde::Deserialize;

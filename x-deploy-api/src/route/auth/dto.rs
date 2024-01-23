@@ -23,6 +23,7 @@ pub(crate) struct LoginRequest {
   "service": "GITHUB",
   "accessToken": "gh_ey78...",
 }))]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct LoginOAuthRequest {
   pub(crate) service: OAuthServiceType,
   pub(crate) access_token: String,
@@ -32,6 +33,8 @@ pub(crate) struct LoginOAuthRequest {
 pub enum OAuthServiceType {
   #[serde(rename = "GITHUB")]
   Github,
+  #[serde(rename = "GOOGLE")]
+  Google,
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema, Validate)]
@@ -143,6 +146,7 @@ impl Into<OAuthService> for OAuthServiceType {
   fn into(self) -> OAuthService {
     match self {
       OAuthServiceType::Github => OAuthService::Github,
+      OAuthServiceType::Google => OAuthService::Google,
     }
   }
 }

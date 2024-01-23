@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 pub mod github;
+mod google;
 
 pub struct OAuth;
 
@@ -14,28 +15,15 @@ impl OAuth {
   ) -> Result<OAuthUser, ApiError> {
     return match service {
       OAuthService::Github => github::get_user(access_token).await,
+      OAuthService::Google => google::get_user(access_token).await,
     };
   }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum OAuthService {
-  #[serde(rename = "GITHUB")]
   Github,
-}
-
-impl FromStr for OAuthService {
-  type Err = ApiError;
-
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
-    match s {
-      "GITHUB" => Ok(Self::Github),
-      _ => Err(ApiError::new(
-        Status::BadRequest,
-        "Invalid OAuth service".to_string(),
-      )),
-    }
-  }
+  Google,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]

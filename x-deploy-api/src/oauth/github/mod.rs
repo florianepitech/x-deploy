@@ -43,7 +43,7 @@ async fn send_get_email(
     .build()?;
   let response = client.execute(request).await?;
   let body_str = response.text().await?;
-  println!("Response body: {}", body_str);
+  debug!("Response body: {}", body_str);
   let body: Vec<GitHubEmail> = serde_json::from_str(&body_str)?;
   Ok(body)
 }
