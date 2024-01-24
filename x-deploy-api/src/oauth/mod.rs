@@ -1,9 +1,9 @@
 use crate::error::ApiError;
-use rocket::http::Status;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 pub mod github;
+mod gitlab;
 mod google;
 
 pub struct OAuth;
@@ -16,6 +16,7 @@ impl OAuth {
     return match service {
       OAuthService::Github => github::get_user(access_token).await,
       OAuthService::Google => google::get_user(access_token).await,
+      OAuthService::GitLab => gitlab::get_user(access_token).await,
     };
   }
 }
@@ -24,6 +25,7 @@ impl OAuth {
 pub enum OAuthService {
   Github,
   Google,
+  GitLab,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]

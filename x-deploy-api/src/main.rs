@@ -207,6 +207,12 @@ struct ApiDoc;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
+  let token =
+    "e13c70b28973b2d8b6280649cf2b3b2cae7a948568bbcc48164ae2a46acf2008"
+      .to_string();
+  let user_info = OAuth::get_user(OAuthService::GitLab, token).await;
+  println!("{:?}", user_info);
+
   let mongodb_client =
     mongodb::Client::with_uri_str(CONFIG.mongodb_url.as_str())
       .await

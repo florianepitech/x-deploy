@@ -35,6 +35,8 @@ pub enum OAuthServiceType {
   Github,
   #[serde(rename = "GOOGLE")]
   Google,
+  #[serde(rename = "GITLAB")]
+  GitLab,
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema, Validate)]
@@ -147,6 +149,7 @@ impl Into<OAuthService> for OAuthServiceType {
     match self {
       OAuthServiceType::Github => OAuthService::Github,
       OAuthServiceType::Google => OAuthService::Google,
+      OAuthServiceType::GitLab => OAuthService::GitLab,
     }
   }
 }
